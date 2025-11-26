@@ -23,4 +23,9 @@ export const navItems = [
         route: PATHROUTES.PERFIL
 
     },
+    {
+        id:5,
+        nameToRender:"Login",
+        route: PATHROUTES.LOGIN
+    }
     ];
