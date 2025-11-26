@@ -9,7 +9,7 @@ import { navItems } from "../../helpers/navItems";
 export default function Navbar() {
   const [shrink, setShrink] = useState(false);
 
-/* TODO: logo e icono carrito chocan con la pagina web */
+
   return (
      <header
       className="
@@ -36,7 +36,6 @@ export default function Navbar() {
           
         </div>
 
-        {/* LINKS */}
         <section className="flex gap-10 text-[15px] font-medium text-gray-700">
             <nav className="flex justify-between gap-x-10 items-center px-10 py-5">
                 {navItems.map((navigationItem) => {return(
