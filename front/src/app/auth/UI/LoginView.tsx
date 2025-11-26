@@ -1,23 +1,32 @@
 'use client'
 
-import {Form, Formik } from 'formik'
+import { Form, Formik } from 'formik'
 import React from 'react'
 import FieldFormikCustom from '../../components/FieldFormikCustom/FieldFormikCustom'
 import SubmitFormikButton from '../../components/SubmitFormikButton/SubmitFormikButton'
 import { validateLoginForm } from '@/src/utils/validate'
+import Link from 'next/link'
 
 function LoginView() {
-  return (
-    <div className=''>
-        <Formik
-        /* TODO: hacer validateLoginForm y el AuthContext */
-            initialValues={{email:'' , password: ''}}
-            validationSchema={validateLoginForm}
-            onSubmit={ async (values) => {
-                alert("Login enviado "+values.email+ "  "+values.password);
-                
-            }}
-            /* validate={validateLoginForm}
+    return (
+        <div className='flex flex-col items-center justify-center bg-white'>
+
+            <p className='text-5xl mt-4 text-black'>Ingresá</p>
+
+            <p className='text-black mt-4'>¿No tienes cuenta?
+                <Link href="/auth/register" 
+                className='text-blue-500 cursor-pointer'> ¡Registrate!</Link>
+            </p>
+
+            
+            <Formik
+                initialValues={{ email: '', password: '' }}
+                validationSchema={validateLoginForm}
+                onSubmit={async (values) => {
+                    alert("Login enviado " + values.email + "  " + values.password);
+
+                }}
+            /*
             onSubmit={async (values) => {
                 const response = await login(values)
                 const {token, user} = response
@@ -25,16 +34,19 @@ function LoginView() {
                 
             }} */
             >
-            {({ errors }) => (
-            <Form className="flex flex-col justify-center items-center my-6 h-160">
-                <FieldFormikCustom label="Email" nameField="email" type="email" placeholder="johnHandcock@mail.com"/>
-                <FieldFormikCustom label="Password" nameField="password" type="password" placeholder="******"/>
-                <SubmitFormikButton text="Login" disabled={errors.email || errors.password ? true : false} />
-            </Form>
-            )}
-        </Formik>
-    </div>
-  )
+                {({ errors }) => (
+                    <Form className="flex flex-col justify-between my-6 border-2 p-7">
+
+                        <FieldFormikCustom label="Email" nameField="email" type="email" placeholder="johnHandcock@mail.com" />
+                        
+                        <FieldFormikCustom label="Contraseña" nameField="password" type="password" placeholder="******" />
+                        
+                        <SubmitFormikButton text="Ingresar" disabled={errors.email || errors.password ? true : false} />
+                    </Form>
+                )}
+            </Formik>
+        </div>
+    )
 }
 
 export default LoginView
