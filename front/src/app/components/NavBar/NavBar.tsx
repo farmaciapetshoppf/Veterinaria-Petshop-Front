@@ -13,7 +13,7 @@ export default function Navbar() {
   return (
      <header
       className="
-        fixed top-0 left-0 w-full
+        top-0 left-0 w-full
         bg-[#f5f5f5]       /* gris muy suave */
         shadow-sm z-50 transition-all duration-300
       "

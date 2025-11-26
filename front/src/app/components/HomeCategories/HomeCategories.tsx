@@ -1,10 +1,9 @@
-import Image from 'next/image'
-import React from 'react'
+
 import CardCategory from '../CardCategory/CardCategory'
 
 function HomeCategories() {
   return (
-    <div className="flex">
+    <div className="flex flex-wrap justify-center">
       <CardCategory></CardCategory>
       <CardCategory></CardCategory>
       <CardCategory></CardCategory>
