@@ -6,11 +6,11 @@ import Delivery from '../components/Delivery/Delivery'
 
 function Landing() {
     return (
-        <div className='flex items-center flex-col'>
+        <div >
 
             <Carousel />
 
-            <p className='bg-pink-300 text-white font-bold p-6 w-full flex justify-center'>
+            <p className=' flex justify-center bg-pink-300 text-white font-bold p-6 w-full'>
                 Gestiona turnos, segui el calendario de vacunacion y además distrutá de nuestra tienda
             </p>
 
