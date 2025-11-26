@@ -15,7 +15,7 @@ export default function Carousel() {
     const next = () => setIndex((p) => (p + 1) % slides.length)
     const prev = () =>
         setIndex((p) => (p - 1 + slides.length) % slides.length)
-    const goTo = (i) => setIndex(i)
+    const goTo = (i: number) => setIndex(i)
 
     useEffect(() => {
         timeoutRef.current = setTimeout(() => next(), 4000)
