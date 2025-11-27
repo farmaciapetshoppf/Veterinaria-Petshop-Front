@@ -7,10 +7,14 @@ import SubmitFormikButton from '../../components/SubmitFormikButton/SubmitFormik
 import { validateLoginForm } from '@/src/utils/validate'
 import Link from 'next/link'
 import { signIn, useSession } from 'next-auth/react'
+import Image from 'next/image'
+import googleLogo from "@/src/assets/googleLogo.png"
 
 function LoginView() {
 
     const {data: session}=  useSession()
+    /* Llega a traerme lo de google */
+    console.log(session?.user);
 
     return (
         <div className='flex flex-col items-center justify-center bg-white'>
@@ -47,8 +51,14 @@ function LoginView() {
 
                         <SubmitFormikButton text="Ingresar" disabled={errors.email || errors.password ? true : false} />
 
-                        <button onClick={() => signIn()} className='bg-sky-600 p-3 w-1/2 flex self-center justify-center'>
-                            Sign In with Google
+                        <button onClick={() => signIn()} className='bg-sky-600 hover:bg-sky-700
+                        p-3 w-52 flex self-center rounded
+                        justify-center cursor-pointer'>
+                            <Image src={googleLogo} 
+                            width={25} height={25} alt='Google Logo'
+                            className='mr-5 w-7 h-7 self-center'
+                            />
+                            Ingresá con Google
                         </button>
                     </Form>
                 )}
