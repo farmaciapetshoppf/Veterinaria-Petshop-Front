@@ -6,19 +6,27 @@ import FieldFormikCustom from '../../components/FieldFormikCustom/FieldFormikCus
 import SubmitFormikButton from '../../components/SubmitFormikButton/SubmitFormikButton'
 import { validateLoginForm } from '@/src/utils/validate'
 import Link from 'next/link'
+import { signIn, useSession } from 'next-auth/react'
+import Image from 'next/image'
+import googleLogo from "@/src/assets/googleLogo.png"
 
 function LoginView() {
+
+    const {data: session}=  useSession()
+    /* Llega a traerme lo de google */
+    console.log(session?.user);
+
     return (
         <div className='flex flex-col items-center justify-center bg-white'>
 
             <p className='text-5xl mt-4 text-black'>Ingresá</p>
 
             <p className='text-black mt-4'>¿No tienes cuenta?
-                <Link href="/auth/register" 
-                className='text-blue-500 cursor-pointer'> ¡Registrate!</Link>
+                <Link href="/auth/register"
+                    className='text-blue-500 cursor-pointer'> ¡Registrate!</Link>
             </p>
 
-            
+
             <Formik
                 initialValues={{ email: '', password: '' }}
                 validationSchema={validateLoginForm}
@@ -35,16 +43,31 @@ function LoginView() {
             }} */
             >
                 {({ errors }) => (
-                    <Form className="flex flex-col justify-between my-6 border-2 p-7">
+                    <Form className="flex flex-col justify-between my-6 border-2 border-gray-300 p-7">
 
                         <FieldFormikCustom label="Email" nameField="email" type="email" placeholder="johnHandcock@mail.com" />
-                        
+
                         <FieldFormikCustom label="Contraseña" nameField="password" type="password" placeholder="******" />
-                        
+
                         <SubmitFormikButton text="Ingresar" disabled={errors.email || errors.password ? true : false} />
+
+                        <button onClick={() => signIn()} className='bg-sky-600 hover:bg-sky-700
+                        p-3 w-52 flex self-center rounded
+                        justify-center cursor-pointer'>
+                            <Image src={googleLogo} 
+                            width={25} height={25} alt='Google Logo'
+                            className='mr-5 w-7 h-7 self-center'
+                            />
+                            Ingresá con Google
+                        </button>
                     </Form>
                 )}
+
+
+
             </Formik>
+
+
         </div>
     )
 }
