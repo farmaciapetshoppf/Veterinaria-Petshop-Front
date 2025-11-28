@@ -24,29 +24,32 @@ function RegisterView() {
             </p>
 
             <Formik
-                initialValues={{ 
+                initialValues={{
                     name: "",
                     email: "",
                     password: "",
-                    user:"",
+                    user: "",
                     phone: "",
-                    country:"",
+                    country: "",
                     address: "",
-                    city:"",
+                    city: "",
                     confirmPassword: "",
-                 }}
+                }}
                 /* TODO: quedaria agregar campos para validacion, quiza usar un campo
                  nombre y otro apellido y unirlo manualmente para mantener arquitectura nombre+apellido */
                 validationSchema={validateSchemaRegister}
+                validateOnMount={true}
 
                 onSubmit={async (values, { resetForm }) => {
-                    await register(values)
+                    // no envia el confirmPassword al backend (generaba conlfico)
+                    const { confirmPassword, ...payload } = values; 
+                    await register(payload)
                     resetForm();
-                    router.push("/auth/login") 
+                    router.push("/auth/login")
 
                 }}
             >
-                {({ errors }) => (
+                {({ isValid, isSubmitting }) => (
                     <Form
                         className="flex flex-col justify-between my-6 border-2 p-7"
                     >
@@ -58,7 +61,7 @@ function RegisterView() {
 
                         {/* <FieldFormikCustom label="Contraseña:" nameField="password" type="password" placeholder="********" /> */}
 
-                        <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********"/>
+                        <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********" />
 
                         <FieldFormikCustom label="Confirmar contraseña:" nameField="confirmPassword" type="password" placeholder="********" />
 
@@ -70,18 +73,7 @@ function RegisterView() {
 
                         <FieldFormikCustom label="Direccion:" nameField="address" type="text" placeholder="123 Av Mitre" />
 
-                        <SubmitFormikButton text="Guardar" disabled={
-                            errors.name
-                                || errors.email
-                                || errors.user
-                                || errors.password
-                                || errors.confirmPassword
-                                || errors.phone
-                                || errors.country
-                                || errors.city
-                                || errors.address
-
-                                ? true : false} />
+                        <SubmitFormikButton text="Guardar" disabled={!isValid || isSubmitting} />
                     </Form>
                 )}
             </Formik>
