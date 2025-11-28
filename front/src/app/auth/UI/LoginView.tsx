@@ -11,12 +11,13 @@ import Image from 'next/image'
 import googleLogo from "@/src/assets/googleLogo.png"
 import { useAuth } from '@/src/context/AuthContext'
 import { login } from '@/src/services/user.services'
+import PasswordFieldFormik from '../../components/PaswordField/PasswordField'
 
 function LoginView() {
 
     const { data: session } = useSession()
-    /* Llega a traerme lo de google */
-    console.log(session?.user);
+    /* Llega a traerme lo de google 
+    console.log(session?.user);*/
 
     const {setUserData} = useAuth();
 
@@ -50,7 +51,9 @@ function LoginView() {
 
                         <FieldFormikCustom label="Email" nameField="email" type="email" placeholder="johnHandcock@mail.com" />
 
-                        <FieldFormikCustom label="Contraseña" nameField="password" type="password" placeholder="******" />
+                        {/* <FieldFormikCustom label="Contraseña" nameField="password" type="password" placeholder="******" /> */}
+
+                        <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********"/>
 
                         <SubmitFormikButton text="Ingresar" disabled={errors.email || errors.password ? true : false} />
 

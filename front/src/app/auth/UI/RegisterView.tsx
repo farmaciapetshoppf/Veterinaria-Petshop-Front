@@ -1,14 +1,18 @@
 'use client'
 
 import { Form, Formik } from 'formik'
-import React from 'react'
 import FieldFormikCustom from '../../components/FieldFormikCustom/FieldFormikCustom';
 import SubmitFormikButton from '../../components/SubmitFormikButton/SubmitFormikButton';
 import { validateSchemaRegister } from '@/src/utils/validate';
 import Link from 'next/link';
 import { register } from '@/src/services/user.services';
+import { useRouter } from 'next/navigation';
+import PasswordFieldFormik from '../../components/PaswordField/PasswordField';
 
 function RegisterView() {
+
+    const router = useRouter();
+
     return (
         <div className='flex flex-col items-center justify-center bg-white'>
 
@@ -37,9 +41,9 @@ function RegisterView() {
 
                 onSubmit={async (values, { resetForm }) => {
                     await register(values)
-                    /* resetForm(); */
-                    /* router.push("/auth/login") 
-                    TODO: agregar routing */
+                    resetForm();
+                    router.push("/auth/login") 
+
                 }}
             >
                 {({ errors }) => (
@@ -52,7 +56,9 @@ function RegisterView() {
 
                         <FieldFormikCustom label="Nombre de usuario:" nameField="user" type="text" placeholder="JGuttierrez" />
 
-                        <FieldFormikCustom label="Contraseña:" nameField="password" type="password" placeholder="********" />
+                        {/* <FieldFormikCustom label="Contraseña:" nameField="password" type="password" placeholder="********" /> */}
+
+                        <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********"/>
 
                         <FieldFormikCustom label="Confirmar contraseña:" nameField="confirmPassword" type="password" placeholder="********" />
 
