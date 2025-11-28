@@ -9,12 +9,17 @@ import Link from 'next/link'
 import { signIn, useSession } from 'next-auth/react'
 import Image from 'next/image'
 import googleLogo from "@/src/assets/googleLogo.png"
+import { useAuth } from '@/src/context/AuthContext'
+import { login } from '@/src/services/user.services'
+import PasswordFieldFormik from '../../components/PaswordField/PasswordField'
 
 function LoginView() {
 
-    const {data: session}=  useSession()
-    /* Llega a traerme lo de google */
-    console.log(session?.user);
+    const { data: session } = useSession()
+    /* Llega a traerme lo de google 
+    console.log(session?.user);*/
+
+    const {setUserData} = useAuth();
 
     return (
         <div className='flex flex-col items-center justify-center bg-white'>
@@ -30,33 +35,34 @@ function LoginView() {
             <Formik
                 initialValues={{ email: '', password: '' }}
                 validationSchema={validateLoginForm}
-                onSubmit={async (values) => {
+                /* onSubmit={async (values) => {
                     alert("Login enviado " + values.email + "  " + values.password);
 
+                }} */
+
+                onSubmit={async (values) => {
+                    const response = await login(values)
+                    const { token, user } = response
+                    setUserData({ token, user })
                 }}
-            /*
-            onSubmit={async (values) => {
-                const response = await login(values)
-                const {token, user} = response
-                setUserData({token,user})
-                
-            }} */
             >
                 {({ errors }) => (
                     <Form className="flex flex-col justify-between my-6 border-2 border-gray-300 p-7">
 
                         <FieldFormikCustom label="Email" nameField="email" type="email" placeholder="johnHandcock@mail.com" />
 
-                        <FieldFormikCustom label="Contraseña" nameField="password" type="password" placeholder="******" />
+                        {/* <FieldFormikCustom label="Contraseña" nameField="password" type="password" placeholder="******" /> */}
+
+                        <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********"/>
 
                         <SubmitFormikButton text="Ingresar" disabled={errors.email || errors.password ? true : false} />
 
                         <button onClick={() => signIn()} className='bg-sky-600 hover:bg-sky-700
                         p-3 w-52 flex self-center rounded
                         justify-center cursor-pointer'>
-                            <Image src={googleLogo} 
-                            width={25} height={25} alt='Google Logo'
-                            className='mr-5 w-7 h-7 self-center'
+                            <Image src={googleLogo}
+                                width={25} height={25} alt='Google Logo'
+                                className='mr-5 w-7 h-7 self-center'
                             />
                             Ingresá con Google
                         </button>

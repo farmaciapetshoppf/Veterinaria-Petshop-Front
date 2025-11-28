@@ -71,7 +71,7 @@ export default function Carousel() {
                     <button
                         key={i}
                         onClick={() => goTo(i)}
-                        className={`w-3 h-3 rounded-full transition ${index === i ? "bg-gray-800" : "bg-gray-300"
+                        className={`w-3 h-3 rounded-full transition ${index === i ? "bg-orange-500" : "bg-gray-300"
                             }`}
                     />
                 ))}
