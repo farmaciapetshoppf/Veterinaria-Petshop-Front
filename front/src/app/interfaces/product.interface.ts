@@ -7,5 +7,6 @@ export interface IProduct {
     price: number;
     stock: number;
     image: string | StaticImageData;
+    images?: (string | StaticImageData)[]; // Galería de imágenes adicionales
     categoryId: number;
 }

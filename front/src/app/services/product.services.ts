@@ -16,6 +16,7 @@ const MOCK_PRODUCTS: IProduct[] = [
         price: 45.99,
         stock: 50,
         image: alimento,
+        images: [alimento, collar, juguete, cucha], // Galería de imágenes
         categoryId: 1
     },
     {
@@ -25,6 +26,7 @@ const MOCK_PRODUCTS: IProduct[] = [
         price: 19.99,
         stock: 30,
         image: collar,
+        images: [collar, alimento, shampoo],
         categoryId: 2
     },
     {
@@ -34,6 +36,7 @@ const MOCK_PRODUCTS: IProduct[] = [
         price: 24.50,
         stock: 25,
         image: juguete,
+        images: [juguete, collar, trasladador],
         categoryId: 3
     },
     {
@@ -43,6 +46,7 @@ const MOCK_PRODUCTS: IProduct[] = [
         price: 89.99,
         stock: 15,
         image: cucha,
+        images: [cucha, shampoo, alimento],
         categoryId: 4
     },
     {
@@ -52,6 +56,7 @@ const MOCK_PRODUCTS: IProduct[] = [
         price: 15.99,
         stock: 40,
         image: shampoo,
+        images: [shampoo, collar, juguete],
         categoryId: 5
     },
     {
@@ -61,6 +66,7 @@ const MOCK_PRODUCTS: IProduct[] = [
         price: 65.00,
         stock: 20,
         image: trasladador,
+        images: [trasladador, cucha, collar],
         categoryId: 6
     }
 ];

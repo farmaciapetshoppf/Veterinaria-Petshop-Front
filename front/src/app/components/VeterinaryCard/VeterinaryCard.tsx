@@ -8,9 +8,8 @@ interface VeterinaryCardProps {
 }
 
 function VeterinaryCard({ veterinary }: VeterinaryCardProps) {
-  const href = veterinary.id ? `/veterinary/${veterinary.id}` : undefined;
+  const href = veterinary.id ? `/veterinarians/${veterinary.id}` : undefined;
   
-  // Manejar diferentes tipos de imagen: string URL, objeto StaticImageData, o fallback
   let imageSrc: string | any = '/next.svg';
   if (veterinary.image) {
     if (typeof veterinary.image === 'string') {
@@ -20,13 +19,12 @@ function VeterinaryCard({ veterinary }: VeterinaryCardProps) {
         imageSrc = `${process.env.NEXT_PUBLIC_API_URL}${veterinary.image}`;
       }
     } else {
-      // Es un objeto StaticImageData de Next.js
       imageSrc = veterinary.image;
     }
   }
 
   const content = (
-    <div className="max-w-sm bg-linear-to-br from-white via-blue-50 to-blue-200 p-4 rounded-lg shadow hover:shadow-xl transition-transform hover:scale-105 cursor-pointer flex flex-col">
+    <div className="max-w-sm bg-linear-to-br from-white via-amber-50 to-amber-100 p-4 rounded-lg shadow hover:shadow-xl transition-transform hover:scale-105 cursor-pointer flex flex-col">
       <div className="w-full aspect-square overflow-hidden rounded-full bg-gray-50 relative mx-auto" style={{ maxWidth: '200px' }}>
         <Image
           src={imageSrc}
@@ -42,7 +40,7 @@ function VeterinaryCard({ veterinary }: VeterinaryCardProps) {
         <h3 className="text-lg font-semibold text-gray-900">
           {veterinary.name}
         </h3>
-        <p className="text-sm text-blue-600 font-medium mt-1">
+        <p className="text-sm text-amber-500 font-medium mt-1">
           {veterinary.specialty}
         </p>
         <p className="text-sm text-gray-600 mt-2 line-clamp-3">
@@ -54,13 +52,7 @@ function VeterinaryCard({ veterinary }: VeterinaryCardProps) {
         <span className="text-xs text-gray-600">
           {veterinary.experience} años exp.
         </span>
-        <span className={`text-xs font-medium px-2 py-1 rounded ${
-          veterinary.available 
-            ? 'bg-green-100 text-green-700' 
-            : 'bg-red-100 text-red-700'
-        }`}>
-          {veterinary.available ? 'Disponible' : 'No disponible'}
-        </span>
+      
       </div>
     </div>
   );

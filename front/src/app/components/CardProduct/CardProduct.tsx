@@ -26,7 +26,7 @@ function Card({product}: CardProps) {
   }
 
    const content = (
-    <div className="max-w-sm bg-linear-to-br from-white via-gray-100 to-orange-300 p-4 rounded-lg shadow hover:shadow-xl transition-transform hover:scale-105 cursor-pointer flex flex-col">
+    <div className="max-w-sm bg-linear-to-br from-white via-gray-100 to-amber-100 p-4 rounded-lg shadow hover:shadow-xl transition-transform hover:scale-105 cursor-pointer flex flex-col">
       <div className="w-full aspect-4/3 overflow-hidden rounded-md bg-gray-50 relative">
         
         <Image
@@ -46,7 +46,7 @@ function Card({product}: CardProps) {
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-900">${product.price}</p>
+        <p className="text-lg font-medium text-gray-900">${product.price}</p>
         <span className="text-xs text-gray-500">Stock: {product.stock}</span>
       </div>
     </div>

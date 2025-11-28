@@ -33,7 +33,7 @@ const MOCK_VETERINARIANS: IVeterinary[] = [
         description: "Especializado en el tratamiento de problemas de piel y alergias en animales",
         image: juan,
         experience: 6,
-        available: false
+        available: true
     },
     {
         id: 4,
