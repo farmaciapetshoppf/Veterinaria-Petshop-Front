@@ -28,13 +28,14 @@ function LoginView() {
 
             <p className='text-black mt-4'>¿No tienes cuenta?
                 <Link href="/auth/register"
-                    className='text-blue-500 cursor-pointer'> ¡Registrate!</Link>
+                    className='text-blue-400 cursor-pointer'> ¡Registrate!</Link>
             </p>
 
 
             <Formik
                 initialValues={{ email: '', password: '' }}
                 validationSchema={validateLoginForm}
+                validateOnMount={true}
                 /* onSubmit={async (values) => {
                     alert("Login enviado " + values.email + "  " + values.password);
 
@@ -46,7 +47,7 @@ function LoginView() {
                     setUserData({ token, user })
                 }}
             >
-                {({ errors }) => (
+                {({ isValid, isSubmitting }) => (
                     <Form className="flex flex-col justify-between my-6 border-2 border-gray-300 p-7">
 
                         <FieldFormikCustom label="Email" nameField="email" type="email" placeholder="johnHandcock@mail.com" />
@@ -55,9 +56,10 @@ function LoginView() {
 
                         <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********"/>
 
-                        <SubmitFormikButton text="Ingresar" disabled={errors.email || errors.password ? true : false} />
+                        <SubmitFormikButton text="Ingresar" 
+                        disabled={!isValid || isSubmitting} />
 
-                        <button onClick={() => signIn()} className='bg-sky-600 hover:bg-sky-700
+                        <button onClick={() => signIn()} className='bg-sky-400 hover:bg-sky-500
                         p-3 w-52 flex self-center rounded
                         justify-center cursor-pointer'>
                             <Image src={googleLogo}
