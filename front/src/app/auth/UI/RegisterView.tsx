@@ -16,14 +16,14 @@ function RegisterView() {
     const router = useRouter();
 
     return (
-        <div className='flex justify-evenly items-center bg-orange-300
+        <div className='flex justify-evenly items-center bg-orange-200
          rounded-2xl'>
             <div className='hidden mt-20 lg:block'> {/* se oculta cuando el width es menor a 1024px */}
                 <Image src={dogCat} alt="dogCat" width={350} height={350} className='rounded-2xl' />
             </div>
 
 
-            <div className='flex flex-col items-center justify-center bg-orange-300 pt-20'>
+            <div className='flex flex-col items-center justify-center bg-orange-200 pt-20'>
 
                 <p className='text-5xl mt-4 text-black'>Crear una cuenta</p>
 
