@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Card from "../components/CardProduct/CardProduct";
-import { IProduct } from "../interfaces/product.interface";
+import { IProduct } from '@/src/types';
 import Image from 'next/image';
 import bannerstore from "../../assets/bannerstore.png"
 
@@ -40,9 +40,9 @@ export default function StoreClient({ initialProducts }: StoreClientProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 pt-20">
+    <div className="flex flex-col min-h-screen bg-orange-200 pt-20">
       {/* Banner con imagen */}
-      <div className="w-full bg-amber-100 shadow-lg mb-8 h-64 overflow-hidden">
+      <div className="w-full bg-amber-00 shadow-lg mb-8 h-64 overflow-hidden">
         <div className="w-full h-full">
           <Image
             src={bannerstore}
