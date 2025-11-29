@@ -25,7 +25,7 @@ export const navItems = [
     },
     {
         id:5,
-        nameToRender:"Ingresá",
+        nameToRender:"Ingresar",
         route: PATHROUTES.LOGIN
     }
     ];

@@ -5,6 +5,8 @@ import Navbar from "./components/NavBar/NavBar";
 import { AuthProvider } from "../context/AuthContext";
 import { Providers } from "./providers/Providers";
 import Footer from "./components/Footer/Footer";
+/* import { Providers } from "./providers/Providers"; TODO: eliminar cuando ya tengamos el del back*/ 
+import { CartProvider } from "../context/CartContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,13 +34,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* TODO: 19.57 https://www.youtube.com/watch?v=YCEnpcCYlyo*/}
-        <Providers>
+        <CartProvider>
           <AuthProvider>
             <Navbar />
             {children}
             <Footer/>
           </AuthProvider>
-        </Providers>
+        </CartProvider>
       </body>
     </html>
   );

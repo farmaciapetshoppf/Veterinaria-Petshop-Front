@@ -1,4 +1,4 @@
-import { StaticImageData } from 'next/image';
+/* import { StaticImageData } from 'next/image';
 
 export interface IProduct {
     id: number;
@@ -9,4 +9,4 @@ export interface IProduct {
     image: string | StaticImageData;
     images?: (string | StaticImageData)[]; // Galería de imágenes adicionales
     categoryId: number;
-}
+} */

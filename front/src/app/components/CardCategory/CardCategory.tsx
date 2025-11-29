@@ -8,7 +8,9 @@ function CardCategory() {
     m-4 rounded-2xl h-50 w-40 flex items-center justify-center
     ">
       <div>
-        <Button className="text-black ">categoria</Button>
+        {/* <Button className="text-black ">categoria</Button> */}
+        {/* TODO: descomentar despues */}
+        <p>Catergoria</p>
       </div>
     </div>
   )

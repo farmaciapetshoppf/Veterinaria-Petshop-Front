@@ -1,13 +1,14 @@
-import Image from 'next/image'
+import Image, { StaticImageData } from 'next/image'
 import React from 'react'
 
-function CardLogistics() {
+function CardLogistics({img, text} : {img: StaticImageData | string , text: string}) {
     return (
-        <div className='flex items-center flex-col'>
-            <div className='mr-2 flex justify-center items-center bg-amber-200 w-52 h-52 rounded-full'>
-                <Image src="https://placehold.co/100x100/png" width={100} height={100} alt="aa" />
+        <div className='flex flex-col items-center  mr-5'>
+            <div className=' flex justify-center items-center bg-orange-500 
+            mb-4  w-40 h-40 rounded-full'>
+                <Image src={img} width={150} height={150} alt="aa" />
             </div>
-            <p>Retiro</p>
+            <p className='text-2xl'>{text}</p>
         </div>
     )
 }

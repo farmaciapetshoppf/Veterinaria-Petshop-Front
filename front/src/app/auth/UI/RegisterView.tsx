@@ -8,83 +8,85 @@ import Link from 'next/link';
 import { register } from '@/src/services/user.services';
 import { useRouter } from 'next/navigation';
 import PasswordFieldFormik from '../../components/PaswordField/PasswordField';
+import dogCat from "@/src/assets/dogPC.jpg"
+import Image from 'next/image';
 
 function RegisterView() {
 
     const router = useRouter();
 
     return (
-        <div className='flex flex-col items-center justify-center bg-white'>
+        <div className='flex justify-evenly items-center bg-orange-300
+         rounded-2xl'>
+            <div className='hidden mt-20 lg:block'> {/* se oculta cuando el width es menor a 1024px */}
+                <Image src={dogCat} alt="dogCat" width={350} height={350} className='rounded-2xl' />
+            </div>
 
-            <p className='text-5xl mt-4 text-black'>Crear una cuenta</p>
 
-            <p className='text-black '>¿Ya tiene cuenta?
-                <Link href="/auth/login"
-                    className='text-blue-500 cursor-pointer'> ¡Inicia Sesion!</Link>
-            </p>
+            <div className='flex flex-col items-center justify-center bg-orange-300 pt-20'>
 
-            <Formik
-                initialValues={{ 
-                    name: "",
-                    email: "",
-                    password: "",
-                    user:"",
-                    phone: "",
-                    country:"",
-                    address: "",
-                    city:"",
-                    confirmPassword: "",
-                 }}
-                /* TODO: quedaria agregar campos para validacion, quiza usar un campo
-                 nombre y otro apellido y unirlo manualmente para mantener arquitectura nombre+apellido */
-                validationSchema={validateSchemaRegister}
+                <p className='text-5xl mt-4 text-black'>Crear una cuenta</p>
 
-                onSubmit={async (values, { resetForm }) => {
-                    await register(values)
-                    resetForm();
-                    router.push("/auth/login") 
+                <p className='text-black '>¿Ya tiene cuenta?
+                    <Link href="/auth/login"
+                        className='text-blue-500 cursor-pointer'> ¡Inicia Sesion!</Link>
+                </p>
 
-                }}
-            >
-                {({ errors }) => (
-                    <Form
-                        className="flex flex-col justify-between my-6 border-2 p-7"
-                    >
-                        <FieldFormikCustom label="Nombre y Apellido:" nameField="name" type="text" placeholder="Juan Gutierrez" />
+                <Formik
+                    initialValues={{
+                        name: "",
+                        email: "",
+                        password: "",
+                        user: "",
+                        phone: "",
+                        country: "",
+                        address: "",
+                        city: "",
+                        confirmPassword: "",
+                    }}
+                    /* TODO: quedaria agregar campos para validacion, quiza usar un campo
+                     nombre y otro apellido y unirlo manualmente para mantener arquitectura nombre+apellido */
+                    validationSchema={validateSchemaRegister}
+                    validateOnMount={true}
 
-                        <FieldFormikCustom label="Email:" nameField="email" type="email" placeholder="juanGutierrez82@mail.com" />
+                    onSubmit={async (values, { resetForm }) => {
+                        // no envia el confirmPassword al backend (generaba conlfico)
+                        const { confirmPassword, ...payload } = values;
+                        await register(payload)
+                        resetForm();
+                        router.push("/auth/login")
 
-                        <FieldFormikCustom label="Nombre de usuario:" nameField="user" type="text" placeholder="JGuttierrez" />
+                    }}
+                >
+                    {({ isValid, isSubmitting }) => (
+                        <Form
+                            className="flex flex-col justify-between my-6 border-2 rounded-2xl bg-white border-gray-300"
+                        >
+                            <FieldFormikCustom label="Nombre y Apellido:" nameField="name" type="text" placeholder="Juan Gutierrez" />
 
-                        {/* <FieldFormikCustom label="Contraseña:" nameField="password" type="password" placeholder="********" /> */}
+                            <FieldFormikCustom label="Email:" nameField="email" type="email" placeholder="juanGutierrez82@mail.com" />
 
-                        <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********"/>
+                            <FieldFormikCustom label="Nombre de usuario:" nameField="user" type="text" placeholder="JGuttierrez" />
 
-                        <FieldFormikCustom label="Confirmar contraseña:" nameField="confirmPassword" type="password" placeholder="********" />
+                            {/* <FieldFormikCustom label="Contraseña:" nameField="password" type="password" placeholder="********" /> */}
 
-                        <FieldFormikCustom label="Numero de telefono:" nameField="phone" type="text" placeholder="155 555 5555" />
+                            <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********" />
 
-                        <FieldFormikCustom label="Pais:" nameField="country" type="text" placeholder="Argentina" />
+                            <FieldFormikCustom label="Confirmar contraseña:" nameField="confirmPassword" type="password" placeholder="********" />
 
-                        <FieldFormikCustom label="Ciudad:" nameField="city" type="text" placeholder="" />
+                            <FieldFormikCustom label="Numero de telefono:" nameField="phone" type="text" placeholder="155 555 5555" />
 
-                        <FieldFormikCustom label="Direccion:" nameField="address" type="text" placeholder="123 Av Mitre" />
+                            <FieldFormikCustom label="Pais:" nameField="country" type="text" placeholder="Argentina" />
 
-                        <SubmitFormikButton text="Guardar" disabled={
-                            errors.name
-                                || errors.email
-                                || errors.user
-                                || errors.password
-                                || errors.confirmPassword
-                                || errors.phone
-                                || errors.country
-                                || errors.city
-                                || errors.address
+                            <FieldFormikCustom label="Ciudad:" nameField="city" type="text" placeholder="Pringles" />
 
-                                ? true : false} />
-                    </Form>
-                )}
-            </Formik>
+                            <FieldFormikCustom label="Direccion:" nameField="address" type="text" placeholder="Av Mitre 123" />
+
+                            <SubmitFormikButton text="Guardar" disabled={!isValid || isSubmitting} />
+                        </Form>
+                    )}
+                </Formik>
+            </div>
         </div>
     )
 }
