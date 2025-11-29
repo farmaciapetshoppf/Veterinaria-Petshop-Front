@@ -66,7 +66,7 @@ function LoginView() {
                             <SubmitFormikButton text="Ingresar"
                                 disabled={!isValid || isSubmitting} />
 
-                            <button onClick={() => signIn()} className='bg-sky-400 hover:bg-sky-500
+                            {/* <button onClick={() => signIn()} className='bg-sky-400 hover:bg-sky-500
                         p-3 w-52 flex self-center rounded
                         justify-center cursor-pointer'>
                                 <Image src={googleLogo}
@@ -74,7 +74,7 @@ function LoginView() {
                                     className='mr-5 w-7 h-7 self-center'
                                 />
                                 Ingresá con Google
-                            </button>
+                            </button> */}
                         </Form>
                     )}
 
