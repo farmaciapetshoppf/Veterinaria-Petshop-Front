@@ -4,7 +4,7 @@ export const navItems = [
     
     {
         id:1,
-        nameToRender:"Store",
+        nameToRender:"Tienda",
         route: PATHROUTES.STORE,
     },
     {
@@ -25,7 +25,7 @@ export const navItems = [
     },
     {
         id:5,
-        nameToRender:"Login",
+        nameToRender:"Ingresá",
         route: PATHROUTES.LOGIN
     }
     ];
