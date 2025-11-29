@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/NavBar/NavBar";
 import { AuthProvider } from "../context/AuthContext";
+import { Providers } from "./providers/Providers";
+import Footer from "./components/Footer/Footer";
 /* import { Providers } from "./providers/Providers"; TODO: eliminar cuando ya tengamos el del back*/ 
 import { CartProvider } from "../context/CartContext";
 
@@ -36,6 +38,7 @@ export default function RootLayout({
           <AuthProvider>
             <Navbar />
             {children}
+            <Footer/>
           </AuthProvider>
         </CartProvider>
       </body>

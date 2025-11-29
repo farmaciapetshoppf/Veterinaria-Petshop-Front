@@ -101,6 +101,7 @@ export default function VeterinaryDetailPage() {
   }
 
   return (
+    <div className="mt-12 bg-linear-to-b from-amber-50 to-white min-h-screen py-12">
     <div className="bg-linear-to-b min-h-screen py-25 bg-orange-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">

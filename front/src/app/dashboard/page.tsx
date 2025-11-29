@@ -1,11 +1,10 @@
 import React from 'react'
+import dashboard2 from '../../assets/dashboard2.png'
+import WorkInProgress from '../components/WorkInProgress/WorkInProgress'
 
-function page() {
-    return (
-        <div>
-            holi
-        </div>
-    )
+function Page() {
+    return  <WorkInProgress image={dashboard2}/>
+    
 }
 
-export default page
+export default Page
