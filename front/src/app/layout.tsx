@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/NavBar/NavBar";
 import { AuthProvider } from "../context/AuthContext";
-import { Providers } from "./providers/Providers";
+/* import { Providers } from "./providers/Providers"; TODO: eliminar cuando ya tengamos el del back*/ 
+import { CartProvider } from "../context/CartContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,12 +32,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* TODO: 19.57 https://www.youtube.com/watch?v=YCEnpcCYlyo*/}
-        <Providers>
+        <CartProvider>
           <AuthProvider>
             <Navbar />
             {children}
           </AuthProvider>
-        </Providers>
+        </CartProvider>
       </body>
     </html>
   );

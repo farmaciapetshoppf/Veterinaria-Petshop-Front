@@ -1,4 +1,4 @@
-import { StaticImageData } from 'next/image';
+/* import { StaticImageData } from 'next/image';
 
 export interface IVeterinary {
     id: number;
@@ -8,4 +8,4 @@ export interface IVeterinary {
     image: string | StaticImageData;
     experience: number; // años de experiencia
     available: boolean;
-}
+} */

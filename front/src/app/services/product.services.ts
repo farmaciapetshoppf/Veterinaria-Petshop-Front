@@ -1,4 +1,4 @@
-import { IProduct } from "../interfaces/product.interface";
+import { IProduct } from "@/src/types";
 import alimento from "../../assets/alimento.jpg";
 import juguete from "../../assets/juguete.jpg"
 import shampoo from "../../assets/shampoo.jpg"
