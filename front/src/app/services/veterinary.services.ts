@@ -1,4 +1,4 @@
-import { IVeterinary } from "../interfaces/veterinary.interface";
+import { IVeterinary } from "@/src/types";
 import ana from "../../assets/ana.jpg";
 import carlos from "../../assets/carlos.jpg"
 import juan from "../../assets/juan.jpg"
