@@ -1,3 +1,5 @@
+import { StaticImageData } from 'next/image';
+
 export interface IUserSession {
     token:string,
     user:IUser
@@ -25,4 +27,25 @@ export interface IRegister {
     country:string;
     city:string;
     address: string;
+}
+
+export interface IProduct {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    stock: number;
+    image: string | StaticImageData;
+    images?: (string | StaticImageData)[]; // Galería de imágenes adicionales
+    categoryId: number;
+}
+
+export interface IVeterinary {
+    id: number;
+    name: string;
+    specialty: string;
+    description: string;
+    image: string | StaticImageData;
+    experience: number; // años de experiencia
+    available: boolean;
 }

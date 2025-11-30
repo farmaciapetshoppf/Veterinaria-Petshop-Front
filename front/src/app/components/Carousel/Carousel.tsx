@@ -2,9 +2,9 @@
 
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
-import img1 from "../../../assets/carousel1.png"
-import img2 from "../../../assets/carousel2.png"
-import img3 from "../../../assets/carousel3.png"
+import img1 from "../../../assets/pedigree.jpeg"
+import img2 from "../../../assets/dogWithGlases.jpg"
+import img3 from "../../../assets/NavidadBanner.png"
 
 const slides = [img1, img2, img3]
 

@@ -20,19 +20,19 @@ async function ProductDetailPage({params}:ProductDetailProps) {
     : [product.image];
   
   return (
-    <div className="bg-white">
+    <div className="bg-white pt-20">
       <div className="pt-6 pb-16">
        
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+          <div className="md:grid md:grid-cols-3 md:gap-x-8">
             
             {/* Galería de imágenes - Izquierda (2 columnas) */}
-            <div className="lg:col-span-2">
+            <div className="md:col-span-2">
               <ProductGallery images={productImages} productName={product.name} />
             </div>
 
             {/* Información del producto - Derecha (1 columna) */}
-            <div className="mt-8 lg:mt-0">
+            <div className="mt-8 md:mt-0">
               {/* Título */}
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl mb-4 mt-10">
                 {product.name}

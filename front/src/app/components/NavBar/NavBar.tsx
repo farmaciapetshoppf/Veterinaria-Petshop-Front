@@ -5,18 +5,22 @@ import Huellitas3 from '../../../assets/Huellitas3.png'
 import perrocompras from '../../../assets/perrocompras.png'
 import Link from "next/link";
 import { navItems } from "../../helpers/navItems";
+import { useCart } from "@/src/context/CartContext";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const { getItemsCount } = useCart();
+  const itemsCount = getItemsCount();
+
   return (
     <header className="fixed top-0 left-0 w-full bg-[#f5f5f5] shadow-sm z-50 transition-all duration-300">
       <nav className="w-full mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-20">
-        
+
         {/* Logo */}
         <Link href="/" className="flex items-center cursor-pointer z-50 shrink-0">
-          <Image 
-            src={Huellitas3} 
+          <Image
+            src={Huellitas3}
             alt="Huellitas Pet"
             width={110}
             height={110}
@@ -25,10 +29,11 @@ export default function Navbar() {
         </Link>
 
         {/* Links Desktop - Hidden en mobile */}
-        <div className="hidden md:flex gap-8 text-[15px] font-medium text-gray-700">
+        {/* <div className="hidden md:flex gap-8 text-[15px] font-medium text-gray-700"> */}
+        <div className="hidden md:flex md:justify-center md:items-center gap-8 text-[20px] font-medium text-gray-700">
           {navItems.map((navigationItem) => (
-            <Link 
-              key={navigationItem.id} 
+            <Link
+              key={navigationItem.id}
               href={navigationItem.route}
               className="hover:text-orange-500 transition"
             >
@@ -36,16 +41,26 @@ export default function Navbar() {
             </Link>
           ))}
         </div>
-        
+
         {/* Carrito - Desktop */}
-        <Link href="/cart" className="hidden md:flex items-center cursor-pointer shrink-0">
-          <Image
-            src={perrocompras}
-            alt='cart'
-            width={90}
-            height={90}
-          />
-        </Link>
+        <div className="hidden md:flex items-center cursor-pointer shrink-0">
+          <Link href="/cart" >
+            <Image
+              src={perrocompras}
+              alt='cart'
+              width={90}
+              height={90}
+            />
+          </Link>
+          {itemsCount > 0 && (
+            <span
+              className="absolute md:top-5 md:right-12 animate-bounce bg-amber-700 text-white text-xs font-bold 
+                 w-5 h-5 flex items-center justify-center rounded-full"
+            >
+              {itemsCount}
+            </span>
+          )}
+        </div>
 
         {/* Botón Hamburguesa - Solo en Mobile */}
         <div className="md:hidden flex items-center z-50 shrink-0">
@@ -63,17 +78,16 @@ export default function Navbar() {
       </nav>
 
       {/* Menú Mobile - Desplegable */}
-      <div 
-        className={`md:hidden fixed top-20 left-0 right-0 bg-[#f5f5f5] shadow-lg transition-all duration-300 ease-in-out ${
-          isMenuOpen 
-            ? 'max-h-screen opacity-100' 
-            : 'max-h-0 opacity-0 overflow-hidden'
-        }`}
+      <div
+        className={`md:hidden fixed top-20 left-0 right-0 bg-[#f5f5f5] shadow-lg transition-all duration-300 ease-in-out ${isMenuOpen
+          ? 'max-h-screen opacity-100'
+          : 'max-h-0 opacity-0 overflow-hidden'
+          }`}
       >
         <div className="px-4 py-6 space-y-4">
           {navItems.map((navigationItem) => (
-            <Link 
-              key={navigationItem.id} 
+            <Link
+              key={navigationItem.id}
               href={navigationItem.route}
               className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium"
               onClick={() => setIsMenuOpen(false)}
@@ -81,14 +95,22 @@ export default function Navbar() {
               {navigationItem.nameToRender}
             </Link>
           ))}
-          
+
           {/* Carrito en el menú mobile */}
-          <Link 
+          <Link
             href="/cart"
             className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium border-t border-gray-300 pt-4"
             onClick={() => setIsMenuOpen(false)}
           >
             🛒 Carrito
+            {itemsCount > 0 && (
+              <span
+                className="absolute top-75 left-22 bg-amber-700 text-white text-xs font-bold 
+                 w-5 h-5 flex items-center justify-center rounded-full"
+              >
+                {itemsCount}
+              </span>
+            )}
           </Link>
         </div>
       </div>

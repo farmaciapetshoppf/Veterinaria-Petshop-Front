@@ -7,16 +7,20 @@ export default async function OurTeam() {
   const vets = await getAllVeterinarians();
   
   return (
-    <div className="flex flex-col min-h-screen items-center bg-white pt-20">
+    <div className="flex flex-col min-h-screen items-center bg-orange-200 pt-20">
+      
       {/* Banner con imagen y título */}
-      <div className="w-full bg-amber-100 shadow-lg mb-12 h-64 overflow-hidden">
-        <div className="w-full h-full flex items-center justify-between">
+      <div className="w-full bg-amber-100 shadow-lg mb-12 md:h-64 overflow-hidden">
+        <div className="w-full h-full flex md:items-center md:flex-row md:justify-between
+         flex-col items-center justify-center">
           <Image
             src={gatomedico}
             alt='banner gato'
-            className="w-1/2 h-full object-cover"
+            height={300}
+            width={300}
+            className="object-cover"
           />
-          <h1 className="text-5xl md:text-6xl font-bold text-amber-500 pr-12 mr-7 text-shadow-black  ">
+          <h1 className="text-5xl md:text-6xl font-bold text-amber-500 md:pr-12 md:mr-7 text-shadow-black ">
             Nuestro equipo
           </h1>
         </div>

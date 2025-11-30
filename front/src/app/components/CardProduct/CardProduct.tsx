@@ -1,7 +1,7 @@
 import React from "react";
 import Link from 'next/link'
 import Image from 'next/image'
-import { IProduct } from "../../interfaces/product.interface";
+import { IProduct } from "@/src/types";
 
 interface CardProps {
     product: IProduct

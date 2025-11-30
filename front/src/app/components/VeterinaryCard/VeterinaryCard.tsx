@@ -1,7 +1,7 @@
 import React from "react";
 import Link from 'next/link';
 import Image from 'next/image';
-import { IVeterinary } from "../../interfaces/veterinary.interface";
+import { IVeterinary } from "@/src/types";
 
 interface VeterinaryCardProps {
     veterinary: IVeterinary;
@@ -24,7 +24,9 @@ function VeterinaryCard({ veterinary }: VeterinaryCardProps) {
   }
 
   const content = (
-    <div className="max-w-sm bg-linear-to-br from-white via-amber-50 to-amber-100 p-4 rounded-lg shadow hover:shadow-xl transition-transform hover:scale-105 cursor-pointer flex flex-col">
+    <div className="max-w-sm bg-linear-to-br from-white via-amber-50 to-amber-100 
+    p-4 rounded-lg shadow hover:shadow-xl transition-transform hover:scale-105 cursor-pointer
+     flex flex-col">
       <div className="w-full aspect-square overflow-hidden rounded-full bg-gray-50 relative mx-auto" style={{ maxWidth: '200px' }}>
         <Image
           src={imageSrc}
