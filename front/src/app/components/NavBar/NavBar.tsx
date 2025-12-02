@@ -45,28 +45,33 @@ export default function Navbar() {
             ))}
           </div>
           
-          { userData && userData.user ? (
-            <div className="flex items-center gap-2 lg:gap-4">
-              <span className="text-sm lg:text-base max-w-[200px] lg:max-w-none truncate">
-                Hola <span className="font-semibold">{userData.user.name}</span>
-              </span>
-              <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold whitespace-nowrap text-sm lg:text-base">
-                Perfil
-              </Link>
-              <button onClick={logout} className="bg-gray-400 px-2 lg:px-3 py-1 rounded hover:bg-gray-500 transition-colors duration-200 text-sm lg:text-base whitespace-nowrap">
-                Cerrar sesión
-              </button>
-            </div>
-          ) : (
-            <Link href="/auth/login" className="hover:text-orange-500 transition-colors duration-200 whitespace-nowrap">
-              Iniciar Sesión
-            </Link>
+          { userData && userData.user && (
+            <span className="text-gray-700 whitespace-nowrap text-[16px] lg:text-[20px] font-medium">
+              Hola <span className="font-semibold">{userData.user.name}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+            </span>
           )}
         </div>
 
-        {/* Carrito - Desktop */}
-        <div className="hidden md:flex items-center cursor-pointer shrink-0">
-          <Link href="/cart" >
+        {/* Botón Cerrar Sesión y Carrito - Desktop */}
+        <div className="hidden md:flex items-center gap-3 shrink-0">
+          {userData && userData.user ? (
+            <button 
+              onClick={logout} 
+              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200 whitespace-nowrap text-sm lg:text-base font-medium"
+            >
+              Cerrar sesión
+            </button>
+          ) : (
+            <Link 
+              href="/auth/login" 
+              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200 whitespace-nowrap text-sm lg:text-base font-medium"
+            >
+              Iniciar Sesión
+            </Link>
+          )}
+          
+          {/* Carrito */}
+          <Link href="/cart" className="cursor-pointer">
             <Image
               src={perrocompras}
               alt='cart'

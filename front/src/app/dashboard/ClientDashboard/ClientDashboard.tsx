@@ -40,10 +40,15 @@ export default function ClientDashboard() {
   useEffect(() => {
     const fetchPets = async () => {
       if (userData?.user?.id) {
+        console.log('🐾 Cargando mascotas para usuario ID:', userData.user.id)
         setLoadingPets(true)
         const userPets = await getPetsByUserId(String(userData.user.id))
+        console.log('🐾 Mascotas recibidas:', userPets)
+        console.log('🐾 Tipo:', typeof userPets, 'Es array:', Array.isArray(userPets))
         setPets(Array.isArray(userPets) ? userPets : [])
         setLoadingPets(false)
+      } else {
+        console.log('❌ No hay userData o user.id')
       }
     }
 

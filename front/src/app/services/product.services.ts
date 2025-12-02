@@ -172,8 +172,13 @@ export const getAllProducts = async (): Promise<IProduct[]> => {
 
 export const getProductById = async (id: string): Promise<IProduct> => {
     const allProducts = await getAllProducts();
-    const product = allProducts.find((product) => product.id === Number(id));
+    // Comparar como string y como number para soportar ambos formatos
+    const product = allProducts.find((product) => 
+        product.id.toString() === id || product.id === Number(id)
+    );
     if (!product) {
+        console.error(`Producto con id ${id} no encontrado`);
+        console.log('IDs disponibles:', allProducts.map(p => p.id));
         throw new Error('Product no encontrado');
     }
     return product;

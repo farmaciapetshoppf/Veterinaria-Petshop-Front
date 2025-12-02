@@ -68,7 +68,7 @@ function LoginView() {
                                     name: userData.user || userData.name || response.email.split('@')[0], // user es el username
                                     email: userData.email,
                                     address: userData.address || '',
-                                    phone: userData.phone || ''
+                                    phone: userData.phone || '',
                                 }
                             })
                         } else {

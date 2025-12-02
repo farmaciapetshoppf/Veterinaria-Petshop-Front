@@ -101,7 +101,7 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
   return (
     <div className="flex flex-col min-h-screen bg-orange-200 pt-20">
       {/* Banner con imagen */}
-      <div className="w-full bg-amber-00 shadow-lg mb-8 h-64 overflow-hidden">
+      <div className="w-full bg-amber-100 shadow-lg mb-8 h-64 overflow-hidden">
         <div className="w-full h-full">
           <Image
             src={bannerstore}
