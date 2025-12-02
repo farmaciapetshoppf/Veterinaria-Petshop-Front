@@ -30,7 +30,7 @@ export interface IRegister {
 }
 
 export interface IProduct {
-    id: number;
+    id: number | string; // Puede ser número (mock) o string UUID (backend)
     name: string;
     description: string;
     price: number;
