@@ -1,17 +1,20 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Huellitas3 from '../../../assets/Huellitas3.png'
 import perrocompras from '../../../assets/perrocompras.png'
 import Link from "next/link";
 import { navItems } from "../../helpers/navItems";
 import { useCart } from "@/src/context/CartContext";
+import { useAuth } from "@/src/context/AuthContext";
+import { PATHROUTES } from "../../helpers/pathRoutes";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { getItemsCount } = useCart();
   const itemsCount = getItemsCount();
+    const {userData, logout} = useAuth();
 
   return (
     <header className="fixed top-0 left-0 w-full bg-[#f5f5f5] shadow-sm z-50 transition-all duration-300">
@@ -29,17 +32,36 @@ export default function Navbar() {
         </Link>
 
         {/* Links Desktop - Hidden en mobile */}
-        {/* <div className="hidden md:flex gap-8 text-[15px] font-medium text-gray-700"> */}
-        <div className="hidden md:flex md:justify-center md:items-center gap-8 text-[20px] font-medium text-gray-700">
-          {navItems.map((navigationItem) => (
-            <Link
-              key={navigationItem.id}
-              href={navigationItem.route}
-              className="hover:text-orange-500 transition"
-            >
-              {navigationItem.nameToRender}
+        <div className="hidden md:flex md:flex-col lg:flex-row md:justify-center md:items-center gap-4 lg:gap-8 text-[16px] lg:text-[20px] font-medium text-gray-700">
+          <div className="flex gap-4 lg:gap-8 items-center">
+            {navItems.map((navigationItem) => (
+              <Link
+                key={navigationItem.id}
+                href={navigationItem.route}
+                className="hover:text-orange-500 transition whitespace-nowrap"
+              >
+                {navigationItem.nameToRender}
+              </Link>
+            ))}
+          </div>
+          
+          { userData && userData.user ? (
+            <div className="flex items-center gap-2 lg:gap-4">
+              <span className="text-sm lg:text-base max-w-[200px] lg:max-w-none truncate">
+                Hola <span className="font-semibold">{userData.user.name}</span>
+              </span>
+              <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold whitespace-nowrap text-sm lg:text-base">
+                Perfil
+              </Link>
+              <button onClick={logout} className="bg-gray-400 px-2 lg:px-3 py-1 rounded hover:bg-gray-500 transition-colors duration-200 text-sm lg:text-base whitespace-nowrap">
+                Cerrar sesión
+              </button>
+            </div>
+          ) : (
+            <Link href="/auth/login" className="hover:text-orange-500 transition-colors duration-200 whitespace-nowrap">
+              Iniciar Sesión
             </Link>
-          ))}
+          )}
         </div>
 
         {/* Carrito - Desktop */}

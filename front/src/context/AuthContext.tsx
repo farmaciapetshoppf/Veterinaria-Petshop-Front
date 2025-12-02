@@ -35,8 +35,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
 
     /* TODO ver si este error no afecta setUserData(data)*/
     useEffect(() => {
-        const data = JSON.parse(localStorage.getItem("userSession")!)
-        setUserData(data)
+        const storedData = localStorage.getItem("userSession")
+        if (storedData) {
+            try {
+                const data = JSON.parse(storedData)
+                // Solo setear userData si tiene datos válidos
+                if (data && data.user && data.token) {
+                    setUserData(data)
+                } else {
+                    // Limpiar localStorage si los datos no son válidos
+                    localStorage.removeItem("userSession")
+                }
+            } catch (error) {
+                console.error('Error parsing userSession:', error)
+                localStorage.removeItem("userSession")
+            }
+        }
     }, [])
 
     const logout = () => {

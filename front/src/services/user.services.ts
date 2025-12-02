@@ -58,3 +58,22 @@ export async function login(userData: ILoginProps) {
         throw new Error(error)
     }
 }
+
+export async function getUserById(userId: string) {
+    try{
+        const response = await fetch(`${APIURL}/users/${userId}`, {
+            method: "GET",
+            headers: {
+                "Content-type": "application/json"
+            }
+        })
+        if(response.ok){
+            return response.json()
+        }else {
+            throw new Error("Error al obtener datos del usuario")
+        }
+    }catch(error: any){
+        console.error('Error getting user:', error)
+        return null
+    }
+}
