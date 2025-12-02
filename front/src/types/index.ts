@@ -37,7 +37,13 @@ export interface IProduct {
     stock: number;
     image: string | StaticImageData;
     images?: (string | StaticImageData)[]; // Galería de imágenes adicionales
-    categoryId: number;
+    categoryId?: number | string; // Puede ser número (mock) o string UUID (backend)
+}
+
+export interface ICategory {
+    id: number | string; // Puede ser número (mock) o string UUID (backend)
+    name: string;
+    products?: IProduct[]; // El backend incluye los productos en cada categoría
 }
 
 export interface IVeterinary {

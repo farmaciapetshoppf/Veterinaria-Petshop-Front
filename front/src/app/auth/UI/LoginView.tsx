@@ -6,6 +6,7 @@ import FieldFormikCustom from '../../components/FieldFormikCustom/FieldFormikCus
 import SubmitFormikButton from '../../components/SubmitFormikButton/SubmitFormikButton'
 import { validateLoginForm } from '@/src/utils/validate'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 /* import { signIn, useSession } from 'next-auth/react' */
 import Image from 'next/image'
 import googleLogo from "@/src/assets/googleLogo.png"
@@ -21,6 +22,7 @@ function LoginView() {
     console.log(session?.user);*/
 
     const { setUserData } = useAuth();
+    const router = useRouter();
 
     return (
         <div className='flex justify-evenly items-center bg-orange-200
@@ -50,8 +52,41 @@ function LoginView() {
 
                     onSubmit={async (values) => {
                         const response = await login(values)
-                        const { token, user } = response
-                        setUserData({ token, user })
+                        console.log('Login response inicial:', response)
+                        
+                        // Obtener datos completos del usuario
+                        const { getUserById } = await import('@/src/services/user.services')
+                        const result = await getUserById(response.id)
+                        console.log('Datos completos del usuario:', result)
+                        
+                        if (result && result.data) {
+                            const userData = result.data
+                            setUserData({ 
+                                token: response.id || '',
+                                user: {
+                                    id: userData.id,
+                                    name: userData.user || userData.name || response.email.split('@')[0], // user es el username
+                                    email: userData.email,
+                                    address: userData.address || '',
+                                    phone: userData.phone || ''
+                                }
+                            })
+                        } else {
+                            // Fallback si falla getUserById
+                            setUserData({ 
+                                token: response.id || '',
+                                user: {
+                                    id: response.id,
+                                    name: response.email.split('@')[0],
+                                    email: response.email,
+                                    address: '',
+                                    phone: ''
+                                }
+                            })
+                        }
+                        
+                        // Redirigir al home después del login exitoso
+                        router.push('/')
                     }}
                 >
                     {({ isValid, isSubmitting }) => (
