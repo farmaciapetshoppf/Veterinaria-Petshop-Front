@@ -221,5 +221,6 @@ export default function VeterinaryDetailPage() {
         </div>
       </div>
     </div>
+    </div>
   );
 }
