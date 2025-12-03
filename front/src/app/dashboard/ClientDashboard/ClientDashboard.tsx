@@ -511,7 +511,7 @@ export default function ClientDashboard() {
                 <div className="space-y-4">
                   <div className="border-b border-gray-200 pb-4">
                     <p className="text-sm text-gray-600">Mascotas registradas</p>
-                    <p className="text-2xl font-bold text-gray-900">{pets.length}</p>
+                    <p className="text-2xl font-bold text-gray-900">{userData.user.pets.length}</p>
                   </div>
 
                   <div className="border-b border-gray-200 pb-4">

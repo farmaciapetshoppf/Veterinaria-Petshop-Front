@@ -1,8 +1,8 @@
 import React from 'react'
-import { ICategory } from '@/src/types'
+import { ICategoryBasic } from '@/src/types'
 import { useRouter } from 'next/navigation'
 
-const CardCategory: React.FC<ICategory> = ({ name , img}) => {
+const CardCategory: React.FC<ICategoryBasic> = ({ name , img}) => {
 
   const router = useRouter();
 
@@ -30,11 +30,12 @@ const CardCategory: React.FC<ICategory> = ({ name , img}) => {
       <div
         className="
           absolute inset-0 
-          bg-[url('https://picsum.photos/1200/800')] 
+          bg-[${img}] 
           bg-cover bg-center
           transition-transform duration-300 
           group-hover:scale-115
         "
+        style={{ background: `url(${img})` }}
       />
 
       {/* Contenido */}

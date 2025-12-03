@@ -21,7 +21,7 @@ function LoginView() {
     const [googleLoading, setGoogleLoading] = React.useState(false);
 
     // Función para obtener datos completos del usuario después del login
-    const fetchUserData = async () => {
+    /* const fetchUserData = async () => {
         try {
             const res = await fetch(`http://localhost:3000/auth/me`, {
                 credentials: "include",
@@ -33,7 +33,6 @@ function LoginView() {
             }
 
             const user = await res.json();
-            /* console.log("✅ Datos completos del usuario:", user); */
             
             const formattedUser = {
                 user: {
@@ -51,7 +50,7 @@ function LoginView() {
             console.error("Error al obtener datos del usuario:", error);
             return null;
         }
-    };
+    }; */
 
     const handleGoogleLogin = async () => {
         try {
