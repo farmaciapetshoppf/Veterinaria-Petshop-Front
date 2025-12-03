@@ -17,7 +17,7 @@ const FieldFormikCustom: React.FC<FieldCustomProps> = ({ label, nameField, type,
         <label className='font-bold mr-3 flex self-start'>{label}</label>
 
         <Field
-          className="border-2 rounded-2xl p-2 w-80"
+          className="border-2 rounded-2xl p-2 w-80 bg-white"
           name={nameField}
           type={type}
           placeholder={placeholder}

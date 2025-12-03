@@ -5,6 +5,7 @@ import Card from "../components/CardProduct/CardProduct";
 import { IProduct, ICategory } from '@/src/types';
 import Image from 'next/image';
 import bannerstore from "../../assets/bannerstore.png"
+import { useSearchParams } from 'next/navigation';
 
 interface StoreClientProps {
   initialProducts: IProduct[];
@@ -22,9 +23,27 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
+  const searchParams = useSearchParams();
+  const categoryNameFromUrl = searchParams.get("category");
+
+  // Primera carga: si viene category en la URL, seteala
+  useEffect(() => {
+  if (categoryNameFromUrl) {
+    const normalized = categoryNameFromUrl.toLowerCase();
+
+    const found = categories.find(
+      c => c.name.toLowerCase() === normalized
+    );
+
+    if (found) {
+      setSelectedCategory(found.id);
+    }
+  }
+}, [categoryNameFromUrl, categories]);
+
   // Crear mapa de productos por categoría usando la estructura del backend
   const productsByCategory = new Map<string | number, IProduct[]>();
-  
+
   categories.forEach(cat => {
     if (cat.products && cat.products.length > 0) {
       productsByCategory.set(cat.id, cat.products);
@@ -42,13 +61,13 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
   }, [products, categories]);
 
   // Filtrar solo categorías con productos
-  const availableCategories = categories.filter(cat => 
+  const availableCategories = categories.filter(cat =>
     cat.products && cat.products.length > 0
   );
 
   // Obtener productos a filtrar (todos o de una categoría específica)
   let productsToFilter: IProduct[] = [];
-  
+
   if (selectedCategory === null) {
     // Mostrar todos los productos de todas las categorías
     productsToFilter = Array.from(productsByCategory.values()).flat();
@@ -61,15 +80,15 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
   const allFilteredProducts = productsToFilter
     .filter(product => {
       // Filtro de búsqueda
-      const matchesSearch = searchQuery === '' || 
+      const matchesSearch = searchQuery === '' ||
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       // Filtro de precio
       const min = minPrice ? parseFloat(minPrice) : 0;
       const max = maxPrice ? parseFloat(maxPrice) : Infinity;
       const matchesPrice = product.price >= min && product.price <= max;
-      
+
       return matchesSearch && matchesPrice;
     })
     .sort((a, b) => {
@@ -149,7 +168,7 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 w-full">
         <div className="lg:grid lg:grid-cols-4 lg:gap-8">
-          
+
           {/* Botón para mostrar filtros en mobile */}
           <div className="lg:hidden mb-4">
             <button
@@ -287,24 +306,23 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
                     >
                       Anterior
                     </button>
-                    
+
                     <div className="flex gap-2">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
                         // Mostrar solo algunas páginas alrededor de la actual
                         if (
-                          page === 1 || 
-                          page === totalPages || 
+                          page === 1 ||
+                          page === totalPages ||
                           (page >= currentPage - 1 && page <= currentPage + 1)
                         ) {
                           return (
                             <button
                               key={page}
                               onClick={() => setCurrentPage(page)}
-                              className={`w-10 h-10 rounded-lg transition ${
-                                currentPage === page
+                              className={`w-10 h-10 rounded-lg transition ${currentPage === page
                                   ? 'bg-orange-600 text-white font-semibold'
                                   : 'bg-white border border-gray-300 hover:bg-gray-50'
-                              }`}
+                                }`}
                             >
                               {page}
                             </button>

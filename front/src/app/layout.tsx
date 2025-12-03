@@ -33,7 +33,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* TODO: 19.57 https://www.youtube.com/watch?v=YCEnpcCYlyo*/}
         <CartProvider>
           <AuthProvider>
             <Navbar />
