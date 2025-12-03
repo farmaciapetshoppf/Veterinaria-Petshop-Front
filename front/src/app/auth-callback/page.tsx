@@ -9,7 +9,7 @@ export default function AuthCallback() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { userData, setUserData } = useAuth();
+  const {setUserData } = useAuth();
 
   useEffect(() => {
     async function processAuth() {
@@ -30,6 +30,7 @@ export default function AuthCallback() {
             name: response.name,
             address: response.address,
             phone: response.phone,
+            role: ""
           },         
         });
 

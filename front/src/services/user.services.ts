@@ -5,9 +5,6 @@ import { ILoginProps, IRegister } from "@/src/types/index";
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function register(userData: IRegister) {
-  console.log("📝 Registrando usuario:", userData);
-  console.log("🌐 API URL:", APIURL);
-
   try {
     const response = await fetch(`${APIURL}/auth/signup`, {
       method: "POST",
@@ -20,7 +17,6 @@ export async function register(userData: IRegister) {
 
     if (!response.ok) {
       const err = await response.json();
-      console.error("❌ Backend error:", err);
       throw new Error(err.message || "Register failed");
     }
 
@@ -28,16 +24,13 @@ export async function register(userData: IRegister) {
     alert("Usuario registrado con éxito");
     return result;
   } catch (error: any) {
-    console.error("❌ Error en register:", error);
-    alert("Error al registrarse: " + error.message);
+    alert("Error al registrarse, intentelo nuevamente");
     throw error;
   }
 }
 
 export async function login(userData: ILoginProps) {
-  try {
-    console.log("🔐 Intentando login con:", userData.email);
-    
+  try {  
     const response = await fetch(`${APIURL}/auth/signin`, {
       method: "POST",
       headers: {
@@ -49,17 +42,14 @@ export async function login(userData: ILoginProps) {
 
     if (!response.ok) {
       const error = await response.json();
-      console.error("❌ Error en login:", error);
       alert("Error al ingresar: " + (error.message || "Credenciales inválidas"));
       throw new Error(error.message || "Fallo al ingresar");
     }
 
     const result = await response.json();
-    console.log("✅ Login exitoso:", result);
     alert("Se ha logueado con éxito");
     return result;
   } catch (error: any) {
-    console.error("❌ Error en login:", error);
     throw error;
   }
 }
@@ -70,7 +60,6 @@ export async function getGoogleAuthUrl() {
     if (!res.ok) throw new Error("Error solicitando URL de autenticación");
     return res.json();
   } catch (error) {
-    console.error("❌ Error obteniendo Google Auth URL:", error);
     throw error;
   }
 }
@@ -86,7 +75,6 @@ export async function handleAuthCallback() {
   } else if (hash) {
     callbackUrl += `?hash=${encodeURIComponent(hash)}`;
   } else {
-    console.error("❌ No se encontró código o hash en la URL");
     throw new Error("Información de autenticación no encontrada");
   }
 
@@ -96,17 +84,15 @@ export async function handleAuthCallback() {
       credentials: "include",
     });
 
-    if (!response.ok) {
+    if (!response.ok) {/* 
       const errorData = await response.json();
-      console.error("❌ Error de autenticación:", errorData);
+      console.error("❌ Error de autenticación:", errorData); */
       throw new Error("Error en la autenticación");
     }
     
     const response2 = await response.json();
-    console.log("✅ Callback exitoso:", response2);
     return response2;
   } catch (error) {
-    console.error("❌ Error en el proceso de autenticación:", error);
     throw error;
   }
 }
@@ -128,17 +114,12 @@ export async function sendTokenToBackend(token: string) {
 
     return await response.json();
   } catch (error) {
-    console.error("❌ Error en sendTokenToBackend:", error);
     throw error;
   }
 }
 
-// FIX: Corregir getUserById para que realmente devuelva datos
 export async function getUserById(id: string) {
-  try {
-    console.log("🔍 Obteniendo usuario por ID:", id);
-    
-    // Cambiar a GET en lugar de POST
+  try {    
     const response = await fetch(`${APIURL}/users/${id}`, {
       method: "GET",
       headers: {
@@ -148,15 +129,12 @@ export async function getUserById(id: string) {
     });
 
     if (!response.ok) {
-      console.error("❌ Error al obtener usuario");
       throw new Error("Failed to get user information");
     }
 
     const userData = await response.json();
-    console.log("✅ Usuario obtenido:", userData);
     return { data: userData };
   } catch (error) {
-    console.error("❌ Error en getUserById:", error);
     throw error;
   }
 }
