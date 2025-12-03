@@ -1,4 +1,4 @@
-import { IProduct } from "@/src/types";
+import { IProduct, ICategory } from "@/src/types";
 import alimento from "../../assets/alimento.jpg";
 import juguete from "../../assets/juguete.jpg"
 import shampoo from "../../assets/shampoo.jpg"
@@ -8,7 +8,7 @@ import trasladador from "../../assets/trasladador.jpg"
 const APIURL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Mock de productos para desarrollo
-const MOCK_PRODUCTS: IProduct[] = [
+/* const MOCK_PRODUCTS: IProduct[] = [
     {
         id: 1,
         name: "Alimento Premium para Perros",
@@ -69,52 +69,157 @@ const MOCK_PRODUCTS: IProduct[] = [
         images: [trasladador, cucha, collar],
         categoryId: 6
     }
-];
+]; */
+
+// Mapeo de imágenes por categoría para productos sin imagen
+const getCategoryImage = (categoryId: number | string | undefined, name: string) => {
+    // Intentar determinar la categoría por el nombre si no hay categoryId
+    const productName = name.toLowerCase();
+    
+    if (productName.includes('alimento') || productName.includes('balanceado') || 
+        productName.includes('comida') || productName.includes('chow') || 
+        productName.includes('whiskas') || productName.includes('pedigree') || 
+        productName.includes('royal canin')) {
+        return alimento;
+    }
+    if (productName.includes('collar') || productName.includes('arnés') || productName.includes('correa')) {
+        return collar;
+    }
+    if (productName.includes('juguete') || productName.includes('pelota') || 
+        productName.includes('hueso') || productName.includes('cuerda') || 
+        productName.includes('peluche') || productName.includes('ratón')) {
+        return juguete;
+    }
+    if (productName.includes('cama') || productName.includes('cucha') || productName.includes('rascador')) {
+        return cucha;
+    }
+    if (productName.includes('shampoo') || productName.includes('acondicionador') || 
+        productName.includes('limpiador') || productName.includes('toallitas') || 
+        productName.includes('cepillo')) {
+        return shampoo;
+    }
+    if (productName.includes('transportadora') || productName.includes('trasladador')) {
+        return trasladador;
+    }
+    
+    // Por categoryId si está disponible
+    switch (categoryId) {
+        case 1: return alimento;
+        case 2: return collar;
+        case 3: return juguete;
+        case 4: return cucha;
+        case 5: return shampoo;
+        case 6: return trasladador;
+        default: return alimento; // Default genérico
+    }
+};
 
 export const getAllProducts = async (): Promise<IProduct[]> => {
-    // MOCK: Retornar productos mockeados para desarrollo
-    console.log('🔧 Usando productos mockeados para desarrollo');
-    return new Promise((resolve) => {
-        setTimeout(() => resolve(MOCK_PRODUCTS), 500); 
-    });
-
-    /* Código original comentado - descomentar cuando el API esté lista
-    if (!APIURL) {
-        
-        console.warn('NEXT_PUBLIC_API_URL is not set — getAllProducts will return an empty array. Set the env var in your deployment (e.g. Vercel) to point to the API.');
-        return [];
-    }
+/*     if (!APIURL) {
+        console.warn('NEXT_PUBLIC_API_URL is not set — usando productos mockeados');
+        return MOCK_PRODUCTS;
+    } */
 
     try {
-        const res = await fetch(`${APIURL}/products`, { method: 'GET' });
+        console.log('Obteniendo productos desde:', `${APIURL}/products`)
+        const res = await fetch(`${APIURL}/products`, { 
+            method: 'GET',
+            cache: 'no-store'
+        });
 
         if (!res.ok) {
             const text = await res.text();
             console.error(`getAllProducts: fetch failed ${res.status} ${res.statusText} — ${text.substring(0,200)}`);
-            return [];
+            console.log('🔧 Usando productos mockeados como fallback');
+            return MOCK_PRODUCTS;
         }
 
         const contentType = res.headers.get('content-type') || '';
         if (!contentType.includes('application/json')) {
             const text = await res.text();
             console.error(`getAllProducts: expected JSON but got ${contentType} — ${text.substring(0,200)}`);
-            return [];
+            console.log('🔧 Usando productos mockeados como fallback');
+            return MOCK_PRODUCTS;
         }
 
-        const products: IProduct[] = await res.json();
+        const result = await res.json();
+        console.log('Respuesta del backend:', result)
+        
+        // El backend puede devolver {data: [...]} o directamente [...]
+        let products = result.data || result;
+        
+        // Agregar imágenes a productos que no las tienen
+        products = products.map((product: IProduct) => {
+            if (!product.image) {
+                const defaultImage = getCategoryImage(product.categoryId, product.name);
+                return {
+                    ...product,
+                    image: defaultImage,
+                    images: product.images || [defaultImage]
+                };
+            }
+            return product;
+        });
+        
+        console.log(`✅ ${products.length} productos obtenidos del backend`);
         return products;
     } catch (error: any) {
         console.error('getAllProducts error:', error);
-        return [];
+        console.log('🔧 Usando productos mockeados como fallback');
+        return MOCK_PRODUCTS;
     }
-    */
 };
 
 export const getProductById = async (id: string): Promise<IProduct> => {
     const allProducts = await getAllProducts();
-    const product = allProducts.find((product) => product.id === Number(id));
+    // Comparar como string y como number para soportar ambos formatos
+    const product = allProducts.find((product) => 
+        product.id.toString() === id || product.id === Number(id)
+    );
     if (!product) {
+        console.error(`Producto con id ${id} no encontrado`);
+        console.log('IDs disponibles:', allProducts.map(p => p.id));
         throw new Error('Product no encontrado');
     }
     return product;
+};
+
+// Mock de categorías para desarrollo
+/* const MOCK_CATEGORIES: ICategory[] = [
+    { id: 1, name: 'Alimentos' },
+    { id: 2, name: 'Accesorios' },
+    { id: 3, name: 'Juguetes' },
+    { id: 4, name: 'Camas y Cuchas' },
+    { id: 5, name: 'Higiene' },
+    { id: 6, name: 'Transporte' }
+]; */
+
+export const getAllCategories = async (): Promise<ICategory[]> => {
+    if (!APIURL) {
+        console.warn('NEXT_PUBLIC_API_URL is not set — usando categorías mockeadas');
+        return MOCK_CATEGORIES;
+    }
+
+    try {
+        console.log('Obteniendo categorías desde:', `${APIURL}/categories`)
+        const res = await fetch(`${APIURL}/categories`, { 
+            method: 'GET',
+            cache: 'no-store'
+        });
+
+        if (!res.ok) {
+            console.error(`getAllCategories: fetch failed ${res.status}`);
+            console.log('🔧 Usando categorías mockeadas como fallback');
+            return MOCK_CATEGORIES;
+        }
+
+        const result = await res.json();
+        const categories = result.data || result;
+        console.log(`✅ ${categories.length} categorías obtenidas del backend`);
+        return categories;
+    } catch (error: any) {
+        console.error('getAllCategories error:', error);
+        console.log('🔧 Usando categorías mockeadas como fallback');
+        return MOCK_CATEGORIES;
+    }
 };

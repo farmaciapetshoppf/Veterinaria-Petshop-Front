@@ -21,12 +21,12 @@ export default function PasswordFieldFormik({ label, nameField, type, placeholde
         <div className="flex flex-col items-center mx-3 text-black">
 
             <div className="flex md:flex-row flex-col md:w-full mb-1 mt-2 justify-between  ">
-                <label className="font-bold mr-3 flex self-start">{label}</label>
+                <label className="font-bold mr-3 flex self-start ">{label}</label>
                 <input
                     {...field}
                     type={type}
                     placeholder={placeholder}
-                    className={`border-2 border-black p-2 rounded-2xl w-80
+                    className={`border-2 border-black p-2 bg-white rounded-2xl w-80
         ${meta.error && meta.touched ? "border-red-500" : ""}`}
                     onFocus={() => setShowRules(true)}
                     onBlur={() => setShowRules(false)}

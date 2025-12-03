@@ -6,10 +6,10 @@ import { useAuth } from "./AuthContext";
 interface CartContextProps {
     cartItems: IProduct[];
     addToCart: (product: IProduct) => void;
-    removeFromCart: (productId: number) => void;
+    removeFromCart: (productId: number | string) => void;
     clearCart: () => void;
     getTotal: () => number;
-    getIdItems: () => number[];
+    getIdItems: () => (number | string)[];
     getItemsCount: () => number;
 }
 
@@ -62,8 +62,8 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
 
 
     };
-    const removeFromCart = (productId: number) => {
-        setCartItems((prevItems) => prevItems.filter(item => item.id !== productId));
+    const removeFromCart = (productId: number | string) => {
+        setCartItems((prevItems) => prevItems.filter(item => item.id.toString() !== productId.toString()));
     };
     const clearCart = () => {
         setCartItems([]);
@@ -72,7 +72,14 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
         }
     };
     const getTotal = (): number => {
-        return cartItems.reduce((total, item) => total + item.price, 0);
+        return cartItems.reduce((total, item) => {
+            const price = Number(item.price);
+            if (isNaN(price)) {
+                console.warn(`Producto ${item.name} (id: ${item.id}) tiene precio inválido:`, item.price);
+                return total;
+            }
+            return total + price;
+        }, 0);
     };
 
     const getIdItems = () => {
