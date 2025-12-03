@@ -1,9 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { useAuth } from '@/src/context/AuthContext'
-import { getPetsByUserId, createPet, Pet, Appointment, NewPetData } from '@/src/app/services/pet.services'
+import { getPetsByUserId, createPet, Pet, NewPetData } from '@/src/app/services/pet.services'
 
 interface Order {
   id: string

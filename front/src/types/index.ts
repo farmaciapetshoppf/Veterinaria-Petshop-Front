@@ -6,11 +6,14 @@ export interface IUserSession {
 }
 
 interface IUser {
-    id:number,
+    id: string;
     name: string;
-    email:string;
-    address: string;
-    phone:string;
+    email: string;
+    phone: string | null;
+    address: string | null;
+    city?: string | null;
+    country?: string | null;
+    role: string;
 }
 
 export interface ILoginProps{

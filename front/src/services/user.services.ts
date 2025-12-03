@@ -1,6 +1,5 @@
-
-
 "use client";
+
 import { ILoginProps, IRegister } from "@/src/types/index";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
