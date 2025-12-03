@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { register } from '@/src/services/user.services';
 import { useRouter } from 'next/navigation';
 import PasswordFieldFormik from '../../components/PaswordField/PasswordField';
-import dogCat from "@/src/assets/dogPC.jpg"
+/* import dogCat from "@/src/assets/dogPC.jpg" */
 import background from "@/src/assets/huellasFondo.png"
 import catFood from "@/src/assets/gatoComida.png"
 import Image from 'next/image';
@@ -22,7 +22,7 @@ function RegisterView() {
         from-orange-300 via-orange-300 to-orange-200 mt-20
          rounded-2xl'>
 
-            <div className='hidden lg:block bg-orange-300 '> {/* se oculta cuando el width es menor a 1024px */}
+            <div className='hidden lg:block  '> {/* se oculta cuando el width es menor a 1024px */}
                 <Image src={catFood} alt="dogCat" width={500} height={700} className='rounded-2xl' />
             </div>
 

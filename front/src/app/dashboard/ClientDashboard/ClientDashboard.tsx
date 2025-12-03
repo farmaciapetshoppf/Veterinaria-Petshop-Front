@@ -46,7 +46,6 @@ export default function ClientDashboard() {
         setLoadingPets(false)
       }
     }
-
     fetchPets()
   }, [userData])
 
