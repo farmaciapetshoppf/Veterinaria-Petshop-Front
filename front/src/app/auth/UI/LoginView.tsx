@@ -20,38 +20,6 @@ function LoginView() {
     const router = useRouter();
     const [googleLoading, setGoogleLoading] = React.useState(false);
 
-    // Función para obtener datos completos del usuario después del login
-    /* const fetchUserData = async () => {
-        try {
-            const res = await fetch(`http://localhost:3000/auth/me`, {
-                credentials: "include",
-            });
-
-            if (!res.ok) {
-                console.error("Error al obtener datos del usuario");
-                return null;
-            }
-
-            const user = await res.json();
-            
-            const formattedUser = {
-                user: {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    phone: user.phone || null,
-                    address: user.address || null,
-                    role: user.role
-                }
-            };
-            
-            return formattedUser;
-        } catch (error) {
-            console.error("Error al obtener datos del usuario:", error);
-            return null;
-        }
-    }; */
-
     const handleGoogleLogin = async () => {
         try {
             setGoogleLoading(true);
@@ -96,20 +64,7 @@ function LoginView() {
                                 setUserData(response);
                                 await new Promise(resolve => setTimeout(resolve, 100));
                                 router.push('/');
-                            }/*  else {
-                                setUserData({
-                                    user: {
-                                        id: response.id,
-                                        name: response.email?.split('@')[0] || 'Usuario',
-                                        email: response.email,
-                                        phone: null,
-                                        address: null,
-                                        role: response.role || 'user'
-                                    },
-                                    token: ''
-                                });
-                                router.push('/');
-                            } */
+                            }
                         } catch (error) {
                             alert("Error al iniciar sesión. Por favor, intenta nuevamente.");
                         }

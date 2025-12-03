@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/src/context/AuthContext'
-import { getPetsByUserId, createPet, Pet, Appointment, NewPetData } from '@/src/app/services/pet.services'
+import { createPet, NewPetData } from '@/src/app/services/pet.services'
 import { getAllOrders } from '@/src/services/order.services'
+import { IPet } from '@/src/types'
 
 interface Order {
   id: string
@@ -21,11 +22,13 @@ interface OrderItem {
 
 export default function ClientDashboard() {
   const { userData } = useAuth()
+
   const [activeTab, setActiveTab] = useState<'profile' | 'pets' | 'orders'>('profile')
-  const [pets, setPets] = useState<Pet[]>([])
+  const [pets, setPets] = useState<IPet[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [showNewPetModal, setShowNewPetModal] = useState(false)
+
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
     nombre: '',
     especie: '',
@@ -33,45 +36,45 @@ export default function ClientDashboard() {
     tamano: 'MEDIANO',
     esterilizado: 'NO',
     status: 'VIVO',
-    fecha_nacimiento: '',
+    fecha_nacimiento: ''
   })
+
   const [creatingPet, setCreatingPet] = useState(false)
 
-
-  const getPetAge = (pet) => {
-    const start = new Date(pet.fecha_nacimiento).getTime();
+  const getPetAge = (pet: IPet) => {
+    const start = new Date(pet.fecha_nacimiento).getTime()
     const end = pet.fecha_fallecimiento
       ? new Date(pet.fecha_fallecimiento).getTime()
-      : Date.now();
+      : Date.now()
 
-    return Math.floor((end - start) / (1000 * 60 * 60 * 24 * 365.25));
-  };
-  
+    return Math.floor((end - start) / (1000 * 60 * 60 * 24 * 365.25))
+  }
 
-  // Cargar órdenes del backend
+  // Cargar mascotas desde userData al entrar al dashboard
+  useEffect(() => {
+    if (userData?.user?.pets) {
+      setPets(userData.user.pets)
+    }
+  }, [userData])
+
+  // Cargar órdenes
   useEffect(() => {
     const fetchOrders = async () => {
-      if (userData?.token) {
-        console.log('📦 Cargando órdenes del usuario')
-        setLoadingOrders(true)
-        try {
-          const userOrders = await getAllOrders(userData.token)
-          console.log('📦 Órdenes recibidas:', userOrders)
-          // El backend puede devolver {data: [...]} o directamente [...]
-          const ordersData = userOrders.data || userOrders
-          setOrders(Array.isArray(ordersData) ? ordersData : [])
-        } catch (error) {
-          console.error('Error cargando órdenes:', error)
-          setOrders([])
-        }
+      if (!userData?.token) return
+
+      setLoadingOrders(true)
+      try {
+        const userOrders = await getAllOrders(userData.token)
+        const ordersData = userOrders.data || userOrders
+        setOrders(Array.isArray(ordersData) ? ordersData : [])
+      } finally {
         setLoadingOrders(false)
       }
     }
 
     fetchOrders()
-  }, [userData])
+  }, [userData?.token])
 
-  // Si no hay usuario autenticado, mostrar mensaje
   if (!userData) {
     return (
       <div className="bg-white pt-20 min-h-screen flex items-center justify-center">
@@ -80,29 +83,17 @@ export default function ClientDashboard() {
     )
   }
 
-  // Función para crear una nueva mascota
   const handleCreatePet = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!userData?.user?.id) {
-      alert('No se pudo obtener el ID del usuario')
-      return
-    }
-
     setCreatingPet(true)
-    const petData: NewPetData = {
-      ...newPetForm,
-    }
 
-    console.log('Enviando datos de mascota:', petData)
+    const petData: NewPetData = { ...newPetForm }
 
     const newPet = await createPet(petData, String(userData.user.id))
 
     if (newPet) {
-      console.log('Mascota creada exitosamente, recargando lista...')
-      // Recargar todas las mascotas desde el backend
-      const updatedPets = await getPetsByUserId(String(userData.user.id))
-      setPets(Array.isArray(updatedPets) ? updatedPets : [])
+      // ⭐ Actualización en tiempo real
+      setPets(prev => [...prev, newPet as IPet])
 
       setShowNewPetModal(false)
       setNewPetForm({
@@ -116,7 +107,7 @@ export default function ClientDashboard() {
       })
       alert('¡Mascota creada exitosamente!')
     } else {
-      alert('Error al crear la mascota. Por favor, intenta nuevamente.')
+      alert('Error al crear la mascota.')
     }
 
     setCreatingPet(false)
@@ -215,11 +206,11 @@ export default function ClientDashboard() {
               <div className="md:col-span-2">
                 <div className="space-y-6">
                   {
-                    !userData.user.pets || userData.user.pets.length == 0 ? (
+                    pets.length == 0 ? (
                       <p className="text-gray-500 text-center py-8">No tienes mascotas registradas
                       </p>
                     ) : (
-                      userData.user.pets.map((pet) => (
+                      pets.map((pet) => (
                         <div key={pet.id} className="bg-gray-50 rounded-lg p-6">
                           <div className="flex items-start justify-between mb-4">
                             <div>
@@ -511,7 +502,7 @@ export default function ClientDashboard() {
                 <div className="space-y-4">
                   <div className="border-b border-gray-200 pb-4">
                     <p className="text-sm text-gray-600">Mascotas registradas</p>
-                    <p className="text-2xl font-bold text-gray-900">{userData.user.pets.length}</p>
+                    <p className="text-2xl font-bold text-gray-900">{pets.length}</p>
                   </div>
 
                   <div className="border-b border-gray-200 pb-4">

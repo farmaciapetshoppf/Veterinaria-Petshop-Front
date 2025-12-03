@@ -11,10 +11,13 @@ import PasswordFieldFormik from '../../components/PaswordField/PasswordField';
 import background from "@/src/assets/huellasFondo.png"
 import catFood from "@/src/assets/gatoComida.png"
 import Image from 'next/image';
+import { useState } from 'react';
+import { CitySelect, CountrySelect } from '../../components/SelectCountryCity/SelectCountryCity';
 
 function RegisterView() {
 
     const router = useRouter();
+    const [selectedCountryCode, setSelectedCountryCode] = useState(null);
 
     return (
         <div className='flex md:justify-around justify-center items-center bg-linear-to-r 
@@ -80,6 +83,18 @@ function RegisterView() {
                             <FieldFormikCustom label="Pais:" nameField="country" type="text" placeholder="Argentina" />
 
                             <FieldFormikCustom label="Ciudad:" nameField="city" type="text" placeholder="Pringles" />
+
+                            {/* <CountrySelect 
+                                label="País:" 
+                                name="country" 
+                                onCountryChange={setSelectedCountryCode}
+                            />
+
+                            <CitySelect 
+                                label="Ciudad:" 
+                                name="city" 
+                                countryCode={selectedCountryCode}
+                            /> */}
 
                             <FieldFormikCustom label="Direccion:" nameField="address" type="text" placeholder="Av Mitre 123" />
 
