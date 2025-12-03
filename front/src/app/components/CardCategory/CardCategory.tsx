@@ -2,7 +2,7 @@ import React from 'react'
 import { ICategoryBasic } from '@/src/types'
 import { useRouter } from 'next/navigation'
 
-const CardCategory: React.FC<ICategoryBasic> = ({ name , img}) => {
+const CardCategory: React.FC<ICategoryBasic> = ({ name , image}) => {
 
   const router = useRouter();
 
@@ -35,7 +35,7 @@ const CardCategory: React.FC<ICategoryBasic> = ({ name , img}) => {
           transition-transform duration-300 
           group-hover:scale-115
         "
-        style={{ background: `url(${img})` }}
+        style={{ background: `url(${image})` }}
       />
 
       {/* Contenido */}

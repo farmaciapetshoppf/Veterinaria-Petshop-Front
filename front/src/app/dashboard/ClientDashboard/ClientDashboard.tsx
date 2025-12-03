@@ -5,6 +5,7 @@ import { useAuth } from '@/src/context/AuthContext'
 import { createPet, NewPetData } from '@/src/app/services/pet.services'
 import { getAllOrders } from '@/src/services/order.services'
 import { IPet } from '@/src/types'
+import CardPet from '../../components/CardPet/CardPet'
 
 interface Order {
   id: string
@@ -40,15 +41,6 @@ export default function ClientDashboard() {
   })
 
   const [creatingPet, setCreatingPet] = useState(false)
-
-  const getPetAge = (pet: IPet) => {
-    const start = new Date(pet.fecha_nacimiento).getTime()
-    const end = pet.fecha_fallecimiento
-      ? new Date(pet.fecha_fallecimiento).getTime()
-      : Date.now()
-
-    return Math.floor((end - start) / (1000 * 60 * 60 * 24 * 365.25))
-  }
 
   // Cargar mascotas desde userData al entrar al dashboard
   useEffect(() => {
@@ -211,21 +203,9 @@ export default function ClientDashboard() {
                       </p>
                     ) : (
                       pets.map((pet) => (
-                        <div key={pet.id} className="bg-gray-50 rounded-lg p-6">
-                          <div className="flex items-start justify-between mb-4">
-                            <div>
-                              <h2 className="text-xl font-semibold text-gray-900">{pet.nombre}</h2>
-                              <p className="text-sm text-gray-600">
-                                {pet.especie} - {pet.breed} -
-                                {getPetAge(pet)} años
-                              </p>
-                            </div>
-                            <button className="text-orange-500 hover:text-orange-600 text-sm font-medium">
-                              Editar
-                            </button>
-                          </div>
-
-                          {/* Turnos de esta mascota */}
+                        <CardPet key={pet.id} {...pet} />  
+                      )))}
+                      {/* Turnos de esta mascota */}
                           {/* <div className="mt-4 border-t border-gray-200 pt-4">
                         <h3 className="text-sm font-semibold text-gray-900 mb-3">Turnos</h3>
                         <div className="space-y-3">
@@ -272,10 +252,6 @@ export default function ClientDashboard() {
                           )}
                         </div>
                       </div> */}
-                        </div>
-                      ))
-                    )}
-
                   <button
                     onClick={() => setShowNewPetModal(true)}
                     className="w-full bg-orange-500 text-white px-4 py-3 rounded-md hover:bg-orange-600 transition-colors font-medium"
