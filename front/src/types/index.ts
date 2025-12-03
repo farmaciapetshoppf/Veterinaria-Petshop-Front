@@ -90,6 +90,12 @@ export interface ICategory {
     products?: IProduct[]; // El backend incluye los productos en cada categoría
 }
 
+export interface ICategoryBasic {
+  id: number | string; // Puede ser número (mock) o string UUID (backend)
+  name: string;
+  image: string | StaticImageData;
+}
+
 export interface IVeterinary {
     id: number;
     name: string;

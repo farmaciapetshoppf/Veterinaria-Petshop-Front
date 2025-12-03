@@ -2,7 +2,7 @@ import React from 'react'
 import { ICategory } from '@/src/types'
 import { useRouter } from 'next/navigation'
 
-const CardCategory: React.FC<ICategory> = ({ name }) => {
+const CardCategory: React.FC<ICategory> = ({ name , img}) => {
 
   const router = useRouter();
 

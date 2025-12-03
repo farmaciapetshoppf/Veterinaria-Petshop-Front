@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { register } from '@/src/services/user.services';
 import { useRouter } from 'next/navigation';
 import PasswordFieldFormik from '../../components/PaswordField/PasswordField';
-/* import dogCat from "@/src/assets/dogPC.jpg" */
 import background from "@/src/assets/huellasFondo.png"
 import catFood from "@/src/assets/gatoComida.png"
 import Image from 'next/image';
@@ -50,8 +49,6 @@ function RegisterView() {
                         city: "",
                         confirmPassword: "",
                     }}
-                    /* TODO: quedaria agregar campos para validacion, quiza usar un campo
-                     nombre y otro apellido y unirlo manualmente para mantener arquitectura nombre+apellido */
                     validationSchema={validateSchemaRegister}
                     validateOnMount={true}
 
@@ -72,7 +69,7 @@ function RegisterView() {
 
                             <FieldFormikCustom label="Email:" nameField="email" type="email" placeholder="juanGutierrez82@mail.com" />
 
-                            <FieldFormikCustom label="Nombre de usuario:" nameField="user" type="text" placeholder="JGuttierrez" />
+                            {/* <FieldFormikCustom label="Nombre de usuario:" nameField="user" type="text" placeholder="JGuttierrez" /> */}
 
                             <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********" />
 

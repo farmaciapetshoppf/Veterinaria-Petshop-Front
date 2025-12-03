@@ -1,4 +1,4 @@
-import { IProduct, ICategory } from "@/src/types";
+import { IProduct, ICategory, ICategoryBasic } from "@/src/types";
 import alimento from "../../assets/alimento.jpg";
 import juguete from "../../assets/juguete.jpg"
 import shampoo from "../../assets/shampoo.jpg"
@@ -130,16 +130,16 @@ export const getAllProducts = async (): Promise<IProduct[]> => {
         if (!res.ok) {
             const text = await res.text();
             console.error(`getAllProducts: fetch failed ${res.status} ${res.statusText} — ${text.substring(0,200)}`);
-            console.log('🔧 Usando productos mockeados como fallback');
-            return MOCK_PRODUCTS;
+            /* console.log('🔧 Usando productos mockeados como fallback');
+            return MOCK_PRODUCTS; */
         }
 
         const contentType = res.headers.get('content-type') || '';
         if (!contentType.includes('application/json')) {
             const text = await res.text();
             console.error(`getAllProducts: expected JSON but got ${contentType} — ${text.substring(0,200)}`);
-            console.log('🔧 Usando productos mockeados como fallback');
-            return MOCK_PRODUCTS;
+            /* console.log('🔧 Usando productos mockeados como fallback');
+            return MOCK_PRODUCTS; */
         }
 
         const result = await res.json();
@@ -165,8 +165,8 @@ export const getAllProducts = async (): Promise<IProduct[]> => {
         return products;
     } catch (error: any) {
         console.error('getAllProducts error:', error);
-        console.log('🔧 Usando productos mockeados como fallback');
-        return MOCK_PRODUCTS;
+        /* console.log('🔧 Usando productos mockeados como fallback');
+        return MOCK_PRODUCTS; */
     }
 };
 
@@ -194,23 +194,23 @@ export const getProductById = async (id: string): Promise<IProduct> => {
     { id: 6, name: 'Transporte' }
 ]; */
 
-export const getAllCategories = async (): Promise<ICategory[]> => {
-    if (!APIURL) {
+export const getAllCategories = async (): Promise<ICategoryBasic[]> => {
+/*     if (!APIURL) {
         console.warn('NEXT_PUBLIC_API_URL is not set — usando categorías mockeadas');
         return MOCK_CATEGORIES;
-    }
+    } */
 
     try {
-        console.log('Obteniendo categorías desde:', `${APIURL}/categories`)
-        const res = await fetch(`${APIURL}/categories`, { 
+        /* console.log('Obteniendo categorías desde:', `${APIURL}/categories/basic`) */
+        const res = await fetch(`${APIURL}/categories/basic`, { 
             method: 'GET',
             cache: 'no-store'
         });
 
         if (!res.ok) {
             console.error(`getAllCategories: fetch failed ${res.status}`);
-            console.log('🔧 Usando categorías mockeadas como fallback');
-            return MOCK_CATEGORIES;
+/*             console.log('🔧 Usando categorías mockeadas como fallback');
+            return MOCK_CATEGORIES; */
         }
 
         const result = await res.json();
@@ -219,7 +219,7 @@ export const getAllCategories = async (): Promise<ICategory[]> => {
         return categories;
     } catch (error: any) {
         console.error('getAllCategories error:', error);
-        console.log('🔧 Usando categorías mockeadas como fallback');
-        return MOCK_CATEGORIES;
+        /* console.log('🔧 Usando categorías mockeadas como fallback');
+        return MOCK_CATEGORIES; */
     }
 };
