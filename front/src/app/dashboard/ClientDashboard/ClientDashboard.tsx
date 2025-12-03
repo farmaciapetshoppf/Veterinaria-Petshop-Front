@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { useAuth } from '@/src/context/AuthContext'
 import { getPetsByUserId, createPet, Pet, Appointment, NewPetData } from '@/src/app/services/pet.services'
 import { getAllOrders } from '@/src/services/order.services'
@@ -41,6 +40,7 @@ export default function ClientDashboard() {
 
   // Cargar mascotas del backend
   useEffect(() => {
+    try{
     const fetchPets = async () => {
       if (userData?.user?.id) {
         console.log('🐾 Cargando mascotas para usuario ID:', userData.user.id)
@@ -54,8 +54,11 @@ export default function ClientDashboard() {
         console.log('❌ No hay userData o user.id')
       }
     }
-
     fetchPets()
+  }catch(e){
+    console.log("Error al obtener mascotas por userId"+e);
+    
+  }
   }, [userData])
 
   // Cargar órdenes del backend

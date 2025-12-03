@@ -1,10 +1,14 @@
+"use client"
+
 import Carousel from '../app/components/Carousel/Carousel'
 import HomeCategories from '../app/components/HomeCategories/HomeCategories'
 import Delivery from '../app/components/Delivery/Delivery'
 
 export default function Home() {
+
   return (
-    <div className='pt-20 bg-orange-300'>
+    <div className='pt-20 bg-orange-200'>
+
 
       <Carousel />
 

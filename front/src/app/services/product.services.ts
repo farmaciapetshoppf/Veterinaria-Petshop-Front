@@ -8,7 +8,7 @@ import trasladador from "../../assets/trasladador.jpg"
 const APIURL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Mock de productos para desarrollo
-const MOCK_PRODUCTS: IProduct[] = [
+/* const MOCK_PRODUCTS: IProduct[] = [
     {
         id: 1,
         name: "Alimento Premium para Perros",
@@ -69,7 +69,7 @@ const MOCK_PRODUCTS: IProduct[] = [
         images: [trasladador, cucha, collar],
         categoryId: 6
     }
-];
+]; */
 
 // Mapeo de imágenes por categoría para productos sin imagen
 const getCategoryImage = (categoryId: number | string | undefined, name: string) => {
@@ -115,10 +115,10 @@ const getCategoryImage = (categoryId: number | string | undefined, name: string)
 };
 
 export const getAllProducts = async (): Promise<IProduct[]> => {
-    if (!APIURL) {
+/*     if (!APIURL) {
         console.warn('NEXT_PUBLIC_API_URL is not set — usando productos mockeados');
         return MOCK_PRODUCTS;
-    }
+    } */
 
     try {
         console.log('Obteniendo productos desde:', `${APIURL}/products`)
@@ -185,14 +185,14 @@ export const getProductById = async (id: string): Promise<IProduct> => {
 };
 
 // Mock de categorías para desarrollo
-const MOCK_CATEGORIES: ICategory[] = [
+/* const MOCK_CATEGORIES: ICategory[] = [
     { id: 1, name: 'Alimentos' },
     { id: 2, name: 'Accesorios' },
     { id: 3, name: 'Juguetes' },
     { id: 4, name: 'Camas y Cuchas' },
     { id: 5, name: 'Higiene' },
     { id: 6, name: 'Transporte' }
-];
+]; */
 
 export const getAllCategories = async (): Promise<ICategory[]> => {
     if (!APIURL) {
