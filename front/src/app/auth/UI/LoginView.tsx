@@ -90,27 +90,14 @@ function LoginView() {
                     validateOnMount={true}
                     onSubmit={async (values) => {
                         try {
-                            /* console.log("🔐 Iniciando login..."); */
-                            
-                            // 1. Hacer login (esto setea la cookie)
+                           
                             const response = await login(values);
-                            /* console.log('📝 Login response:', response); */
-
-                            // 2. Obtener datos completos del usuario desde /auth/me
-                            const userData = await fetchUserData();
-                            
-                            if (userData) {
-                                /* console.log("💾 Guardando userData completo:", userData); */
-                                setUserData(userData);
-                                
-                                // Esperar un momento para que el estado se actualice
+                                                        
+                            if (response) {
+                                setUserData(response);
                                 await new Promise(resolve => setTimeout(resolve, 100));
-                                
-                                /* console.log("✅ Login exitoso, redirigiendo..."); */
                                 router.push('/');
-                            } else {
-                                // Fallback si falla fetchUserData
-                                /* console.warn("⚠️ Usando datos parciales del login"); */
+                            }/*  else {
                                 setUserData({
                                     user: {
                                         id: response.id,
@@ -123,9 +110,8 @@ function LoginView() {
                                     token: ''
                                 });
                                 router.push('/');
-                            }
+                            } */
                         } catch (error) {
-                            /* console.error("❌ Error en login:", error); */
                             alert("Error al iniciar sesión. Por favor, intenta nuevamente.");
                         }
                     }}

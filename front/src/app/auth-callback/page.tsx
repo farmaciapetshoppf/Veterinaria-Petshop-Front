@@ -30,12 +30,18 @@ export default function AuthCallback() {
             name: response.name,
             address: response.address,
             phone: response.phone,
-            role: ""
+            role: response.role,
+            uid: response.uid,
+            user: response.user,
+            country: response.country,
+            city: response.city,
+            isDeleted: response.isDeleted,
+            deletedAt: response.deletedAt,
+            pets: response.pets
           },         
         });
-
-        // Redirigir a la página principal o dashboard
-        router.push("/dashboard"); // Redireccion despues del login
+        
+        router.push("/dashboard");
       } catch (err) {
         console.error("Error de autenticación:", err);
         setError(

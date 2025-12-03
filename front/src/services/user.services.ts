@@ -48,6 +48,8 @@ export async function login(userData: ILoginProps) {
 
     const result = await response.json();
     alert("Se ha logueado con éxito");
+    console.log("1111"+result);
+    
     return result;
   } catch (error: any) {
     throw error;
