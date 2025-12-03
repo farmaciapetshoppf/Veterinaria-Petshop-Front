@@ -5,15 +5,56 @@ export interface IUserSession {
     user:IUser
 }
 
-interface IUser {
-    id: string;
-    name: string;
-    email: string;
-    phone: string | null;
-    address: string | null;
-    city?: string | null;
-    country?: string | null;
-    role: string;
+export interface IUser {
+  id: string;
+  uid: string;
+  name: string;
+  email: string;
+  user: string;
+  phone: string;
+  country: string;
+  address: string;
+  city: string;
+  role: string;
+  isDeleted: boolean;
+  deletedAt: string | null;
+  pets: IPet[];
+}
+
+export interface IPet {
+  id: string;
+  nombre: string;
+  especie: string;
+  sexo: string;
+  tamano: string;
+  esterilizado: string;
+  status: string;
+  fecha_nacimiento: string;
+  fecha_fallecimiento: string | null;
+  breed: string;
+  image: string;
+  mother: string | null;
+  father: string | null;
+  appointments: IAppointment[];
+}
+
+export interface IAppointment {
+  id: string;
+  date: string;
+  time: string;
+  status: boolean;
+  veterinarian: IVeterinarian;
+}
+
+export interface IVeterinarian {
+  id: string;
+  name: string;
+  email: string;
+  matricula: string;
+  description: string;
+  phone: string;
+  time: string;
+  isActive: boolean;
 }
 
 export interface ILoginProps{

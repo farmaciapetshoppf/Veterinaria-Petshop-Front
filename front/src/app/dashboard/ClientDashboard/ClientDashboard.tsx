@@ -37,6 +37,7 @@ export default function ClientDashboard() {
 
   // Cargar mascotas del backend
   useEffect(() => {
+    try{
     const fetchPets = async () => {
       if (userData?.user?.id) {
         setLoadingPets(true)
@@ -46,6 +47,10 @@ export default function ClientDashboard() {
       }
     }
     fetchPets()
+  }catch(e){
+    console.log("Error al obtener mascotas por userId"+e);
+    
+  }
   }, [userData])
 
   // Si no hay usuario autenticado, mostrar mensaje
