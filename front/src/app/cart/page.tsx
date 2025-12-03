@@ -32,7 +32,7 @@ const itemsCount = getItemsCount();
 
 const handleCheckout = async () => {
   // Si el usuario no está autenticado, mostrar un toast de error y redirigir al login
-  if (!userData?.token) {
+  if (!userData?.token || !userData?.user?.id) {
     // mostrar toast de error rojo y redirigir a login
     toast.custom(() => (
       <div className="flex items-center gap-3 rounded-md border border-red-800 bg-red-100 px-4 py-2 text-red-900">
@@ -46,7 +46,13 @@ const handleCheckout = async () => {
   }
 
   try {
-    await createOrder(getIdItems(), userData.token);
+    // Crear array de items con productId y quantity
+    const orderItems = cartItems.map(item => ({
+      productId: String(item.id),
+      quantity: 1 // Por ahora cada producto tiene cantidad 1
+    }));
+    
+    await createOrder(orderItems, String(userData.user.id), userData.token);
     clearCart();
     // Mostrar toast de éxito al completar la compra con estilo verde
     toast.custom(() => (
