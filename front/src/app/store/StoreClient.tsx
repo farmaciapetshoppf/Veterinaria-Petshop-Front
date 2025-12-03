@@ -120,13 +120,20 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
   return (
     <div className="flex flex-col min-h-screen bg-orange-200 pt-20">
       {/* Banner con imagen */}
-      <div className="w-full bg-amber-00 shadow-lg mb-8 h-64 overflow-hidden">
-        <div className="w-full h-full">
-          <Image
-            src={bannerstore}
-            alt='banner store'
-            className="w-full h-full object-contain"
-          />
+      <div className="relative h-[400px] w-full mb-8">
+        <Image
+          src={bannerstore}
+          alt='banner store'
+          fill
+          className="object-cover brightness-75"
+          priority
+        />
+        <div className="absolute inset-0 bg-linear-to-r from-orange-500/70 to-amber-500/50" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center text-white px-4">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4">Nuestra Tienda</h1>
+            <p className="text-xl md:text-2xl">Los mejores productos para tu mascota</p>
+          </div>
         </div>
       </div>
 

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/src/context/AuthContext'
-import { getPetsByUserId, createPet, Pet, NewPetData } from '@/src/app/services/pet.services'
+import { getPetsByUserId, createPet, Pet, Appointment, NewPetData } from '@/src/app/services/pet.services'
+import { getAllOrders } from '@/src/services/order.services'
 
 interface Order {
   id: string
@@ -23,6 +24,8 @@ export default function ClientDashboard() {
   const [activeTab, setActiveTab] = useState<'profile' | 'pets' | 'orders'>('profile')
   const [pets, setPets] = useState<Pet[]>([])
   const [loadingPets, setLoadingPets] = useState(false)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loadingOrders, setLoadingOrders] = useState(false)
   const [showNewPetModal, setShowNewPetModal] = useState(false)
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
     nombre: '',
@@ -40,10 +43,15 @@ export default function ClientDashboard() {
     try{
     const fetchPets = async () => {
       if (userData?.user?.id) {
+        console.log('🐾 Cargando mascotas para usuario ID:', userData.user.id)
         setLoadingPets(true)
         const userPets = await getPetsByUserId(String(userData.user.id))
+        console.log('🐾 Mascotas recibidas:', userPets)
+        console.log('🐾 Tipo:', typeof userPets, 'Es array:', Array.isArray(userPets))
         setPets(Array.isArray(userPets) ? userPets : [])
         setLoadingPets(false)
+      } else {
+        console.log('❌ No hay userData o user.id')
       }
     }
     fetchPets()
@@ -51,6 +59,29 @@ export default function ClientDashboard() {
     console.log("Error al obtener mascotas por userId"+e);
     
   }
+  }, [userData])
+
+  // Cargar órdenes del backend
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (userData?.token) {
+        console.log('📦 Cargando órdenes del usuario')
+        setLoadingOrders(true)
+        try {
+          const userOrders = await getAllOrders(userData.token)
+          console.log('📦 Órdenes recibidas:', userOrders)
+          // El backend puede devolver {data: [...]} o directamente [...]
+          const ordersData = userOrders.data || userOrders
+          setOrders(Array.isArray(ordersData) ? ordersData : [])
+        } catch (error) {
+          console.error('Error cargando órdenes:', error)
+          setOrders([])
+        }
+        setLoadingOrders(false)
+      }
+    }
+
+    fetchOrders()
   }, [userData])
 
   // Si no hay usuario autenticado, mostrar mensaje
@@ -103,39 +134,6 @@ export default function ClientDashboard() {
     
     setCreatingPet(false)
   }
-
-  // Mock data para órdenes - esto también vendría del backend
-  const mockOrders: Order[] = [
-    {
-      id: '001',
-      date: '2025-11-25',
-      total: 15500,
-      status: 'active',
-      items: [
-        { productName: 'Alimento Premium', quantity: 2, price: 7500 },
-        { productName: 'Juguete interactivo', quantity: 1, price: 500 }
-      ]
-    },
-    {
-      id: '002',
-      date: '2025-10-15',
-      total: 8000,
-      status: 'delivered',
-      items: [
-        { productName: 'Collar antipulgas', quantity: 1, price: 3000 },
-        { productName: 'Shampoo', quantity: 1, price: 5000 }
-      ]
-    },
-    {
-      id: '003',
-      date: '2025-09-05',
-      total: 12000,
-      status: 'delivered',
-      items: [
-        { productName: 'Cama para mascotas', quantity: 1, price: 12000 }
-      ]
-    }
-  ]
 
   return (
     <div className="bg-white pt-20 min-h-screen">
@@ -457,7 +455,12 @@ export default function ClientDashboard() {
                 </div>
 
                 <div className="space-y-4">
-                  {mockOrders.map((order) => (
+                  {loadingOrders ? (
+                    <p className="text-gray-500 text-center py-8">Cargando órdenes...</p>
+                  ) : orders.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No tienes órdenes registradas</p>
+                  ) : (
+                    orders.map((order) => (
                     <div key={order.id} className="bg-gray-50 rounded-lg p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div>
@@ -510,7 +513,8 @@ export default function ClientDashboard() {
                         Ver detalles
                       </button>
                     </div>
-                  ))}
+                  ))
+                  )}
                 </div>
               </div>
             )}
@@ -541,7 +545,7 @@ export default function ClientDashboard() {
                   <div>
                     <p className="text-sm text-gray-600">Compras activas</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {mockOrders.filter((order) => order.status === 'active').length}
+                      {orders.filter((order) => order.status === 'active').length}
                     </p>
                   </div>
                 </div>
