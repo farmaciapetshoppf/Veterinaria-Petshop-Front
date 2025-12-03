@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react"
-import { IUserSession } from "../types";
+import { ILoginProps, IUserSession } from "../types";
 
 const API = process.env.NEXT_PUBLIC_API_URL
 
@@ -30,26 +30,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const router = useRouter();
 
     useEffect(() => {
-        const checkSession = async () => {    
-            console.log("🔍 Ejecutando checkSession");
+        const checkSession = async () => {
             
             try {
                 const res = await fetch(`${API}/auth/me`, {
                     credentials: "include",
                 });
 
-                console.log("📡 Status de respuesta:", res.status);
-
                 if (!res.ok) {
-                    console.log("❌ Respuesta no OK");
                     setUserData(null);
                     return;
                 }
 
                 const user = await res.json();
-                console.log("✅ Usuario recibido del backend:", user);
                 
-                // IMPORTANTE: Asegurarse que el formato coincida con IUserSession
                 const formattedUser: IUserSession = {
                     user: {
                         id: user.id,
@@ -57,30 +51,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         email: user.email,
                         phone: user.phone || null,
                         address: user.address || null,
-                        role: user.role
-                    }
+                        role: user.role,
+                        uid: user,
+                        user: user.user,
+                        country: user.country,
+                        city: user.city,
+                        isDeleted: user.isDeleted,
+                        deletedAt: user.deletedAt,
+                        pets: user.pets
+                    },
+                    token: ""
                 };
                 
-                console.log("📦 userData formateado:", formattedUser);
                 setUserData(formattedUser);
-                console.log("💾 setUserData ejecutado");
-                
             } catch (err) {
-                console.error("❌ Error al verificar sesión:", err);
                 setUserData(null);
             } finally {
-                console.log("🏁 Finalizando checkSession, isLoading = false");
                 setIsLoading(false);
             }
         };
 
         checkSession();
+        console.log("🔄 userData cambió a:", userData);        
     }, []);
 
     // Log para debug cuando userData cambia
     useEffect(() => {
         console.log("🔄 userData cambió a:", userData);
-    }, [userData]);
+        setIsLoading(false)       
+    }, []);
 
     const logout = async () => {
         try {
@@ -88,16 +87,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 method: "POST",
                 credentials: "include"
             });
-            console.log("🚪 Logout exitoso");
         } catch (err) {
-            console.error("❌ Error al hacer logout:", err);
         } finally {
             setUserData(null);
             router.push("/");
         }
     };
 
-    // CRÍTICO: El loading va DENTRO del Provider
     return (
         <AuthContext.Provider value={{ userData, setUserData, logout, isLoading }}>
             {isLoading ? (

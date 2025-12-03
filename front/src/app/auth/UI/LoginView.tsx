@@ -20,39 +20,6 @@ function LoginView() {
     const router = useRouter();
     const [googleLoading, setGoogleLoading] = React.useState(false);
 
-    // Función para obtener datos completos del usuario después del login
-    const fetchUserData = async () => {
-        try {
-            const res = await fetch(`http://localhost:3000/auth/me`, {
-                credentials: "include",
-            });
-
-            if (!res.ok) {
-                console.error("Error al obtener datos del usuario");
-                return null;
-            }
-
-            const user = await res.json();
-            /* console.log("✅ Datos completos del usuario:", user); */
-            
-            const formattedUser = {
-                user: {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    phone: user.phone || null,
-                    address: user.address || null,
-                    role: user.role
-                }
-            };
-            
-            return formattedUser;
-        } catch (error) {
-            console.error("Error al obtener datos del usuario:", error);
-            return null;
-        }
-    };
-
     const handleGoogleLogin = async () => {
         try {
             setGoogleLoading(true);
@@ -90,42 +57,15 @@ function LoginView() {
                     validateOnMount={true}
                     onSubmit={async (values) => {
                         try {
-                            /* console.log("🔐 Iniciando login..."); */
-                            
-                            // 1. Hacer login (esto setea la cookie)
+                           
                             const response = await login(values);
-                            /* console.log('📝 Login response:', response); */
-
-                            // 2. Obtener datos completos del usuario desde /auth/me
-                            const userData = await fetchUserData();
-                            
-                            if (userData) {
-                                /* console.log("💾 Guardando userData completo:", userData); */
-                                setUserData(userData);
-                                
-                                // Esperar un momento para que el estado se actualice
+                                                        
+                            if (response) {
+                                setUserData(response);
                                 await new Promise(resolve => setTimeout(resolve, 100));
-                                
-                                /* console.log("✅ Login exitoso, redirigiendo..."); */
-                                router.push('/');
-                            } else {
-                                // Fallback si falla fetchUserData
-                                /* console.warn("⚠️ Usando datos parciales del login"); */
-                                setUserData({
-                                    user: {
-                                        id: response.id,
-                                        name: response.email?.split('@')[0] || 'Usuario',
-                                        email: response.email,
-                                        phone: null,
-                                        address: null,
-                                        role: response.role || 'user'
-                                    },
-                                    token: ''
-                                });
                                 router.push('/');
                             }
                         } catch (error) {
-                            /* console.error("❌ Error en login:", error); */
                             alert("Error al iniciar sesión. Por favor, intenta nuevamente.");
                         }
                     }}
