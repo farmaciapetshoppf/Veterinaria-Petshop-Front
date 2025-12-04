@@ -21,7 +21,7 @@ export interface Appointment {
 
 export interface NewPetData {
   nombre: string
-  especie: string
+  especie: "PERRO" | "GATO" | "AVE" | "ROEDOR" | "REPTIL" | "OTRO"
   sexo: 'MACHO' | 'HEMBRA'
   tamano: 'PEQUENO' | 'MEDIANO' | 'GRANDE'
   esterilizado: 'SI' | 'NO'

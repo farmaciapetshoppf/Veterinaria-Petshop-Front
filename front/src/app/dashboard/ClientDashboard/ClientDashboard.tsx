@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/src/context/AuthContext'
 import { createPet, NewPetData } from '@/src/app/services/pet.services'
 import { getAllOrders } from '@/src/services/order.services'
-import { IPet, Order } from '@/src/types'
+import { IPet, IProduct, Order } from '@/src/types'
 import CardPet from '../../components/CardPet/CardPet'
 import NewPetModal from '../../components/NewPetModal/NewPetModal'
 
@@ -19,13 +19,6 @@ export default function ClientDashboard() {
   const [creatingPet, setCreatingPet] = useState(false);
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
-    /* nombre: '',
-    especie: '',
-    sexo: 'MACHO',
-    tamano: 'MEDIANO',
-    esterilizado: 'NO',
-    status: 'VIVO',
-    fecha_nacimiento: ''*/
     nombre: "",
     especie: "PERRO",
     sexo: "MACHO",
@@ -54,22 +47,22 @@ export default function ClientDashboard() {
   }, [userData])
 
   // Cargar órdenes
-  useEffect(() => {
-    const fetchOrders = async () => {
-      if (!userData?.token) return
-
-      setLoadingOrders(true)
-      try {
-        const userOrders = await getAllOrders(userData.token)
-        const ordersData = userOrders.data || userOrders
-        setOrders(Array.isArray(ordersData) ? ordersData : [])
-      } finally {
-        setLoadingOrders(false)
+  /*   useEffect(() => {
+      const fetchOrders = async () => {
+        if (!userData?.token) return
+  
+        setLoadingOrders(true)
+        try {
+          const userOrders = await getAllOrders(userData.token)
+          const ordersData = userOrders.data || userOrders
+          setOrders(Array.isArray(ordersData) ? ordersData : [])
+        } finally {
+          setLoadingOrders(false)
+        }
       }
-    }
-
-    fetchOrders()
-  }, [userData?.token])
+  
+      fetchOrders()
+    }, [userData?.token]) */
 
   if (!userData) {
     return (
@@ -236,133 +229,6 @@ export default function ClientDashboard() {
               </div>
             )}
 
-            {/* Modal para agregar nueva mascota */}
-            {/* {showNewPetModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                    Agregar Nueva Mascota
-                  </h3>
-
-                  <form onSubmit={handleCreatePet} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nombre
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newPetForm.nombre}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, nombre: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Especie
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newPetForm.especie}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, especie: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Ej: Perro, Gato"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Sexo *
-                      </label>
-                      <select
-                        required
-                        value={newPetForm.sexo}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, sexo: e.target.value as 'MACHO' | 'HEMBRA' })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      >
-                        <option value="MACHO">Macho</option>
-                        <option value="HEMBRA">Hembra</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Tamaño *
-                      </label>
-                      <select
-                        required
-                        value={newPetForm.tamano}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, tamano: e.target.value as 'PEQUENO' | 'MEDIANO' | 'GRANDE' })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      >
-                        <option value="PEQUENO">Pequeño</option>
-                        <option value="MEDIANO">Mediano</option>
-                        <option value="GRANDE">Grande</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Esterilizado
-                      </label>
-                      <select
-                        required
-                        value={newPetForm.esterilizado}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, esterilizado: e.target.value as 'SI' | 'NO' })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      >
-                        <option value="SI">Sí</option>
-                        <option value="NO">No</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Fecha de Nacimiento
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        value={newPetForm.fecha_nacimiento}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, fecha_nacimiento: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      />
-                    </div>
-
-                    <div className="flex space-x-3 mt-6">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowNewPetModal(false)
-                          setNewPetForm({
-                            nombre: '',
-                            especie: '',
-                            sexo: 'MACHO',
-                            tamano: 'MEDIANO',
-                            esterilizado: 'NO',
-                            status: 'VIVO',
-                            fecha_nacimiento: ''
-                          })
-                        }}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                        disabled={creatingPet}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={creatingPet}
-                      >
-                        {creatingPet ? 'Creando...' : 'Agregar'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )} */}
             <NewPetModal
               open={showNewPetModal}
               creating={creatingPet}
@@ -372,7 +238,7 @@ export default function ClientDashboard() {
                 setShowNewPetModal(false);
                 setNewPetForm({
                   nombre: "",
-                  especie: "",
+                  especie: "PERRO",
                   sexo: "MACHO",
                   tamano: "MEDIANO",
                   esterilizado: "NO",
@@ -399,14 +265,31 @@ export default function ClientDashboard() {
                     Entregadas
                   </button>
                 </div>
+                {userData?.user.buyerSaleOrders.map((order) => (
+                  <div key={order.id} className="border p-4 rounded-lg mb-4">
+                    <h2 className="font-bold text-lg">Orden #{order.id}</h2>
+                    <p>Total: ${order.total}</p>
+                    <p>Estado: {order.status}</p>
+                    <p>Fecha: {new Date(order.createdAt).toLocaleString()} hs</p>
 
-                <div className="space-y-4">
+                  {/* TODO: Modificar para usar el endpoing */}
+                    <h3 className="mt-3 font-semibold">Items:</h3>
+                    {order.items.map((item) => (
+                      <div key={item.product.id} className="ml-4 mt-2">
+                        <p>{item.product.name} - {item.product.description}</p>
+                        <p>Precio unidad: ${item.product.price}</p>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+
+                {/* <div className="space-y-4">
                   {loadingOrders ? (
                     <p className="text-gray-500 text-center py-8">Cargando órdenes...</p>
                   ) : orders.length === 0 ? (
                     <p className="text-gray-500 text-center py-8">No tienes órdenes registradas</p>
                   ) : (
-                    orders.map((order) => (
+                    userData.user.buyerSaleOrders.map((order) => (
                       <div key={order.id} className="bg-gray-50 rounded-lg p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div>
@@ -429,10 +312,10 @@ export default function ClientDashboard() {
                           >
                             {order.status === 'active' ? 'En proceso' : 'Entregada'}
                           </span>
-                        </div>
+                        </div> */}
 
-                        {/* Items de la orden */}
-                        <div className="border-t border-gray-200 pt-4">
+                {/* Items de la orden */}
+                {/* <div className="border-t border-gray-200 pt-4">
                           <h4 className="text-sm font-medium text-gray-900 mb-3">Productos</h4>
                           <div className="space-y-2">
                             {order.items.map((item, index) => (
@@ -446,10 +329,10 @@ export default function ClientDashboard() {
                               </div>
                             ))}
                           </div>
-                        </div>
+                        </div> */}
 
-                        {/* Total */}
-                        <div className="border-t border-gray-200 mt-4 pt-4 flex justify-between items-center">
+                {/* Total */}
+                {/* <div className="border-t border-gray-200 mt-4 pt-4 flex justify-between items-center">
                           <span className="text-base font-semibold text-gray-900">Total</span>
                           <span className="text-xl font-bold text-gray-900">${order.total}</span>
                         </div>
@@ -460,7 +343,7 @@ export default function ClientDashboard() {
                       </div>
                     ))
                   )}
-                </div>
+                </div> */}
               </div>
             )}
 

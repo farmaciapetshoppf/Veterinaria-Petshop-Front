@@ -63,3 +63,61 @@ export const getAllOrders = async (token:string) => {
         
     }
 }
+
+
+// PRODUCTO DENTRO DE ITEMS
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  stock: number;
+  imgUrl: string;
+}
+
+// ITEM DE LA ORDEN
+export interface SaleOrderItem {
+  id: string;
+  quantity: number;
+  unitPrice: string;
+  product: Product;
+}
+
+// COMPRADOR
+export interface Buyer {
+  id: string;
+  uid: string;
+  name: string;
+  email: string;
+  user: string;
+  phone: string | null;
+  country: string | null;
+  address: string | null;
+  city: string | null;
+  profileImageUrl: string;
+  role: string;
+  isDeleted: boolean;
+  deletedAt: string | null;
+}
+
+// ORDEN DE VENTA
+export interface SaleOrder {
+  id: string;
+  total: string;
+  status: "ACTIVE" | "PENDING" | "CANCELLED" | "PAID" | string;
+  paymentMethod: string | null;
+  notes: string | null;
+  createdAt: string;  // ISO date
+  expiresAt: string;  // ISO date
+  mercadoPagoId: string | null;
+  mercadoPagoStatus: string | null;
+  buyer: Buyer;
+  branch: string | null;
+  items: SaleOrderItem[];
+}
+
+// RESPUESTA DEL BACKEND
+export interface SaleOrdersResponse {
+  message: string;
+  data: SaleOrder[];
+}

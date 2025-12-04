@@ -19,13 +19,13 @@ export interface IUser {
   isDeleted: boolean;
   deletedAt: string | null;
   pets: IPet[];
+  buyerSaleOrders: IOrder[]
 }
 
 export interface Order {
   id: string
-  date: string
   total: number
-  status: 'active' | 'delivered'
+  status: 'ACTIVE' | 'delivered'
   items: OrderItem[]
 }
 
