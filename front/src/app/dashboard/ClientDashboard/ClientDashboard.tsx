@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/src/context/AuthContext'
 import { createPet, NewPetData } from '@/src/app/services/pet.services'
-import { getAllOrders } from '@/src/services/order.services'
+import { getOrderHistory } from '@/src/services/order.services'
 import { IPet } from '@/src/types'
 import CardPet from '../../components/CardPet/CardPet'
 
@@ -49,23 +49,28 @@ export default function ClientDashboard() {
     }
   }, [userData])
 
-  // Cargar órdenes
+  // Cargar órdenes desde el historial cuando se cambia a la pestaña de órdenes
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!userData?.token) return
+      if (activeTab !== 'orders') return
+      
+      if (!userData?.user?.id) return
 
       setLoadingOrders(true)
       try {
-        const userOrders = await getAllOrders(userData.token)
-        const ordersData = userOrders.data || userOrders
+        const historyData = await getOrderHistory(String(userData.user.id), userData.token || '')
+        const ordersData = historyData.data || historyData
         setOrders(Array.isArray(ordersData) ? ordersData : [])
+      } catch (error) {
+        console.error('Error al cargar historial de órdenes:', error)
+        setOrders([])
       } finally {
         setLoadingOrders(false)
       }
     }
 
     fetchOrders()
-  }, [userData?.token])
+  }, [activeTab, userData?.user?.id, userData?.token])
 
   if (!userData) {
     return (
