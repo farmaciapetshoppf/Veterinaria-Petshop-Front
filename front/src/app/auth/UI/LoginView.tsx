@@ -62,8 +62,8 @@ function LoginView() {
                                                         
                             if (response) {
                                 setUserData(response);
-                                await new Promise(resolve => setTimeout(resolve, 100));
-                                router.push('/');
+                                // Usar window.location para forzar recarga completa
+                                window.location.href = '/';
                             }
                         } catch (error) {
                             alert("Error al iniciar sesión. Por favor, intenta nuevamente.");

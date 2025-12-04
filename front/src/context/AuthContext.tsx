@@ -44,6 +44,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
                 const user = await res.json();
                 
+                // Intentar obtener el token de localStorage o cookies
+                let token = localStorage.getItem('authToken') || '';
+                
+                // Si no hay token en localStorage, intentar obtenerlo de las cookies
+                if (!token) {
+                    token = document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith('token='))
+                        ?.split('=')[1] || '';
+                }
+                
                 const formattedUser: IUserSession = {
                     user: {
                         id: user.id,
@@ -60,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         deletedAt: user.deletedAt,
                         pets: user.pets
                     },
-                    token: ""
+                    token: token
                 };
                 
                 setUserData(formattedUser);
@@ -71,15 +82,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
         };
 
-        checkSession();
-        console.log("🔄 userData cambió a:", userData);        
+        checkSession();      
     }, []);
 
     // Log para debug cuando userData cambia
     useEffect(() => {
-        console.log("🔄 userData cambió a:", userData);
-        setIsLoading(false)       
-    }, []);
+        console.log("🔄 userData cambió a:", userData);      
+    }, [userData]);
 
     const logout = async () => {
         try {
@@ -89,6 +98,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
         } catch (err) {
         } finally {
+            // Limpiar el token de localStorage
+            localStorage.removeItem('authToken');
             setUserData(null);
             router.push("/");
         }

@@ -8,6 +8,7 @@ import { navItems } from "../../helpers/navItems";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { PATHROUTES } from "../../helpers/pathRoutes";
+import { useRole } from "@/src/hooks/useRole";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,6 +16,7 @@ export default function Navbar() {
   const { getItemsCount } = useCart();
   const itemsCount = getItemsCount();
     const {userData, logout} = useAuth();
+    const { isSuperAdmin } = useRole();
 
   return (
     <header className="fixed top-0 left-0 w-full bg-[#f5f5f5] shadow-sm z-50 transition-all duration-300">
@@ -43,6 +45,16 @@ export default function Navbar() {
                 {navigationItem.nameToRender}
               </Link>
             ))}
+            
+            {/* Link de Admin solo para superadmin */}
+            {isSuperAdmin() && (
+              <Link
+                href="/admin/veterinarians"
+                className="hover:text-orange-500 transition whitespace-nowrap text-amber-600 font-semibold"
+              >
+                🔧 Gestión Veterinarios
+              </Link>
+            )}
           </div>
           
           { userData && userData.user && (
@@ -122,6 +134,17 @@ export default function Navbar() {
               {navigationItem.nameToRender}
             </Link>
           ))}
+          
+          {/* Link de Admin para superadmin en mobile */}
+          {isSuperAdmin() && (
+            <Link
+              href="/admin/veterinarians"
+              className="block text-amber-600 hover:text-orange-500 transition py-2 text-base font-semibold"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              🔧 Gestión Veterinarios
+            </Link>
+          )}
 
           {/* Carrito en el menú mobile */}
           <Link

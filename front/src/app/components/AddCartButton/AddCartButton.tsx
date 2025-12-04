@@ -8,15 +8,20 @@ interface AddCartButtonProps {
 }
 function AddCartButton({product}: AddCartButtonProps) {
     const {addToCart}= useCart();
-  return (
-    <button  onClick={()=> addToCart(product)} type="submit"
-            className="cursor-pointer mt-10 flex w-full items-center justify-center 
-            rounded-md border border-transparent bg-amber-300 px-8 py-3 text-base 
-            font-medium text-white hover:bg-amber-400 "
-              >
-                Agregar al carrito
-    </button>
-  )
+    
+    const handleAddToCart = async () => {
+        await addToCart(product);
+    };
+    
+    return (
+        <button  onClick={handleAddToCart} type="button"
+                className="cursor-pointer mt-10 flex w-full items-center justify-center 
+                rounded-md border border-transparent bg-amber-300 px-8 py-3 text-base 
+                font-medium text-white hover:bg-amber-400 "
+                  >
+                    Agregar al carrito
+        </button>
+    )
 }
 
 export default AddCartButton

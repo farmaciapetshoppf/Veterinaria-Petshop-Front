@@ -72,7 +72,7 @@ function RegisterView() {
 
                             <FieldFormikCustom label="Email:" nameField="email" type="email" placeholder="juanGutierrez82@mail.com" />
 
-                            {/* <FieldFormikCustom label="Nombre de usuario:" nameField="user" type="text" placeholder="JGuttierrez" /> */}
+                            <FieldFormikCustom label="Nombre de usuario:" nameField="user" type="text" placeholder="JGuttierrez" />
 
                             <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********" />
 
