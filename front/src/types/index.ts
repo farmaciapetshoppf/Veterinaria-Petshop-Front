@@ -21,6 +21,20 @@ export interface IUser {
   pets: IPet[];
 }
 
+export interface Order {
+  id: string
+  date: string
+  total: number
+  status: 'active' | 'delivered'
+  items: OrderItem[]
+}
+
+export interface OrderItem {
+  productName: string
+  quantity: number
+  price: number
+}
+
 export interface IPet {
   id: string;
   nombre: string;

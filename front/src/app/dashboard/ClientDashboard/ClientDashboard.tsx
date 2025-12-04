@@ -4,22 +4,9 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/src/context/AuthContext'
 import { createPet, NewPetData } from '@/src/app/services/pet.services'
 import { getAllOrders } from '@/src/services/order.services'
-import { IPet } from '@/src/types'
+import { IPet, Order } from '@/src/types'
 import CardPet from '../../components/CardPet/CardPet'
-
-interface Order {
-  id: string
-  date: string
-  total: number
-  status: 'active' | 'delivered'
-  items: OrderItem[]
-}
-
-interface OrderItem {
-  productName: string
-  quantity: number
-  price: number
-}
+import NewPetModal from '../../components/NewPetModal/NewPetModal'
 
 export default function ClientDashboard() {
   const { userData } = useAuth()
@@ -29,18 +16,35 @@ export default function ClientDashboard() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [showNewPetModal, setShowNewPetModal] = useState(false)
+  const [creatingPet, setCreatingPet] = useState(false);
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
-    nombre: '',
+    /* nombre: '',
     especie: '',
     sexo: 'MACHO',
     tamano: 'MEDIANO',
     esterilizado: 'NO',
     status: 'VIVO',
-    fecha_nacimiento: ''
-  })
+    fecha_nacimiento: ''*/
+    nombre: "",
+    especie: "PERRO",
+    sexo: "MACHO",
+    tamano: "MEDIANO",
+    esterilizado: "SI",
+    status: "VIVO",
+    fecha_nacimiento: "2020-01-15",
+    breed: "",
+  });
 
-  const [creatingPet, setCreatingPet] = useState(false)
+  const handleCreatePet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingPet(true);
+
+    const newPet = await createPet(newPetForm, userData!.user!.id); // tu lógica
+    setPets(prev => [...prev, newPet as IPet])
+    setCreatingPet(false);
+    setShowNewPetModal(false);
+  };
 
   // Cargar mascotas desde userData al entrar al dashboard
   useEffect(() => {
@@ -73,36 +77,6 @@ export default function ClientDashboard() {
         <p className="text-gray-500">Debes iniciar sesión para ver tu dashboard</p>
       </div>
     )
-  }
-
-  const handleCreatePet = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setCreatingPet(true)
-
-    const petData: NewPetData = { ...newPetForm }
-
-    const newPet = await createPet(petData, String(userData.user.id))
-
-    if (newPet) {
-      // ⭐ Actualización en tiempo real
-      setPets(prev => [...prev, newPet as IPet])
-
-      setShowNewPetModal(false)
-      setNewPetForm({
-        nombre: '',
-        especie: '',
-        sexo: 'MACHO',
-        tamano: 'MEDIANO',
-        esterilizado: 'NO',
-        status: 'VIVO',
-        fecha_nacimiento: ''
-      })
-      alert('¡Mascota creada exitosamente!')
-    } else {
-      alert('Error al crear la mascota.')
-    }
-
-    setCreatingPet(false)
   }
 
   return (
@@ -203,10 +177,10 @@ export default function ClientDashboard() {
                       </p>
                     ) : (
                       pets.map((pet) => (
-                        <CardPet key={pet.id} {...pet} />  
+                        <CardPet key={pet.id} {...pet} />
                       )))}
-                      {/* Turnos de esta mascota */}
-                          {/* <div className="mt-4 border-t border-gray-200 pt-4">
+                  {/* Turnos de esta mascota */}
+                  {/* <div className="mt-4 border-t border-gray-200 pt-4">
                         <h3 className="text-sm font-semibold text-gray-900 mb-3">Turnos</h3>
                         <div className="space-y-3">
                           {pet.appointments && pet.appointments.length > 0 ? pet.appointments.map((appointment) => (
@@ -263,7 +237,7 @@ export default function ClientDashboard() {
             )}
 
             {/* Modal para agregar nueva mascota */}
-            {showNewPetModal && (
+            {/* {showNewPetModal && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-lg p-6 max-w-md w-full">
                   <h3 className="text-xl font-semibold text-gray-900 mb-4">
@@ -388,7 +362,27 @@ export default function ClientDashboard() {
                   </form>
                 </div>
               </div>
-            )}
+            )} */}
+            <NewPetModal
+              open={showNewPetModal}
+              creating={creatingPet}
+              form={newPetForm}
+              setForm={setNewPetForm}
+              onClose={() => {
+                setShowNewPetModal(false);
+                setNewPetForm({
+                  nombre: "",
+                  especie: "",
+                  sexo: "MACHO",
+                  tamano: "MEDIANO",
+                  esterilizado: "NO",
+                  status: "VIVO",
+                  fecha_nacimiento: "",
+                  breed: "",
+                });
+              }}
+              onSubmit={handleCreatePet}
+            />
 
             {/* COMPRAS */}
             {activeTab === 'orders' && (

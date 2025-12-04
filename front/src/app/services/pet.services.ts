@@ -27,7 +27,7 @@ export interface NewPetData {
   esterilizado: 'SI' | 'NO'
   status: 'VIVO' | 'FALLECIDO'
   fecha_nacimiento: string
-  ownerId: string
+  breed: string
 }
 
 export const createPet = async (petData: NewPetData, userId: string): Promise<IPet | null> => {
