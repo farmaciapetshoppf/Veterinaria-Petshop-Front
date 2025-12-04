@@ -3,16 +3,13 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/src/context/AuthContext'
 import { createPet, NewPetData } from '@/src/app/services/pet.services'
-import { getAllOrders } from '@/src/services/order.services'
 import { IPet, IProduct, Order } from '@/src/types'
 import CardPet from '../../components/CardPet/CardPet'
 import NewPetModal from '../../components/NewPetModal/NewPetModal'
-import axios from "axios";
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal'
 
 export default function ClientDashboard() {
-  const { userData } = useAuth()
-
+  const { userData, setUserData } = useAuth()
   const [activeTab, setActiveTab] = useState<'profile' | 'pets' | 'orders'>('profile')
   const [pets, setPets] = useState<IPet[]>([])
   const [showNewPetModal, setShowNewPetModal] = useState(false)
@@ -20,16 +17,30 @@ export default function ClientDashboard() {
   const [openEdit, setOpenEdit] = useState(false);
 
   const handleSaveProfile = async (data: any) => {
-    await axios.patch(`/users/${userData!.user.id}`, data);
+    try {
+      const res = await fetch(`https://localhost:3000/users/${userData!.user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-    // refrescar el estado global
-    setUserData({
-      ...userData,
-      user: {
-        ...userData.user,
-        ...data,
-      },
-    });
+      if (!res.ok) throw new Error("Error al actualizar el perfil");
+
+      const updated = await res.json();
+
+      // Actualizar el estado global con los nuevos datos
+      setUserData({
+        ...userData!,
+        user: {
+          ...userData!.user,
+          ...data,
+        },
+      });
+
+    } catch (err) {
+      console.error(err);
+      throw err; // Re-lanzar el error para que el modal lo maneje
+    }
   };
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
@@ -59,24 +70,6 @@ export default function ClientDashboard() {
       setPets(userData.user.pets)
     }
   }, [userData])
-
-  // Cargar órdenes
-  /*   useEffect(() => {
-      const fetchOrders = async () => {
-        if (!userData?.token) return
-  
-        setLoadingOrders(true)
-        try {
-          const userOrders = await getAllOrders(userData.token)
-          const ordersData = userOrders.data || userOrders
-          setOrders(Array.isArray(ordersData) ? ordersData : [])
-        } finally {
-          setLoadingOrders(false)
-        }
-      }
-  
-      fetchOrders()
-    }, [userData?.token]) */
 
   if (!userData) {
     return (

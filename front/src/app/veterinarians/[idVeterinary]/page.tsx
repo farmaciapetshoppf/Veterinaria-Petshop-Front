@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { IVeterinary } from '@/src/types';
 import { getVeterinaryById } from '../../services/veterinary.services';
+import { toast } from 'react-toastify';
 
 interface TimeSlot {
   id: string;
@@ -67,10 +68,10 @@ export default function VeterinaryDetailPage() {
 
   const handleBookAppointment = () => {
     if (!selectedDate || !selectedTime) {
-      alert('Por favor selecciona una fecha y hora');
+      toast.error('Por favor selecciona una fecha y hora');
       return;
     }
-    alert(`Turno reservado con ${veterinary?.name} para el ${selectedDate} a las ${selectedTime}`);
+    toast.success(`Turno reservado con ${veterinary?.name} para el ${selectedDate} a las ${selectedTime}`);
   };
 
   // Función helper para convertir imagen a src

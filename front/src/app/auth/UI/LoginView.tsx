@@ -15,6 +15,7 @@ import PasswordFieldFormik from '../../components/PaswordField/PasswordField'
 import dogCat from "@/src/assets/dogCat.png"
 import background from "@/src/assets/huellasFondo.png"
 import { IUser, IUserSession } from '@/src/types'
+import { toast } from 'react-toastify'
 
 function LoginView() {
     const { setUserData } = useAuth();
@@ -28,7 +29,7 @@ function LoginView() {
             window.location.href = url;
         } catch (error) {
             console.error("Error al obtener URL de autenticación:", error);
-            alert("No se pudo iniciar el proceso de autenticación con Google");
+            toast.done("No se pudo iniciar el proceso de autenticación con Google");
         } finally {
             setGoogleLoading(false);
         }
@@ -75,7 +76,8 @@ function LoginView() {
                                     role: response.role,
                                     isDeleted: response.isDeleted,
                                     deletedAt: response.deletedAt,
-                                    pets: response.pets
+                                    pets: response.pets,
+                                    buyerSaleOrders: response.buyerSaleOrders
                                 }
                             };
 
@@ -83,7 +85,7 @@ function LoginView() {
                             router.push('/');
 
                         } catch (error) {
-                            alert("Error al iniciar sesión. Por favor, intenta nuevamente.");
+                            toast.error("Error al iniciar sesión. Por favor, intenta nuevamente.");
                         }
                     }}
                 >

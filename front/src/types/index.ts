@@ -19,7 +19,7 @@ export interface IUser {
   isDeleted: boolean;
   deletedAt: string | null;
   pets: IPet[];
-  buyerSaleOrders: IOrder[]
+  buyerSaleOrders: Order[]
 }
 
 export interface UserProfile {

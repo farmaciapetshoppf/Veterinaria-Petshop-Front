@@ -1,6 +1,7 @@
 "use client";
 
 import { ILoginProps, IRegister } from "@/src/types/index";
+import { toast } from "react-toastify";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -21,10 +22,10 @@ export async function register(userData: IRegister) {
     }
 
     const result = await response.json();
-    alert("Usuario registrado con éxito");
+    toast.success("Usuario registrado con éxito");
     return result;
   } catch (error: any) {
-    alert("Error al registrarse, intentelo nuevamente");
+    toast.error("Error al registrarse, intentelo nuevamente");
     throw error;
   }
 }
@@ -42,7 +43,7 @@ export async function login(userData: ILoginProps) {
 
     if (!response.ok) {
       const error = await response.json();
-      alert("Error al ingresar: " + (error.message || "Credenciales inválidas"));
+      toast.error("Error al ingresar: " + (error.message || "Credenciales inválidas"));
       throw new Error(error.message || "Fallo al ingresar");
     }
 
