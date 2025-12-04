@@ -48,7 +48,7 @@ export default function OurHistoryPage() {
                 trato humano, medicina responsable y vínculo cercano con los animales y sus familias.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                El primer paciente, <span className="font-semibold">Roco</span> —un perrito mestizo adoptado por una 
+                El primer paciente, <span className="font-semibold">Fatiga</span> —un perrito mestizo adoptado por una 
                 familia del barrio— marcó el inicio de una relación profunda entre la clínica y la comunidad. A partir 
                 de allí, campañas de vacunación en la vereda, actividades educativas en colegios y jornadas de adopción 
                 consolidaron el lugar como un referente.

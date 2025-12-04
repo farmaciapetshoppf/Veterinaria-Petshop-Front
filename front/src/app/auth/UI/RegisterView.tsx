@@ -8,14 +8,16 @@ import Link from 'next/link';
 import { register } from '@/src/services/user.services';
 import { useRouter } from 'next/navigation';
 import PasswordFieldFormik from '../../components/PaswordField/PasswordField';
-/* import dogCat from "@/src/assets/dogPC.jpg" */
 import background from "@/src/assets/huellasFondo.png"
 import catFood from "@/src/assets/gatoComida.png"
 import Image from 'next/image';
+import { useState } from 'react';
+import { CitySelect, CountrySelect } from '../../components/SelectCountryCity/SelectCountryCity';
 
 function RegisterView() {
 
     const router = useRouter();
+    const [selectedCountryCode, setSelectedCountryCode] = useState(null);
 
     return (
         <div className='flex md:justify-around justify-center items-center bg-linear-to-r 
@@ -50,8 +52,6 @@ function RegisterView() {
                         city: "",
                         confirmPassword: "",
                     }}
-                    /* TODO: quedaria agregar campos para validacion, quiza usar un campo
-                     nombre y otro apellido y unirlo manualmente para mantener arquitectura nombre+apellido */
                     validationSchema={validateSchemaRegister}
                     validateOnMount={true}
 
@@ -72,7 +72,7 @@ function RegisterView() {
 
                             <FieldFormikCustom label="Email:" nameField="email" type="email" placeholder="juanGutierrez82@mail.com" />
 
-                            <FieldFormikCustom label="Nombre de usuario:" nameField="user" type="text" placeholder="JGuttierrez" />
+                            {/* <FieldFormikCustom label="Nombre de usuario:" nameField="user" type="text" placeholder="JGuttierrez" /> */}
 
                             <PasswordFieldFormik label="Contraseña:" nameField="password" type="password" placeholder="********" />
 
@@ -83,6 +83,18 @@ function RegisterView() {
                             <FieldFormikCustom label="Pais:" nameField="country" type="text" placeholder="Argentina" />
 
                             <FieldFormikCustom label="Ciudad:" nameField="city" type="text" placeholder="Pringles" />
+
+                            {/* <CountrySelect 
+                                label="País:" 
+                                name="country" 
+                                onCountryChange={setSelectedCountryCode}
+                            />
+
+                            <CitySelect 
+                                label="Ciudad:" 
+                                name="city" 
+                                countryCode={selectedCountryCode}
+                            /> */}
 
                             <FieldFormikCustom label="Direccion:" nameField="address" type="text" placeholder="Av Mitre 123" />
 

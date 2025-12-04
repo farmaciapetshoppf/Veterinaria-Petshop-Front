@@ -47,7 +47,7 @@ export default function Navbar() {
           
           { userData && userData.user && (
             <span className="text-gray-700 whitespace-nowrap text-[16px] lg:text-[20px] font-medium">
-              Hola <span className="font-semibold">{userData.user.name}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+              Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
             </span>
           )}
         </div>

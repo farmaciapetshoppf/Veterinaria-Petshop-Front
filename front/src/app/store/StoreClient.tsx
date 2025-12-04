@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Card from "../components/CardProduct/CardProduct";
-import { IProduct, ICategory } from '@/src/types';
+import { IProduct, ICategoryBasic } from '@/src/types';
 import Image from 'next/image';
 import bannerstore from "../../assets/bannerstore.png"
 import { useSearchParams } from 'next/navigation';
 
 interface StoreClientProps {
   initialProducts: IProduct[];
-  categories: ICategory[];
+  categories: ICategoryBasic[];
 }
 
 export default function StoreClient({ initialProducts, categories }: StoreClientProps) {
@@ -26,53 +26,59 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
   const searchParams = useSearchParams();
   const categoryNameFromUrl = searchParams.get("category");
 
-  // Primera carga: si viene category en la URL, seteala
-  useEffect(() => {
-  if (categoryNameFromUrl) {
-    const normalized = categoryNameFromUrl.toLowerCase();
-
-    const found = categories.find(
-      c => c.name.toLowerCase() === normalized
-    );
-
-    if (found) {
-      setSelectedCategory(found.id);
-    }
-  }
-}, [categoryNameFromUrl, categories]);
-
-  // Crear mapa de productos por categoría usando la estructura del backend
-  const productsByCategory = new Map<string | number, IProduct[]>();
-
-  categories.forEach(cat => {
-    if (cat.products && cat.products.length > 0) {
-      productsByCategory.set(cat.id, cat.products);
-    }
-  });
-
   // Debug
   useEffect(() => {
     console.log('📦 Total productos:', products.length);
     console.log('🏷️ Categorías:', categories.length);
-    console.log('📊 Productos por categoría:', Array.from(productsByCategory.entries()).map(([id, prods]) => {
-      const cat = categories.find(c => c.id === id);
-      return `${cat?.name}: ${prods.length}`;
-    }));
+    console.log('🔍 Ejemplo de producto:', products[0]);
+    console.log('🔍 Ejemplo de categoría:', categories[0]);
   }, [products, categories]);
 
-  // Filtrar solo categorías con productos
-  const availableCategories = categories.filter(cat =>
-    cat.products && cat.products.length > 0
-  );
+  // Primera carga: si viene category en la URL, setearla
+  useEffect(() => {
+    if (categoryNameFromUrl) {
+      const normalized = categoryNameFromUrl.toLowerCase();
+      const found = categories.find(
+        c => c.name.toLowerCase() === normalized
+      );
+      if (found) {
+        setSelectedCategory(found.id);
+        console.log('✅ Categoría desde URL:', found.name);
+      }
+    }
+  }, [categoryNameFromUrl, categories]);
 
-  // Obtener productos a filtrar (todos o de una categoría específica)
+  // Crear mapa de productos por categoría basado en product.categoryId
+  const productsByCategory = new Map<string | number, IProduct[]>();
+  
+  products.forEach(product => {
+    // Manejar diferentes nombres de campo para categoryId
+    const categoryId = product.categoryId || (product as any).category_id || (product as any).category?.id;
+    
+    if (categoryId !== undefined && categoryId !== null) {
+      if (!productsByCategory.has(categoryId)) {
+        productsByCategory.set(categoryId, []);
+      }
+      productsByCategory.get(categoryId)?.push(product);
+    }
+  });
+
+  // Debug del mapa de productos por categoría
+  useEffect(() => {
+    console.log('📊 Productos por categoría:', 
+      Array.from(productsByCategory.entries()).map(([id, prods]) => {
+        const cat = categories.find(c => c.id === id);
+        return `${cat?.name || `ID: ${id}`}: ${prods.length} productos`;
+      })
+    );
+  }, [productsByCategory]);
+
+  // Obtener productos a filtrar
   let productsToFilter: IProduct[] = [];
 
   if (selectedCategory === null) {
-    // Mostrar todos los productos de todas las categorías
-    productsToFilter = Array.from(productsByCategory.values()).flat();
+    productsToFilter = products;
   } else {
-    // Mostrar productos de la categoría seleccionada
     productsToFilter = productsByCategory.get(selectedCategory) || [];
   }
 
@@ -115,6 +121,11 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
     setSelectedCategory(null);
     setSortBy('name');
     setCurrentPage(1);
+  };
+
+  // Función para contar productos por categoría
+  const getCategoryCount = (categoryId: number | string) => {
+    return productsByCategory.get(categoryId)?.length || 0;
   };
 
   return (
@@ -214,10 +225,13 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
                       onChange={() => setSelectedCategory(null)}
                       className="mr-2 w-4 h-4 text-orange-600 focus:ring-orange-500"
                     />
-                    <span className="text-sm text-gray-700">Todas ({Array.from(productsByCategory.values()).flat().length})</span>
+                    <span className="text-sm text-gray-700">Todas ({products.length})</span>
                   </label>
-                  {availableCategories.map(category => {
-                    const count = category.products?.length || 0;
+                  {categories.map(category => {
+                    const count = getCategoryCount(category.id);
+                    // Solo mostrar categorías que tengan productos
+                    if (count === 0) return null;
+                    
                     return (
                       <label key={category.id} className="flex items-center cursor-pointer">
                         <input
@@ -316,7 +330,6 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
 
                     <div className="flex gap-2">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                        // Mostrar solo algunas páginas alrededor de la actual
                         if (
                           page === 1 ||
                           page === totalPages ||
