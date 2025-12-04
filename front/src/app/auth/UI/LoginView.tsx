@@ -14,6 +14,7 @@ import { getGoogleAuthUrl, login } from '@/src/services/user.services'
 import PasswordFieldFormik from '../../components/PaswordField/PasswordField'
 import dogCat from "@/src/assets/dogCat.png"
 import background from "@/src/assets/huellasFondo.png"
+import { IUser, IUserSession } from '@/src/types'
 
 function LoginView() {
     const { setUserData } = useAuth();
@@ -57,14 +58,30 @@ function LoginView() {
                     validateOnMount={true}
                     onSubmit={async (values) => {
                         try {
-                           
-                            const response = await login(values);
-                                                        
-                            if (response) {
-                                setUserData(response);
-                                // Usar window.location para forzar recarga completa
-                                window.location.href = '/';
-                            }
+                            const response: IUser = await login(values);
+
+                            const formatted: IUserSession = {
+                                token: "",              // tu backend no lo envía
+                                user: {
+                                    id: response.id,
+                                    uid: response.uid,
+                                    name: response.name,
+                                    email: response.email,
+                                    user: response.user,
+                                    phone: response.phone,
+                                    country: response.country,
+                                    address: response.address,
+                                    city: response.city,
+                                    role: response.role,
+                                    isDeleted: response.isDeleted,
+                                    deletedAt: response.deletedAt,
+                                    pets: response.pets
+                                }
+                            };
+
+                            setUserData(formatted);
+                            router.push('/');
+
                         } catch (error) {
                             alert("Error al iniciar sesión. Por favor, intenta nuevamente.");
                         }
@@ -73,23 +90,23 @@ function LoginView() {
                     {({ isValid, isSubmitting }) => (
                         <Form className="flex flex-col justify-between my-6 rounded-2xl p-2">
 
-                            <FieldFormikCustom 
-                                label="Email:" 
-                                nameField="email" 
-                                type="email" 
-                                placeholder="johnHandcock@mail.com" 
+                            <FieldFormikCustom
+                                label="Email:"
+                                nameField="email"
+                                type="email"
+                                placeholder="johnHandcock@mail.com"
                             />
 
-                            <PasswordFieldFormik 
-                                label="Contraseña:" 
-                                nameField="password" 
-                                type="password" 
-                                placeholder="********" 
+                            <PasswordFieldFormik
+                                label="Contraseña:"
+                                nameField="password"
+                                type="password"
+                                placeholder="********"
                             />
 
-                            <SubmitFormikButton 
+                            <SubmitFormikButton
                                 text={isSubmitting ? "Ingresando..." : "Ingresar"}
-                                disabled={!isValid || isSubmitting} 
+                                disabled={!isValid || isSubmitting}
                             />
 
                             <button
@@ -99,10 +116,10 @@ function LoginView() {
                                 className='bg-white border rounded hover:bg-sky-500
                                 p-3 w-70 flex self-center justify-center cursor-pointer
                                 disabled:opacity-50 disabled:cursor-not-allowed'>
-                                <Image 
+                                <Image
                                     src={googleLogo}
-                                    width={25} 
-                                    height={25} 
+                                    width={25}
+                                    height={25}
                                     alt='Google Logo'
                                     className='mr-5 w-7 h-7 self-center'
                                 />
