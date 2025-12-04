@@ -14,7 +14,7 @@ export default function Navbar() {
 
   const { getItemsCount } = useCart();
   const itemsCount = getItemsCount();
-    const {userData, logout} = useAuth();
+  const {userData, logout} = useAuth();
 
   return (
     <header className="fixed top-0 left-0 w-full bg-[#f5f5f5] shadow-sm z-50 transition-all duration-300">
@@ -47,7 +47,7 @@ export default function Navbar() {
           
           { userData && userData.user && (
             <span className="text-gray-700 whitespace-nowrap text-[16px] lg:text-[20px] font-medium">
-              Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+              Hola <span className="font-semibold">{userData?.user?.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
             </span>
           )}
         </div>
