@@ -48,10 +48,8 @@ export async function login(userData: ILoginProps) {
     }
 
     const result = await response.json();
-    
-    /* alert("Se ha logueado con éxito");
-    console.log("1111"+result); */
-    
+        
+    toast.success("Se ha logueado con éxito");
     return result;
   } catch (error: any) {
     throw error;

@@ -48,10 +48,6 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
     }, []);
 
     const addToCart = (product: IProduct) => {
-        /* if (!userData) {
-            alert("Debes iniciar sesión para agregar productos al carrito");
-            return;
-        } */
 
         const existingProduct = cartItems.some(item => item.id === product.id);
         if (existingProduct) {

@@ -19,7 +19,6 @@ import { toast } from 'react-toastify'
 
 function LoginView() {
     const { setUserData } = useAuth();
-    const router = useRouter();
     const [googleLoading, setGoogleLoading] = React.useState(false);
 
     const handleGoogleLogin = async () => {
@@ -82,7 +81,7 @@ function LoginView() {
                             };
 
                             setUserData(formatted);
-                            router.push('/');
+                            window.location.href = '/';
 
                         } catch (error) {
                             toast.error("Error al iniciar sesión. Por favor, intenta nuevamente.");

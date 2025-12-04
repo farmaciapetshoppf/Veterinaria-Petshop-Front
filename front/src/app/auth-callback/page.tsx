@@ -37,11 +37,12 @@ export default function AuthCallback() {
             city: response.city,
             isDeleted: response.isDeleted,
             deletedAt: response.deletedAt,
-            pets: response.pets
+            pets: response.pets,
+            buyerSaleOrders: response.buyerSaleOrders
           },         
         });
         
-        router.push("/dashboard");
+        window.location.href = '/'
       } catch (err) {
         console.error("Error de autenticación:", err);
         setError(
