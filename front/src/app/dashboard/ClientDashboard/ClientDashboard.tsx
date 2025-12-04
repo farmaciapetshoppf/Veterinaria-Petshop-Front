@@ -7,16 +7,30 @@ import { getAllOrders } from '@/src/services/order.services'
 import { IPet, IProduct, Order } from '@/src/types'
 import CardPet from '../../components/CardPet/CardPet'
 import NewPetModal from '../../components/NewPetModal/NewPetModal'
+import axios from "axios";
+import EditProfileModal from '../../components/EditProfileModal/EditProfileModal'
 
 export default function ClientDashboard() {
   const { userData } = useAuth()
 
   const [activeTab, setActiveTab] = useState<'profile' | 'pets' | 'orders'>('profile')
   const [pets, setPets] = useState<IPet[]>([])
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loadingOrders, setLoadingOrders] = useState(false)
   const [showNewPetModal, setShowNewPetModal] = useState(false)
   const [creatingPet, setCreatingPet] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+
+  const handleSaveProfile = async (data: any) => {
+    await axios.patch(`/users/${userData!.user.id}`, data);
+
+    // refrescar el estado global
+    setUserData({
+      ...userData,
+      user: {
+        ...userData.user,
+        ...data,
+      },
+    });
+  };
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
     nombre: "",
@@ -153,9 +167,19 @@ export default function ClientDashboard() {
                     </div>
                   </div>
 
-                  <button className="mt-6 bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors">
+                  <button
+                    onClick={() => setOpenEdit(true)}
+                    className="px-4 py-2 mt-10 bg-orange-500 text-white rounded-md"
+                  >
                     Editar Perfil
                   </button>
+
+                  <EditProfileModal
+                    open={openEdit}
+                    onClose={() => setOpenEdit(false)}
+                    user={userData.user}
+                    onSave={handleSaveProfile}
+                  />
                 </div>
               </div>
             )}
@@ -255,7 +279,7 @@ export default function ClientDashboard() {
               <div className="md:col-span-2">
                 {/* Filtros de estado */}
                 <div className="mb-6 flex space-x-4">
-                  <button className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm font-medium">
+                  {/* <button className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm font-medium">
                     Todas
                   </button>
                   <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200">
@@ -263,7 +287,7 @@ export default function ClientDashboard() {
                   </button>
                   <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200">
                     Entregadas
-                  </button>
+                  </button> */}
                 </div>
                 {userData?.user.buyerSaleOrders.map((order) => (
                   <div key={order.id} className="border p-4 rounded-lg mb-4">
@@ -272,7 +296,7 @@ export default function ClientDashboard() {
                     <p>Estado: {order.status}</p>
                     <p>Fecha: {new Date(order.createdAt).toLocaleString()} hs</p>
 
-                  {/* TODO: Modificar para usar el endpoing */}
+                    {/* TODO: Modificar para usar el endpoing */}
                     <h3 className="mt-3 font-semibold">Items:</h3>
                     {order.items.map((item) => (
                       <div key={item.product.id} className="ml-4 mt-2">
@@ -282,68 +306,6 @@ export default function ClientDashboard() {
                     ))}
                   </div>
                 ))}
-
-                {/* <div className="space-y-4">
-                  {loadingOrders ? (
-                    <p className="text-gray-500 text-center py-8">Cargando órdenes...</p>
-                  ) : orders.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No tienes órdenes registradas</p>
-                  ) : (
-                    userData.user.buyerSaleOrders.map((order) => (
-                      <div key={order.id} className="bg-gray-50 rounded-lg p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              Orden #{order.id}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              {new Date(order.date).toLocaleDateString('es-ES', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
-                            </p>
-                          </div>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'active'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-green-100 text-green-800'
-                              }`}
-                          >
-                            {order.status === 'active' ? 'En proceso' : 'Entregada'}
-                          </span>
-                        </div> */}
-
-                {/* Items de la orden */}
-                {/* <div className="border-t border-gray-200 pt-4">
-                          <h4 className="text-sm font-medium text-gray-900 mb-3">Productos</h4>
-                          <div className="space-y-2">
-                            {order.items.map((item, index) => (
-                              <div key={index} className="flex justify-between text-sm">
-                                <span className="text-gray-700">
-                                  {item.productName} x{item.quantity}
-                                </span>
-                                <span className="text-gray-900 font-medium">
-                                  ${item.price * item.quantity}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div> */}
-
-                {/* Total */}
-                {/* <div className="border-t border-gray-200 mt-4 pt-4 flex justify-between items-center">
-                          <span className="text-base font-semibold text-gray-900">Total</span>
-                          <span className="text-xl font-bold text-gray-900">${order.total}</span>
-                        </div>
-
-                        <button className="mt-4 w-full text-center text-sm text-orange-500 hover:text-orange-600 font-medium">
-                          Ver detalles
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div> */}
               </div>
             )}
 
@@ -373,7 +335,7 @@ export default function ClientDashboard() {
                   <div>
                     <p className="text-sm text-gray-600">Compras activas</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {orders.filter((order) => order.status === 'active').length}
+                      {userData.user.buyerSaleOrders.filter((order) => order.status === 'ACTIVE').length}
                     </p>
                   </div>
                 </div>

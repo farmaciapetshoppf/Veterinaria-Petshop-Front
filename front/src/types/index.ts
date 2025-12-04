@@ -22,6 +22,16 @@ export interface IUser {
   buyerSaleOrders: IOrder[]
 }
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  phone: string | null;
+  country: string | null;
+  address: string | null;
+  city: string | null;
+}
+
+
 export interface Order {
   id: string
   total: number
