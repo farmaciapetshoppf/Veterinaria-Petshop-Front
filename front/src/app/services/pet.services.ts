@@ -1,4 +1,5 @@
 import { IPet } from "@/src/types";
+import { toast } from "react-toastify";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -21,12 +22,13 @@ export interface Appointment {
 
 export interface NewPetData {
   nombre: string
-  especie: string
+  especie: "PERRO" | "GATO" | "AVE" | "ROEDOR" | "REPTIL" | "OTRO"
   sexo: 'MACHO' | 'HEMBRA'
   tamano: 'PEQUENO' | 'MEDIANO' | 'GRANDE'
   esterilizado: 'SI' | 'NO'
   status: 'VIVO' | 'FALLECIDO'
   fecha_nacimiento: string
+  breed: string
   ownerId: string
 }
 
@@ -49,19 +51,20 @@ export const createPet = async (petData: NewPetData, userId: string): Promise<IP
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Error del servidor:', errorText)
+      toast.error('No se pudo crear la mascota, intente nuevamente')
       throw new Error(`Error al crear la mascota: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
-    console.log('Mascota creada exitosamente:', result)
-    console.log('Datos de la mascota:', result.data || result)
+    toast.success('Mascota creada exitosamente')
+    /* console.log('Datos de la mascota:', result.data || result) */
     
     // El backend devuelve {message: '...', data: {...}}
     // Devolvemos solo la data
     return result.data || result;
   } catch (error) {
     console.error('Error creating pet:', error);
+    toast.error('No se pudo crear la mascota, intente nuevamente')
     return null;
   }
 };

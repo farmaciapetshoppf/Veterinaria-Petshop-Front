@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { handleAuthCallback } from "@/src/services/user.services";
 import { useAuth } from "@/src/context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -37,13 +38,15 @@ export default function AuthCallback() {
             city: response.city,
             isDeleted: response.isDeleted,
             deletedAt: response.deletedAt,
-            pets: response.pets
+            pets: response.pets,
+            buyerSaleOrders: response.buyerSaleOrders
           },         
         });
-        
-        router.push("/dashboard");
+        toast.success("Se ha logeado exitosamente")
+        window.location.href = '/'
       } catch (err) {
         console.error("Error de autenticación:", err);
+        toast.success("Error al intentar ingresar")
         setError(
           "Hubo un problema al procesar la autenticación. Por favor, intenta de nuevo."
         );

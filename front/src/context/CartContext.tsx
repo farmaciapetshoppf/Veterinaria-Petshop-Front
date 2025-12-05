@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState, } from "react";
 import { IProduct } from "../types";
 import { useAuth } from "./AuthContext";
+import { toast } from "react-toastify";
 import { addToCartBackend, removeFromCartBackend, clearCartBackend, getCart } from "../services/order.services";
 
 interface CartContextProps {
@@ -79,7 +80,7 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
     const addToCart = async (product: IProduct) => {
         const existingProduct = cartItems.some(item => item.id === product.id);
         if (existingProduct) {
-            alert("El producto ya está en el carrito");
+            toast.error("El producto ya está en el carrito");
             return;
         }
 

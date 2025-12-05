@@ -15,21 +15,27 @@ import PasswordFieldFormik from '../../components/PaswordField/PasswordField'
 import dogCat from "@/src/assets/dogCat.png"
 import background from "@/src/assets/huellasFondo.png"
 import { IUser, IUserSession } from '@/src/types'
+import { toast } from 'react-toastify'
 
 function LoginView() {
     const { setUserData } = useAuth();
-    const router = useRouter();
     const [googleLoading, setGoogleLoading] = React.useState(false);
 
     const handleGoogleLogin = async () => {
         try {
             setGoogleLoading(true);
             const { url } = await getGoogleAuthUrl();
+            toast.success("Ingresando con Google...");
             window.location.href = url;
         } catch (error) {
             console.error("Error al obtener URL de autenticación:", error);
-            alert("No se pudo iniciar el proceso de autenticación con Google");
+            toast.error("No se pudo iniciar el proceso de autenticación con Google");
         } finally {
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+            toast.success("Se ha ingresado exitosamente");
+
             setGoogleLoading(false);
         }
     };
@@ -75,15 +81,17 @@ function LoginView() {
                                     role: response.role,
                                     isDeleted: response.isDeleted,
                                     deletedAt: response.deletedAt,
-                                    pets: response.pets
+                                    pets: response.pets,
+                                    buyerSaleOrders: response.buyerSaleOrders
                                 }
                             };
-
                             setUserData(formatted);
-                            router.push('/');
+                            toast.success("Se ha logueado con éxito");
+                            window.location.href = '/';
 
                         } catch (error) {
-                            alert("Error al iniciar sesión. Por favor, intenta nuevamente.");
+                            /* dejar en console */
+                            console.log("Error al iniciar sesión. Por favor, intenta nuevamente.");
                         }
                     }}
                 >

@@ -1,7 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
 import gatoCaja from "@/src/assets/gatoCaja.jpg"
-import { subtle } from 'crypto'
 
 function Banner() {
 

@@ -5,6 +5,9 @@ import Navbar from "./components/NavBar/NavBar";
 import { AuthProvider } from "../context/AuthContext";
 import Footer from "./components/Footer/Footer";
 import { CartProvider } from "../context/CartContext";
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +39,18 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Footer/>
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
+            />
           </AuthProvider>
         </CartProvider>
       </body>
