@@ -25,11 +25,17 @@ function LoginView() {
         try {
             setGoogleLoading(true);
             const { url } = await getGoogleAuthUrl();
+            toast.success("Ingresando con Google...");
             window.location.href = url;
         } catch (error) {
             console.error("Error al obtener URL de autenticación:", error);
             toast.error("No se pudo iniciar el proceso de autenticación con Google");
         } finally {
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+            toast.success("Se ha ingresado exitosamente");
+
             setGoogleLoading(false);
         }
     };
@@ -79,12 +85,13 @@ function LoginView() {
                                     buyerSaleOrders: response.buyerSaleOrders
                                 }
                             };
-
                             setUserData(formatted);
+                            toast.success("Se ha logueado con éxito");
                             window.location.href = '/';
 
                         } catch (error) {
-                            toast.error("Error al iniciar sesión. Por favor, intenta nuevamente.");
+                            /* dejar en console */
+                            console.log("Error al iniciar sesión. Por favor, intenta nuevamente.");
                         }
                     }}
                 >

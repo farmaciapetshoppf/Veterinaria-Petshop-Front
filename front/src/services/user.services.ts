@@ -43,13 +43,14 @@ export async function login(userData: ILoginProps) {
 
     if (!response.ok) {
       const error = await response.json();
-      toast.error("Error al ingresar: " + (error.message || "Credenciales inválidas"));
+      toast.error("Error al ingresar: Credenciales inválidas");
       throw new Error(error.message || "Fallo al ingresar");
     }
 
+    toast.success("Se ha logueado con éxito");
     const result = await response.json();
         
-    toast.success("Se ha logueado con éxito");
+    
     return result;
   } catch (error: any) {
     throw error;
