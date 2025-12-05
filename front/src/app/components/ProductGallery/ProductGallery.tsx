@@ -33,8 +33,8 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           <Image
             alt={productName}
             src={getImageSrc(images[selectedIndex])}
-            width={1000}
-            height={750}
+            width={500}
+            height={250}
             loading="lazy"
             className="object-contain p-8"
             sizes="66vw"
