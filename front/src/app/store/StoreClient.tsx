@@ -27,12 +27,15 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
   const categoryNameFromUrl = searchParams.get("category");
 
   // Debug
-  useEffect(() => {
+  
+/*
+TODO: borrar
+useEffect(() => {
     console.log('📦 Total productos:', products.length);
     console.log('🏷️ Categorías:', categories.length);
     console.log('🔍 Ejemplo de producto:', products[0]);
     console.log('🔍 Ejemplo de categoría:', categories[0]);
-  }, [products, categories]);
+  }, [products, categories]); */
 
   // Primera carga: si viene category en la URL, setearla
   useEffect(() => {

@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/src/context/AuthContext'
 import { createPet, NewPetData } from '@/src/app/services/pet.services'
-import { getOrderHistory } from '@/src/services/order.services'
 import { IPet } from '@/src/types'
 import CardPet from '../../components/CardPet/CardPet'
 import NewPetModal from '../../components/NewPetModal/NewPetModal'
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal'
 import OrderList from '../../components/OrderList/OrderList'
+import { toast } from 'react-toastify'
 
 export default function ClientDashboard() {
   const { userData, setUserData } = useAuth()
@@ -26,7 +26,9 @@ export default function ClientDashboard() {
         body: JSON.stringify(data)
       });
 
-      if (!res.ok) throw new Error("Error al actualizar el perfil");
+      if (!res.ok) {
+        toast.error("Error al intentar editar perfil: Intentelo mas tarde")
+      } /* throw new Error("Error al actualizar el perfil"); */
 
       const updated = await res.json();
 
@@ -40,7 +42,7 @@ export default function ClientDashboard() {
       });
 
     } catch (err) {
-      console.error(err);
+      toast.error("Error al intentar editar perfil: Intentelo mas tarde");
       throw err; // Re-lanzar el error para que el modal lo maneje
     }
   };
@@ -74,27 +76,27 @@ export default function ClientDashboard() {
   }, [userData])
 
   // Cargar órdenes desde el historial cuando se cambia a la pestaña de órdenes
-  useEffect(() => {
-    const fetchOrders = async () => {
-      if (activeTab !== 'orders') return
-      
-      if (!userData?.user?.id) return
-
-      setLoadingOrders(true)
-      try {
-        const historyData = await getOrderHistory(String(userData.user.id), userData.token || '')
-        const ordersData = historyData.data || historyData
-        setOrders(Array.isArray(ordersData) ? ordersData : [])
-      } catch (error) {
-        console.error('Error al cargar historial de órdenes:', error)
-        setOrders([])
-      } finally {
-        setLoadingOrders(false)
+  /*   useEffect(() => {
+      const fetchOrders = async () => {
+        if (activeTab !== 'orders') return
+        
+        if (!userData?.user?.id) return
+  
+        setLoadingOrders(true)
+        try {
+          const historyData = await getOrderHistory(String(userData.user.id), userData.token || '')
+          const ordersData = historyData.data || historyData
+          setOrders(Array.isArray(ordersData) ? ordersData : [])
+        } catch (error) {
+          console.error('Error al cargar historial de órdenes:', error)
+          setOrders([])
+        } finally {
+          setLoadingOrders(false)
+        }
       }
-    }
-
-    fetchOrders()
-  }, [activeTab, userData?.user?.id, userData?.token])
+  
+      fetchOrders()
+    }, [activeTab, userData?.user?.id, userData?.token]) */
 
   if (!userData) {
     return (

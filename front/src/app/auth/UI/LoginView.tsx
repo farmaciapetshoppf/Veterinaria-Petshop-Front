@@ -6,7 +6,6 @@ import FieldFormikCustom from '../../components/FieldFormikCustom/FieldFormikCus
 import SubmitFormikButton from '../../components/SubmitFormikButton/SubmitFormikButton'
 import { validateLoginForm } from '@/src/utils/validate'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import googleLogo from "@/src/assets/googleLogo.png"
 import { useAuth } from '@/src/context/AuthContext'
@@ -25,7 +24,6 @@ function LoginView() {
         try {
             setGoogleLoading(true);
             const { url } = await getGoogleAuthUrl();
-            toast.success("Ingresando con Google...");
             window.location.href = url;
         } catch (error) {
             console.error("Error al obtener URL de autenticación:", error);
@@ -35,7 +33,6 @@ function LoginView() {
                 window.location.href = '/';
             }, 3000);
             toast.success("Se ha ingresado exitosamente");
-
             setGoogleLoading(false);
         }
     };
