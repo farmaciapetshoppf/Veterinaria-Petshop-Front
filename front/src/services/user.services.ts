@@ -59,7 +59,10 @@ export async function login(userData: ILoginProps) {
 export async function getGoogleAuthUrl() {
   try {
     const res = await fetch(`${APIURL}/auth/google/url`);
-    if (!res.ok) throw new Error("Error solicitando URL de autenticación");
+    if (!res.ok){
+      toast.error("Error al intentar ingresar, intente nuevamente")
+      throw new Error("Error solicitando URL de autenticación");
+    } 
     return res.json();
   } catch (error) {
     throw error;

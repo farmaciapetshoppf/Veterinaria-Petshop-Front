@@ -28,7 +28,7 @@ function LoginView() {
             window.location.href = url;
         } catch (error) {
             console.error("Error al obtener URL de autenticación:", error);
-            toast.done("No se pudo iniciar el proceso de autenticación con Google");
+            toast.error("No se pudo iniciar el proceso de autenticación con Google");
         } finally {
             setGoogleLoading(false);
         }

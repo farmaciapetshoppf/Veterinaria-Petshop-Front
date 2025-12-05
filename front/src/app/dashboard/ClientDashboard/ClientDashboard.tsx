@@ -7,6 +7,7 @@ import { IPet } from '@/src/types'
 import CardPet from '../../components/CardPet/CardPet'
 import NewPetModal from '../../components/NewPetModal/NewPetModal'
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal'
+import OrderList from '../../components/OrderList/OrderList'
 
 export default function ClientDashboard() {
   const { userData, setUserData } = useAuth()
@@ -80,7 +81,8 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="bg-white pt-20 min-h-screen">
+    <div className="pt-20 min-h-screen bg-linear-to-br from-orange-100 via-orange-200
+               to-orange-200">
       <div className="pt-6 pb-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
 
@@ -133,7 +135,7 @@ export default function ClientDashboard() {
             {/* PERFIL */}
             {activeTab === 'profile' && (
               <div className="md:col-span-2">
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-gre rounded-lg border border-gray-400 p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">
                     Información Personal
                   </h2>
@@ -162,7 +164,7 @@ export default function ClientDashboard() {
 
                   <button
                     onClick={() => setOpenEdit(true)}
-                    className="px-4 py-2 mt-10 bg-orange-500 text-white rounded-md"
+                    className="px-4 py-2 mt-10 bg-orange-500 hover:bg-orange-600 cursor-pointer text-white rounded-md"
                   >
                     Editar Perfil
                   </button>
@@ -189,56 +191,11 @@ export default function ClientDashboard() {
                       pets.map((pet) => (
                         <CardPet key={pet.id} {...pet} />
                       )))}
-                  {/* Turnos de esta mascota */}
-                  {/* <div className="mt-4 border-t border-gray-200 pt-4">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Turnos</h3>
-                        <div className="space-y-3">
-                          {pet.appointments && pet.appointments.length > 0 ? pet.appointments.map((appointment) => (
-                            <div
-                              key={appointment.id}
-                              className="bg-white rounded-md p-4 border border-gray-200"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-medium text-gray-900">
-                                    {appointment.status}
-                                  </p>
-                                  <p className="text-xs text-gray-600 mt-1">
-                                    {appointment.veterinarian}
-                                  </p>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {new Date(appointment.date).toLocaleDateString('es-ES', {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric'
-                                    })}
-                                  </p>
-                                </div>
-                                <span
-                                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                    appointment.status === 'scheduled'
-                                      ? 'bg-blue-100 text-blue-800'
-                                      : appointment.status === 'completed'
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-red-100 text-red-800'
-                                  }`}
-                                >
-                                  {appointment.status === 'scheduled'
-                                    ? 'Programado'
-                                    : appointment.status === 'completed'
-                                    ? 'Completado'
-                                    : 'Cancelado'}
-                                </span>
-                              </div>
-                            </div>
-                          )) : (
-                            <p className="text-sm text-gray-500">No hay turnos programados</p>
-                          )}
-                        </div>
-                      </div> */}
                   <button
                     onClick={() => setShowNewPetModal(true)}
-                    className="w-full bg-orange-500 text-white px-4 py-3 rounded-md hover:bg-orange-600 transition-colors font-medium"
+                    className="w-full bg-orange-500 text-white px-4 py-3 
+                    rounded-md hover:bg-orange-600 transition-colors 
+                    cursor-pointer font-medium"
                   >
                     + Agregar Nueva Mascota
                   </button>
@@ -270,41 +227,15 @@ export default function ClientDashboard() {
             {/* COMPRAS */}
             {activeTab === 'orders' && (
               <div className="md:col-span-2">
-                {/* Filtros de estado */}
-                <div className="mb-6 flex space-x-4">
-                  {/* <button className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm font-medium">
-                    Todas
-                  </button>
-                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200">
-                    Activas
-                  </button>
-                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200">
-                    Entregadas
-                  </button> */}
-                </div>
-                {userData?.user.buyerSaleOrders.map((order) => (
-                  <div key={order.id} className="border p-4 rounded-lg mb-4">
-                    <h2 className="font-bold text-lg">Orden #{order.id}</h2>
-                    <p>Total: ${order.total}</p>
-                    <p>Estado: {order.status}</p>
-                    <p>Fecha: {new Date(order.createdAt).toLocaleString()} hs</p>
-
-                    {/* TODO: Modificar para usar el endpoing */}
-                    <h3 className="mt-3 font-semibold">Items:</h3>
-                    {order.items.map((item) => (
-                      <div key={item.product.id} className="ml-4 mt-2">
-                        <p>{item.product.name} - {item.product.description}</p>
-                        <p>Precio unidad: ${item.product.price}</p>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+                <h2 className="text-xl font-bold mb-4">Órdenes</h2>
+                <OrderList orders={userData?.user.buyerSaleOrders || []} />
               </div>
             )}
 
             {/* Sidebar derecha - Resumen rápido */}
             <div className="mt-8 md:mt-0">
-              <div className="bg-gray-50 rounded-lg p-6 sticky top-24">
+              <div className="bg-linear-to-br from-orange-100 via-orange-200
+               to-orange-200 border border-gray-400  rounded-lg p-6 sticky top-24">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen</h3>
 
                 <div className="space-y-4">
@@ -333,7 +264,10 @@ export default function ClientDashboard() {
                   </div>
                 </div>
 
-                <button className="mt-6 w-full bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors text-sm font-medium">
+                <button className="mt-6 w-full bg-orange-500 text-white px-4 py-2 rounded-md
+                 hover:bg-orange-600 transition-colors text-sm font-medium
+                 cursor-pointer
+                 ">
                   Agendar Turno
                 </button>
               </div>
