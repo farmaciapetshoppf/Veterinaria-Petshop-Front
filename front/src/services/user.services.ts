@@ -49,7 +49,12 @@ export async function login(userData: ILoginProps) {
 
     toast.success("Se ha logueado con éxito");
     const result = await response.json();
-        
+    alert("Se ha logueado con éxito");
+    
+    // Guardar el token en localStorage si viene en la respuesta
+    if (result.token) {
+      localStorage.setItem('authToken', result.token);
+    }
     
     return result;
   } catch (error: any) {

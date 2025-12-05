@@ -7,7 +7,7 @@ import perrocompra from "../../assets/perrocompra.png"
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { useCart } from "@/src/context/CartContext"
 import { useState } from "react"
-import { IProduct } from "../interfaces/product.interface"
+import { IProduct } from "@/src/types"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/src/context/AuthContext"
 import { createOrder } from "@/src/services/order.services"
@@ -32,7 +32,7 @@ const itemsCount = getItemsCount();
 
 const handleCheckout = async () => {
   // Si el usuario no está autenticado, mostrar un toast de error y redirigir al login
-  if (!userData?.token || !userData?.user?.id) {
+  if (!userData?.user?.id) {
     // mostrar toast de error rojo y redirigir a login
     toast.custom(() => (
       <div className="flex items-center gap-3 rounded-md border border-red-800 bg-red-100 px-4 py-2 text-red-900">
@@ -45,41 +45,16 @@ const handleCheckout = async () => {
     return getLogin();
   }
 
-  try {
-    // Crear array de items con productId y quantity
-    const orderItems = cartItems.map(item => ({
-      productId: String(item.id),
-      quantity: 1 // Por ahora cada producto tiene cantidad 1
-    }));
-    
-    await createOrder(orderItems, String(userData.user.id), userData.token);
-    clearCart();
-    // Mostrar toast de éxito al completar la compra con estilo verde
-    toast.custom(() => (
-      <div className="flex items-center gap-3 rounded-md border border-green-800 bg-green-100 px-4 py-2 text-green-900">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l3 3L15 6" />
-        </svg>
-        <div className="text-sm font-medium">Compra exitosa</div>
-      </div>
-    ), { duration: 4000 });
-    
-    setOpen(false);
-    router.push('/dashboard');
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    toast.custom(() => (
-      <div className="flex flex-col gap-1 rounded-md border border-red-800 bg-red-100 px-4 py-2 text-red-900">
-        <div className="flex items-center gap-3">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          <div className="text-sm font-medium">Error al crear la orden</div>
-        </div>
-        <div className="text-xs text-red-800">{message}</div>
-      </div>
-    ), { duration: 6000 });
-  }
+  // Redirigir a la página de checkout
+  router.push('/checkout');
+};
+
+const handleRemoveItem = async (productId: number | string) => {
+  await removeFromCart(productId);
+};
+
+const handleClearCart = async () => {
+  await clearCart();
 };
 const items: IProduct[] = Array.isArray(cartItems) ? (cartItems as IProduct[]) : [];
 const {userData} = useAuth();
@@ -126,12 +101,12 @@ return (
       <Dialog open={open} onClose={setOpen} className="relative z-10">
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="pointer-events-none fixed top-25 bottom-0 right-0 flex max-w-full pl-10 sm:pl-16">
+            <div className="pointer-events-none fixed top-25 bottom-0 right-60 flex max-w-full pl-8 sm:pl-16">
               <DialogPanel
                 transition
-                className="pointer-events-auto w-screen max-w-md transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
+                className="pointer-events-auto w-screen max-w-3xl transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
               >
-                <div className="flex h-full border-amber-200 border-2 mb-1 mr-2 rounded-2xl flex-col overflow-y-auto bg-white shadow-xl">
+                <div className="flex h-full w-full border-amber-200 border-2 mb-1 rounded-2xl flex-col overflow-y-auto bg-white shadow-xl">
                   <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
                     <div className="flex items-start justify-between">
                       <DialogTitle className="text-lg font-medium text-gray-900">Shopping cart</DialogTitle>
@@ -153,12 +128,12 @@ return (
 
                     <div className="mt-8">
                       <div className="flow-root border-amber-200">
-                        <ul role="list" className="-my-6 divide-y border-amber-200 divide-gray-200">
+                        <ul role="list" className="-my-6">
                           {items.length === 0 ? (
                             <li className="py-6 text-gray-600">Tu carrito está vacío</li>
                             ) : (
-                            items.map((item: IProduct) => (
-                              <li key={item.id} className="flex py-6">
+                            items.map((item: IProduct, index: number) => (
+                              <li key={item.id} className={`flex py-6 px-4 rounded-lg ${index % 2 === 0 ? 'bg-amber-50' : 'bg-white'}`}>
                                 <div className="size-24 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
                                   <Image
                                    alt={item.name}
@@ -183,7 +158,7 @@ return (
                                   <div className="flex flex-1 items-end justify-end text-sm">
                                     <button
                                       type="button"
-                                      onClick={() => removeFromCart(item.id)}
+                                      onClick={() => handleRemoveItem(item.id)}
                                       className="font-medium text-red-600 rounded-md px-2 py-1  hover:bg-red-600 hover:text-white  transition-colors duration-200"
                                     >
                                       Quitar
@@ -205,25 +180,41 @@ return (
                       
                     </div>
                     <p className="mt-0.5 text-sm text-gray-500">Shipping and taxes calculated at checkout.</p>
+                    
+                    {/* Botón principal de checkout */}
                     <div className="mt-6">
                       <button
                         onClick={!userData ? getLogin : handleCheckout}
-                        className="flex items-center justify-center rounded-md border border-transparent bg-amber-400 px-6 py-3 text-base font-medium text-white shadow-xs hover:bg-red-600"
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-transparent bg-amber-300 hover:bg-amber-500 px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={items.length === 0}
                       >
-                       {!userData ? 'Inicia sesión para continuar' : 'Proceder al pago'} 
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm4.95 17.4l-4.95-4.95-4.95 4.95L6 16.35l4.95-4.95L6 6.45 7.05 5.4l4.95 4.95 4.95-4.95L18 6.45l-4.95 4.95 4.95 4.95-1.05 1.05z"/>
+                        </svg>
+                        {!userData ? 'Inicia sesión para continuar' : 'Pagar con MercadoPago'}
                       </button>
                     </div>
-                    <div className="mt-6 flex justify-center text-center text-sm text-gray-500">
-                      <div>
-                        or{' '}
-                        <button
-                          type="button"
-                          onClick={clearCart}
-                          className="font-medium text-amber-500 hover:text-red-600"
-                        >
-                         Vaciar carrito 
-                        </button>
+
+                    {/* Separador */}
+                    <div className="relative mt-6 mb-6">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-300"></div>
                       </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-white text-gray-500">o</span>
+                      </div>
+                    </div>
+
+                    {/* Botón secundario - vaciar carrito */}
+                    <div className="flex justify-center text-center text-sm text-gray-500">
+                      <button
+                        type="button"
+                        onClick={handleClearCart}
+                        className="font-medium text-amber-500 hover:text-red-600 transition-colors"
+                        disabled={items.length === 0}
+                      >
+                        Vaciar carrito
+                      </button>
                     </div>
                   </div>
                 </div>
