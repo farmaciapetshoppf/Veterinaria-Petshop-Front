@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Huellitas3 from '../../../assets/Huellitas3.png'
@@ -15,8 +16,8 @@ export default function Navbar() {
 
   const { getItemsCount } = useCart();
   const itemsCount = getItemsCount();
-    const {userData, logout} = useAuth();
-    const { isAdmin } = useRole();
+  const { userData, logout } = useAuth();
+  const { isAdmin } = useRole();
 
   return (
     <header className="fixed top-0 left-0 w-full bg-[#f5f5f5] shadow-sm z-50 transition-all duration-300">
@@ -34,7 +35,8 @@ export default function Navbar() {
         </Link>
 
         {/* Links Desktop - Hidden en mobile */}
-        <div className="hidden md:flex md:flex-col lg:flex-row md:justify-center md:items-center gap-4 lg:gap-8 text-[16px] lg:text-[20px] font-medium text-gray-700">
+        <div className="hidden md:flex md:flex-row md:justify-center md:items-center
+          gap- lg:gap-8 text-[16px] lg:text-[20px] lg:flex-row font-medium text-gray-700">
           <div className="flex gap-4 lg:gap-8 items-center">
             {navItems
               .filter((item) => {
@@ -53,7 +55,7 @@ export default function Navbar() {
                   {navigationItem.nameToRender}
                 </Link>
               ))}
-            
+
             {/* Link de Admin solo para admin */}
             {isAdmin() && (
               <Link
@@ -64,19 +66,37 @@ export default function Navbar() {
               </Link>
             )}
           </div>
-          
-          { userData && userData.user && userData.user.name && (
-            <span className="text-gray-700 whitespace-nowrap text-[16px] lg:text-[20px] font-medium">
-              Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+
+          {userData?.user?.name && (
+            <span className="hidden lg:inline text-gray-700 whitespace-nowrap text-[16px] lg:text-[20px] font-medium">
+              Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu{" "}
+              <Link
+                href={PATHROUTES.PERFIL}
+                className="text-orange-500 hover:text-orange-600 font-semibold"
+              >
+                perfil
+              </Link>
             </span>
           )}
+
+          {/* Solo nombre como link entre md y lg */}
+          {userData?.user?.name && (
+            <Link
+              href={PATHROUTES.PERFIL}
+              className="md:inline lg:hidden text-orange-500 hover:text-orange-600 ms-3
+               font-semibold whitespace-nowrap text-[16px]"
+            >
+              {userData.user.name.split(" ")[0]}
+            </Link>
+          )}
+
         </div>
 
         {/* Botón Cerrar Sesión y Carrito - Desktop */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
           {userData && userData.user ? (
-            <button 
-              onClick={logout} 
+            <button
+              onClick={logout}
               className="
               rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
                 hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
@@ -86,8 +106,8 @@ export default function Navbar() {
               Cerrar sesión
             </button>
           ) : (
-            <Link 
-              href="/auth/login" 
+            <Link
+              href="/auth/login"
               className="rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
                 hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
               px-4 py-2 transition-colors duration-200 whitespace-nowrap
@@ -96,7 +116,7 @@ export default function Navbar() {
               Iniciar Sesión
             </Link>
           )}
-          
+
           {/* Carrito */}
           <Link href="/cart" className="cursor-pointer">
             <Image
@@ -157,7 +177,17 @@ export default function Navbar() {
                 {navigationItem.nameToRender}
               </Link>
             ))}
-          
+            {userData?.user?.name && (
+            <Link
+              href={PATHROUTES.PERFIL}
+              onClick={() => setIsMenuOpen(false)}
+              className="md:inline lg:hidden text-orange-500 hover:text-orange-600
+               font-semibold whitespace-nowrap text-[16px]"
+            >
+              {userData.user.name.split(" ")[0]}
+            </Link>
+          )}
+
           {/* Link de Admin para admin en mobile */}
           {isAdmin() && (
             <Link
