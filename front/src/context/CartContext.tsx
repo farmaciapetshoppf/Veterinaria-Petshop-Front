@@ -95,15 +95,15 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
                 );
                 // Recargar el carrito desde el backend después de agregar
                 await loadCartFromBackend();
-                alert("El producto se agregó al carrito");
+                toast.success("El producto se agregó al carrito");
             } catch (error) {
                 console.error('Error al agregar al carrito:', error);
-                alert("Error al agregar el producto al carrito");
+                toast.error("No se pudo agregar el producto al carrito");
             }
         } else {
             // Si no hay usuario, solo guardar en localStorage
             setCartItems((prevItems) => [...prevItems, product]);
-            alert("El producto se agregó al carrito");
+            toast.success("El producto se agregó al carrito");
         }
     };
 
@@ -116,7 +116,7 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
                 await loadCartFromBackend();
             } catch (error) {
                 console.error('Error al eliminar del carrito:', error);
-                alert("Error al eliminar el producto del carrito");
+                toast.error("No se pudo eliminar el producto del carrito");
             }
         } else {
             // Si no hay usuario, solo actualizar el estado local
@@ -132,7 +132,7 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
                 setCartItems([]);
             } catch (error) {
                 console.error('Error al vaciar el carrito:', error);
-                alert("Error al vaciar el carrito");
+                toast.error("Error al vaciar el carrito");
             }
         } else {
             // Si no hay usuario, solo limpiar el estado local

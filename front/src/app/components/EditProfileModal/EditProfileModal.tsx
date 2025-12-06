@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { toast } from "react-toastify";
 
 interface UserProfile {
   id: string;
@@ -9,6 +8,7 @@ interface UserProfile {
   country: string | null;
   address: string | null;
   city: string | null;
+  image: string | null;
 }
 
 interface Props {
@@ -47,7 +47,7 @@ export default function EditProfileModal({
       await onSave(form);
     } catch (err) {
       console.error(err);
-      toast.error("Error al guardar los cambios");
+      /* toast.error("Error al guardar los cambios"); */
     } finally {
       setSaving(false);
     }

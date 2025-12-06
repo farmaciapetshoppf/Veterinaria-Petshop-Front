@@ -19,33 +19,51 @@ export default function ClientDashboard() {
   const [openEdit, setOpenEdit] = useState(false);
 
   const handleSaveProfile = async (data: any) => {
-    try {
-      const res = await fetch(`https://localhost:3000/users/${userData!.user.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
+  try {
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("phone", data.phone);
+    formData.append("country", data.country);
+    formData.append("address", data.address);
+    formData.append("city", data.city);
 
-      if (!res.ok) {
-        toast.error("Error al intentar editar perfil: Intentelo mas tarde")
-      } /* throw new Error("Error al actualizar el perfil"); */
-
-      const updated = await res.json();
-
-      // Actualizar el estado global con los nuevos datos
-      setUserData({
-        ...userData!,
-        user: {
-          ...userData!.user,
-          ...data,
-        },
-      });
-
-    } catch (err) {
-      toast.error("Error al intentar editar perfil: Intentelo mas tarde");
-      throw err; // Re-lanzar el error para que el modal lo maneje
+    // Si hay imagen seleccionada
+    if (data.profileImage) {
+      formData.append("profileImage", data.profileImage);
     }
-  };
+
+    const res = await fetch(`http://localhost:3000/users/${userData!.user.id}`, {
+      method: "PATCH",
+      body: formData
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error del servidor:", errorText);
+      toast.error("Error al intentar editar perfil");
+      return;
+    }
+
+    const updated = await res.json();
+    if (updated){
+      toast.success("Perfil editado con exito")
+    }
+
+    setUserData({
+      ...userData!,
+      user: {
+        ...userData!.user,
+        ...data,
+      },
+    });
+
+  } catch (err) {
+    toast.error("Error al intentar editar perfil: Intentelo más tarde");
+    throw err;
+  } finally {
+    setOpenEdit(false)
+  }
+};
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
     nombre: "",
@@ -270,7 +288,7 @@ export default function ClientDashboard() {
                   </div>
                 </div>
 
-                <button className="mt-6 w-full px-4 py-2 rounded-md
+                <button className="mt-6 w-full px-4 py-2
                 rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
                 hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
                  transition-colors text-sm font-medium

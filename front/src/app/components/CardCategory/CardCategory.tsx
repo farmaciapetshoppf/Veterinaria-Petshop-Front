@@ -37,11 +37,11 @@ const CardCategory: React.FC<ICategoryBasic> = ({ name, image }) => {
       />
 
       {/* Contenido */}
-      <div className="relative z-10">
+       <div className="relative z-10">
         <p className='bg-orange-200 p-4 rounded-3xl font-bold text-[20px] group-hover:bg-orange-300'>
           {name}
         </p>
-      </div>
+      </div> {/*
       <div
         className="
           absolute inset-0
@@ -51,7 +51,7 @@ const CardCategory: React.FC<ICategoryBasic> = ({ name, image }) => {
           z-50
         "
       >
-        {/* Aumenta el tamaño de la tarjeta  */}
+      Aumenta el tamaño de la tarjeta
         <div
           className="
             fixed inset-10
@@ -75,7 +75,7 @@ const CardCategory: React.FC<ICategoryBasic> = ({ name, image }) => {
             {name}
           </p>
         </div>
-      </div>
+      </div> */}
     </button>
   )
 }
