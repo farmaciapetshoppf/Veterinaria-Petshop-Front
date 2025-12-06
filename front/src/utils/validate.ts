@@ -17,7 +17,7 @@ export const validateLoginForm = Yup.object({
         email: Yup.string()
         .matches(mailRegex, invalidEmail)
         .required(required),
-        password: Yup.string().min(passwordSize, passwordSizeRegex).matches(passwordRegex,lenghtPassword).required(required)
+        password: Yup.string().required(required)
 })
 
 export const validateSchemaRegister = Yup.object({
