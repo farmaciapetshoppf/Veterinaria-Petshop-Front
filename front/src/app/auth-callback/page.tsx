@@ -26,20 +26,19 @@ export default function AuthCallback() {
             ? "token-en-cookie"
             : "",
           user: {
-            id: response.id,
-            email: response.email,
-            name: response.name,
-            address: response.address,
-            phone: response.phone,
-            role: response.role,
-            uid: response.uid,
-            user: response.user,
-            country: response.country,
-            city: response.city,
-            isDeleted: response.isDeleted,
-            deletedAt: response.deletedAt,
-            pets: response.pets,
-            buyerSaleOrders: response.buyerSaleOrders
+            id: response.id || '',
+            email: response.email || '',
+            name: response.name || '',
+            address: response.address || '',
+            phone: response.phone || '',
+            role: response.role || 'user',
+            uid: response.uid || response.id || '',
+            user: response.user || response.email || '',
+            country: response.country || '',
+            city: response.city || '',
+            isDeleted: response.isDeleted || false,
+            deletedAt: response.deletedAt || null,
+            pets: response.pets || []
           },         
         });
         toast.success("Se ha logeado exitosamente")

@@ -6,34 +6,111 @@ import perrocompras from "../../assets/perrocompras.png"
 import perrocompra from "../../assets/perrocompra.png"
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { useCart } from "@/src/context/CartContext"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { IProduct } from "@/src/types"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/src/context/AuthContext"
-import { createOrder } from "@/src/services/order.services"
+import { createCheckout } from "@/src/services/order.services"
 import { toast } from "sonner"
 import Image from "next/image"
 import { XMarkIcon } from "@heroicons/react/16/solid"
+import MercadoPagoWallet from "../components/MercadoPagoWallet/MercadoPagoWallet"
 
 
 function CartPage() {
 
   const [open, setOpen] = useState(true)
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [preferenceId, setPreferenceId] = useState<string | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
 const {
    cartItems,
     removeFromCart,
+    updateQuantity,
     getTotal,
     clearCart,
     getIdItems,
-    getItemsCount
+    getItemsCount,
+    loadCartFromBackend
 } = useCart();
 
 const itemsCount = getItemsCount();
 
+const items: IProduct[] = Array.isArray(cartItems) ? (cartItems as IProduct[]) : [];
+const {userData} = useAuth();
+const router = useRouter();
+
+// getLogin dentro del componente para poder usar router.push con redirect
+const getLogin = () => {
+  // redirigir preservando la ruta de retorno
+  router.push('/auth/login?redirect=/cart');
+};
+
+// Cargar carrito después de definir userData
+useEffect(() => {
+  const syncCart = async () => {
+    if (!userData?.user?.id) {
+      console.log('⏭️ Usuario no autenticado, saltando sincronización');
+      return;
+    }
+  
+    // Primero verificar si hay items en localStorage
+    const localCart = localStorage.getItem('cart');
+    console.log('💾 localStorage cart:', localCart ? 'SÍ' : 'NO');
+    
+    if (localCart) {
+      try {
+        const localItems: IProduct[] = JSON.parse(localCart);
+        console.log('📦 Items en localStorage:', localItems.length);
+        
+        if (localItems.length > 0) {
+          console.log('🔄 Sincronizando items con backend...');
+          toast.info('Sincronizando carrito...');
+          
+          const { addToCartBackend } = await import('@/src/services/order.services');
+          
+          let syncCount = 0;
+          for (const item of localItems) {
+            try {
+              console.log(`  ➕ Agregando: ${item.name} (qty: ${item.quantity || 1})`);
+              await addToCartBackend(
+                String(userData.user.id),
+                item.id,
+                item.quantity || 1,
+                userData.token || ''
+              );
+              syncCount++;
+            } catch (err: any) {
+              console.error('❌ Error al sincronizar item:', item.name, err.message);
+            }
+          }
+          
+          console.log(`✅ Sincronizados ${syncCount}/${localItems.length} items`);
+          
+          // Recargar carrito del backend
+          await loadCartFromBackend();
+          
+          // Limpiar localStorage después de sincronizar
+          localStorage.removeItem('cart');
+          toast.success(`Carrito sincronizado: ${syncCount} productos`);
+        }
+      } catch (err) {
+        console.error('💥 Error al sincronizar carrito:', err);
+        toast.error('Error al sincronizar el carrito');
+      }
+    } else {
+      // No hay items en localStorage, solo cargar del backend
+      console.log('📥 Cargando carrito del backend...');
+      await loadCartFromBackend();
+    }
+  };
+  
+  syncCart();
+}, [userData?.user?.id]);
+
 const handleCheckout = async () => {
   // Si el usuario no está autenticado, mostrar un toast de error y redirigir al login
   if (!userData?.user?.id) {
-    // mostrar toast de error rojo y redirigir a login
     toast.custom(() => (
       <div className="flex items-center gap-3 rounded-md border border-red-800 bg-red-100 px-4 py-2 text-red-900">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -45,8 +122,49 @@ const handleCheckout = async () => {
     return getLogin();
   }
 
-  // Redirigir a la página de checkout
-  router.push('/checkout');
+  if (items.length === 0) {
+    toast.error('Tu carrito está vacío');
+    return;
+  }
+
+  setIsCheckingOut(true);
+  try {
+    console.log('🚀 Iniciando checkout...');
+    console.log('🛒 Items en el carrito:', items.length);
+    
+    const data = await createCheckout(String(userData.user.id), userData.token || '');
+    
+    console.log('📦 Datos recibidos del checkout:', data);
+    
+    // Usar initPoint para producción (en lugar de sandboxInitPoint)
+    const checkoutUrl = data?.initPoint || data?.sandboxInitPoint;
+    console.log('🔗 Checkout URL:', checkoutUrl);
+    
+    if (checkoutUrl) {
+      console.log('✅ Redirigiendo a MercadoPago:', checkoutUrl);
+      // Redirigir en la misma ventana
+      window.location.href = checkoutUrl;
+    } else {
+      console.error('❌ No se recibió initPoint del backend');
+      toast.error('Error: No se pudo generar el link de pago');
+    }
+  } catch (error: any) {
+    console.error('❌ Error al crear checkout:', error);
+    
+    // Mensaje de error más específico
+    if (error.message?.includes('No hay carrito activo')) {
+      toast.error('El carrito está vacío en el servidor. Agrega productos nuevamente.');
+    } else {
+      toast.error(error.message || 'Error al procesar el pago');
+    }
+  } finally {
+    setIsCheckingOut(false);
+  }
+};
+
+const handleUpdateQuantity = async (productId: number | string, newQuantity: number) => {
+  if (newQuantity < 1) return;
+  await updateQuantity(productId, newQuantity);
 };
 
 const handleRemoveItem = async (productId: number | string) => {
@@ -56,15 +174,7 @@ const handleRemoveItem = async (productId: number | string) => {
 const handleClearCart = async () => {
   await clearCart();
 };
-const items: IProduct[] = Array.isArray(cartItems) ? (cartItems as IProduct[]) : [];
-const {userData} = useAuth();
-const router = useRouter();
 
-// getLogin dentro del componente para poder usar router.push con redirect
-const getLogin = () => {
-  // redirigir preservando la ruta de retorno
-  router.push('/auth/login?redirect=/cart');
-};
 return (
     <div className="relative min-h-screen pt-20">
       {/* Imagen de fondo con degradado */}
@@ -155,7 +265,26 @@ return (
                                     </div>
                                     <p className="mt-1 text-sm text-gray-500 line-clamp-2">{item.description}</p>
                                   </div>
-                                  <div className="flex flex-1 items-end justify-end text-sm">
+                                  <div className="flex flex-1 items-end justify-between text-sm">
+                                    {/* Control de cantidad */}
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => handleUpdateQuantity(item.id, (item.quantity || 1) - 1)}
+                                        className="w-8 h-8 rounded-md bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-gray-700"
+                                        disabled={(item.quantity || 1) <= 1}
+                                      >
+                                        −
+                                      </button>
+                                      <span className="w-12 text-center font-medium">{item.quantity || 1}</span>
+                                      <button
+                                        onClick={() => handleUpdateQuantity(item.id, (item.quantity || 1) + 1)}
+                                        className="w-8 h-8 rounded-md bg-amber-200 hover:bg-amber-300 flex items-center justify-center font-bold text-gray-700"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                    
+                                    {/* Botón eliminar */}
                                     <button
                                       type="button"
                                       onClick={() => handleRemoveItem(item.id)}
@@ -186,12 +315,24 @@ return (
                       <button
                         onClick={!userData ? getLogin : handleCheckout}
                         className="w-full flex items-center justify-center gap-2 rounded-lg border border-transparent bg-amber-300 hover:bg-amber-500 px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={items.length === 0}
+                        disabled={items.length === 0 || isCheckingOut}
                       >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm4.95 17.4l-4.95-4.95-4.95 4.95L6 16.35l4.95-4.95L6 6.45 7.05 5.4l4.95 4.95 4.95-4.95L18 6.45l-4.95 4.95 4.95 4.95-1.05 1.05z"/>
-                        </svg>
-                        {!userData ? 'Inicia sesión para continuar' : 'Pagar con MercadoPago'}
+                        {isCheckingOut ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Procesando...
+                          </>
+                        ) : (
+                          <>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm4.95 17.4l-4.95-4.95-4.95 4.95L6 16.35l4.95-4.95L6 6.45 7.05 5.4l4.95 4.95 4.95-4.95L18 6.45l-4.95 4.95 4.95 4.95-1.05 1.05z"/>
+                            </svg>
+                            {!userData ? 'Inicia sesión para continuar' : 'Pagar con MercadoPago'}
+                          </>
+                        )}
                       </button>
                     </div>
 
@@ -223,6 +364,53 @@ return (
           </div>
         </div>
       </Dialog>
+
+      {/* Modal de pago con MercadoPago Wallet */}
+      {showPaymentModal && preferenceId && (
+        <Dialog open={showPaymentModal} onClose={() => setShowPaymentModal(false)} className="relative z-50">
+          <DialogBackdrop className="fixed inset-0 bg-black/30" />
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <DialogPanel className="max-w-lg w-full bg-white rounded-lg shadow-xl p-6">
+              <div className="flex justify-between items-center mb-4">
+                <DialogTitle className="text-xl font-semibold">Completa tu pago</DialogTitle>
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setOpen(true); // Reabrir el carrito
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <MercadoPagoWallet preferenceId={preferenceId} />
+              
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 font-semibold mb-2">
+                  📝 Instrucciones importantes:
+                </p>
+                <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                  <li>Haz clic en el botón azul de MercadoPago</li>
+                  <li>Completa el pago en la nueva ventana</li>
+                  <li>Después del pago, <strong>vuelve a esta pestaña</strong></li>
+                  <li>Tu pedido se procesará automáticamente</li>
+                </ol>
+              </div>
+              
+              <button
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  router.push('/dashboard');
+                }}
+                className="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Ver mis pedidos
+              </button>
+            </DialogPanel>
+          </div>
+        </Dialog>
+      )}
     </div>
   )
 }

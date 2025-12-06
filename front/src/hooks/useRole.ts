@@ -4,7 +4,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export type UserRole = "superadmin" | "admin" | "veterinarian" | "user";
+export type UserRole = "admin" | "veterinarian" | "user";
 
 export const useRole = () => {
   const { userData } = useAuth();
@@ -21,30 +21,25 @@ export const useRole = () => {
     return userRole === requiredRole;
   };
 
-  const isSuperAdmin = (): boolean => {
-    return hasRole("superadmin");
-  };
-
   const isAdmin = (): boolean => {
-    return hasRole(["superadmin", "admin"]);
+    return hasRole("admin");
   };
 
   const isVeterinarian = (): boolean => {
-    return hasRole(["superadmin", "veterinarian"]);
+    return hasRole("veterinarian");
   };
 
   const canManageVeterinarians = (): boolean => {
-    return hasRole("superadmin");
+    return hasRole("admin");
   };
 
   const canManageUsers = (): boolean => {
-    return hasRole(["superadmin", "admin"]);
+    return hasRole("admin");
   };
 
   return {
     userRole: userData?.user?.role as UserRole | undefined,
     hasRole,
-    isSuperAdmin,
     isAdmin,
     isVeterinarian,
     canManageVeterinarians,

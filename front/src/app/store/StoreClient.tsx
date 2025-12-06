@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Card from "../components/CardProduct/CardProduct";
+import AdminProductCard from "../components/AdminProductCard/AdminProductCard";
 import { IProduct, ICategoryBasic } from '@/src/types';
 import Image from 'next/image';
 import bannerstore from "../../assets/bannerstore.png"
 import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/src/context/AuthContext';
+import { useRole } from '@/src/hooks/useRole';
+import { updateProductPrice } from '@/src/services/product.admin.services';
 
 interface StoreClientProps {
   initialProducts: IProduct[];
@@ -13,7 +17,7 @@ interface StoreClientProps {
 }
 
 export default function StoreClient({ initialProducts, categories }: StoreClientProps) {
-  const [products] = useState<IProduct[]>(initialProducts);
+  const [products, setProducts] = useState<IProduct[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
@@ -23,8 +27,42 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
+  const { userData } = useAuth();
+  const { isAdmin } = useRole();
   const searchParams = useSearchParams();
   const categoryNameFromUrl = searchParams.get("category");
+
+  // Debug: verificar userData y token
+  useEffect(() => {
+    console.log('🔐 userData completo:', userData);
+    console.log('🔑 Token:', userData?.token);
+    console.log('👤 Es admin:', isAdmin());
+  }, [userData, isAdmin]);
+
+  const handlePriceUpdate = async (productId: string | number, newPrice: number) => {
+    if (!isAdmin()) {
+      alert('No tienes permisos de administrador');
+      return;
+    }
+
+    if (isNaN(newPrice) || newPrice <= 0) {
+      alert('Ingresa un precio válido');
+      return;
+    }
+
+    try {
+      // El backend usa las cookies para autenticar, no necesitamos el token
+      await updateProductPrice(productId, newPrice, '');
+      // Actualizar el producto en el estado local
+      setProducts(products.map(p => 
+        p.id === productId ? { ...p, price: newPrice } : p
+      ));
+      alert('Precio actualizado exitosamente');
+    } catch (error: any) {
+      console.error('❌ Error al actualizar precio:', error);
+      alert(error.message || 'Error al actualizar el precio');
+    }
+  };
 
   // Debug
   
@@ -316,7 +354,15 @@ useEffect(() => {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredProducts.map((product) => (
-                    <Card key={product.id} product={product} />
+                    isAdmin() ? (
+                      <AdminProductCard 
+                        key={product.id} 
+                        product={product}
+                        onPriceUpdate={handlePriceUpdate}
+                      />
+                    ) : (
+                      <Card key={product.id} product={product} />
+                    )
                   ))}
                 </div>
 

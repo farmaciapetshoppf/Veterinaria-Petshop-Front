@@ -1,4 +1,4 @@
-const APIURL = process.env.NEXT_PUBLIC_API_URL;
+const APIURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const createOrder = async (items: Array<{productId: string | number, quantity: number}>, userId: string, token: string) => {
     try {
@@ -143,7 +143,8 @@ export const getOrderHistory = async (userId: string, token: string) => {
         }
         
         const result = await response.json();
-        return result;
+        // Backend retorna { message: string, data: Order[] }
+        return result.data || [];
     } catch (error: any) {
         console.error('Error en getOrderHistory:', error);
         throw error;
@@ -167,7 +168,9 @@ export const getCart = async (userId: string, token: string) => {
         }
         
         const result = await response.json();
-        return result;
+        // El backend retorna { message: string, data: SaleOrder | null }
+        // SaleOrder tiene: { id, buyer, items: [{product, quantity, unitPrice}], total, status, expiresAt }
+        return result.data;
     } catch (error: any) {
         console.error('Error en getCart:', error);
         throw error;
@@ -177,7 +180,7 @@ export const getCart = async (userId: string, token: string) => {
 // Agregar producto al carrito
 export const addToCartBackend = async (userId: string, productId: string | number, quantity: number, token: string) => {
     try {
-        const response = await fetch(`${APIURL}/sale-orders/cart/${userId}`, {
+        const response = await fetch(`${APIURL}/sale-orders/cart/add`, {
             method: "POST",
             credentials: 'include',
             headers: {
@@ -185,6 +188,7 @@ export const addToCartBackend = async (userId: string, productId: string | numbe
                 ...(token && { Authorization: token })
             },
             body: JSON.stringify({
+                userId,
                 productId: String(productId),
                 quantity
             }),
@@ -196,15 +200,45 @@ export const addToCartBackend = async (userId: string, productId: string | numbe
         }
         
         const result = await response.json();
-        return result;
+        return result.data;
     } catch (error: any) {
         console.error('Error en addToCartBackend:', error);
         throw error;
     }
 };
 
+// Actualizar cantidad de producto en el carrito
+export const updateCartQuantity = async (userId: string, productId: string | number, quantity: number, token: string) => {
+    try {
+        const response = await fetch(`${APIURL}/sale-orders/cart/update`, {
+            method: "PATCH",
+            credentials: 'include',
+            headers: {
+                "Content-Type": "application/json",
+                ...(token && { Authorization: token })
+            },
+            body: JSON.stringify({
+                userId,
+                productId: String(productId),
+                quantity
+            }),
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error al actualizar cantidad: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        return result.data;
+    } catch (error: any) {
+        console.error('Error en updateCartQuantity:', error);
+        throw error;
+    }
+};
+
 // Eliminar producto del carrito
-export const removeFromCartBackend = async (productId: string | number, token: string) => {
+export const removeFromCartBackend = async (userId: string, productId: string | number, token: string) => {
     try {
         const response = await fetch(`${APIURL}/sale-orders/cart/remove`, {
             method: "DELETE",
@@ -214,6 +248,7 @@ export const removeFromCartBackend = async (productId: string | number, token: s
                 ...(token && { Authorization: token })
             },
             body: JSON.stringify({
+                userId,
                 productId: String(productId)
             }),
         });
@@ -223,7 +258,7 @@ export const removeFromCartBackend = async (productId: string | number, token: s
         }
         
         const result = await response.json();
-        return result;
+        return result.data;
     } catch (error: any) {
         console.error('Error en removeFromCartBackend:', error);
         throw error;
@@ -247,9 +282,40 @@ export const clearCartBackend = async (userId: string, token: string) => {
         }
         
         const result = await response.json();
-        return result;
+        return result.data;
     } catch (error: any) {
         console.error('Error en clearCartBackend:', error);
+        throw error;
+    }
+};
+
+// Crear checkout desde el carrito activo
+export const createCheckout = async (userId: string, token: string) => {
+    try {
+        console.log('🛒 Creando checkout para userId:', userId);
+        
+        const response = await fetch(`${APIURL}/sale-orders/checkout/${userId}`, {
+            method: "POST",
+            credentials: 'include',
+            headers: {
+                "Content-Type": "application/json",
+                ...(token && { Authorization: token })
+            },
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Error del backend:', errorText);
+            throw new Error(`Error al crear checkout: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Respuesta del checkout:', result);
+        
+        // Backend retorna { data: { initPoint, sandboxInitPoint, preferenceId } }
+        return result.data;
+    } catch (error: any) {
+        console.error('Error en createCheckout:', error);
         throw error;
     }
 };

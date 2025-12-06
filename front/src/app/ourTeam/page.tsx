@@ -1,40 +1,37 @@
-import VeterinaryCard from "../components/VeterinaryCard/VeterinaryCard";
-import { getAllVeterinarians } from "../services/veterinary.services";
-import Image from "next/image";
-import bannerourteam from "../../assets/bannerourteam.png"
+import OurTeamClient from "./OurTeamClient";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default async function OurTeam() {
-  const vets = await getAllVeterinarians();
+  let vets = [];
   
-  return (
-    <div className="flex flex-col min-h-screen items-center bg-orange-200 pt-20">
-      
-      {/* Banner con imagen y título */}
-      <div className="relative h-[400px] w-full mb-12">
-        <Image
-          src={bannerourteam}
-          alt='banner gato'
-          fill
-          className="object-cover brightness-75"
-          priority
-        />
-        <div className="absolute inset-0 bg-linear-to-r from-orange-500/70 to-amber-500/50" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white px-4">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">Nuestro Equipo</h1>
-            <p className="text-xl md:text-2xl">Profesionales dedicados al cuidado de tu mascota</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full max-w-7xl px-6 pb-12">
-        {/* Grid de veterinarios */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {vets.map((vet) => (
-            <VeterinaryCard key={vet.id} veterinary={vet} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  try {
+    // Intentar obtener veterinarios del backend
+    const response = await fetch(`${API_URL}/veterinarians`, {
+      cache: 'no-store',
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      vets = data;
+    } else {
+      console.log('No se pudieron cargar veterinarios del backend');
+    }
+  } catch (error) {
+    console.error('Error al cargar veterinarios:', error);
+  }
+  
+  // Convertir a formato IVeterinarian
+  const formattedVets = vets.map((vet: any) => ({
+    id: vet.id.toString(),
+    name: vet.name,
+    email: vet.email || '',
+    matricula: vet.matricula || '',
+    description: vet.description || '',
+    phone: vet.phone || '',
+    time: vet.time || new Date().toISOString(),
+    isActive: vet.isActive !== undefined ? vet.isActive : true,
+  }));
+  
+  return <OurTeamClient initialVets={formattedVets} />;
 }

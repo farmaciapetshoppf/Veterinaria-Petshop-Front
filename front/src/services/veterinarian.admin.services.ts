@@ -1,13 +1,12 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface ICreateVeterinarian {
   name: string;
   email: string;
-  password: string;
   matricula: string;
   description: string;
   phone: string;
-  time: string;
+  time: string; // El backend espera ISO 8601
 }
 
 export interface IUpdateVeterinarian {
@@ -20,7 +19,7 @@ export interface IUpdateVeterinarian {
   isActive?: boolean;
 }
 
-// Crear veterinario (solo superadmin)
+// Crear veterinario (solo admin)
 export const createVeterinarian = async (data: ICreateVeterinarian, token: string) => {
   try {
     const response = await fetch(`${API_URL}/veterinarians`, {
@@ -45,7 +44,7 @@ export const createVeterinarian = async (data: ICreateVeterinarian, token: strin
   }
 };
 
-// Actualizar veterinario (solo superadmin)
+// Actualizar veterinario (solo admin)
 export const updateVeterinarian = async (
   id: string,
   data: IUpdateVeterinarian,
@@ -74,7 +73,7 @@ export const updateVeterinarian = async (
   }
 };
 
-// Eliminar veterinario (solo superadmin)
+// Eliminar veterinario (solo admin)
 export const deleteVeterinarian = async (id: string, token: string) => {
   try {
     const response = await fetch(`${API_URL}/veterinarians/${id}`, {
@@ -98,7 +97,7 @@ export const deleteVeterinarian = async (id: string, token: string) => {
   }
 };
 
-// Activar/Desactivar veterinario (solo superadmin)
+// Activar/Desactivar veterinario (solo admin)
 export const toggleVeterinarianStatus = async (id: string, token: string) => {
   try {
     const response = await fetch(`${API_URL}/veterinarians/${id}/toggle-status`, {
@@ -125,7 +124,7 @@ export const toggleVeterinarianStatus = async (id: string, token: string) => {
 // Obtener todos los veterinarios (incluye inactivos para admin)
 export const getAllVeterinariansAdmin = async (token: string) => {
   try {
-    const response = await fetch(`${API_URL}/veterinarians/admin/all`, {
+    const response = await fetch(`${API_URL}/veterinarians`, {
       method: "GET",
       credentials: "include",
       headers: {
