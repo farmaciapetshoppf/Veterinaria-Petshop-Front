@@ -65,19 +65,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 
                 const formattedUser: IUserSession = {
                     user: {
-                        id: user.id || '',
-                        name: user.name || '',
-                        email: user.email || '',
-                        phone: user.phone || '',
-                        address: user.address || '',
-                        role: user.role || 'user',
-                        uid: user.uid || user.id || '',
-                        user: user.user || user.email || '',
-                        country: user.country || '',
-                        city: user.city || '',
-                        isDeleted: user.isDeleted || false,
-                        deletedAt: user.deletedAt || null,
-                        pets: user.pets || []
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        phone: user.phone || null,
+                        address: user.address || null,
+                        role: user.role,
+                        uid: user,
+                        user: user.user,
+                        country: user.country,
+                        city: user.city,
+                        isDeleted: user.isDeleted,
+                        deletedAt: user.deletedAt,
+                        pets: user.pets,
+                        buyerSaleOrders: user.buyerSaleOrders
                     },
                     token: token
                 };

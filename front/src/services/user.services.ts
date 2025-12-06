@@ -1,6 +1,7 @@
 "use client";
 
 import { ILoginProps, IRegister } from "@/src/types/index";
+import { toast } from "react-toastify";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -21,10 +22,10 @@ export async function register(userData: IRegister) {
     }
 
     const result = await response.json();
-    alert("Usuario registrado con éxito");
+    toast.success("Usuario registrado con éxito");
     return result;
   } catch (error: any) {
-    alert("Error al registrarse, intentelo nuevamente");
+    toast.error("Error al registrarse, intentelo nuevamente");
     throw error;
   }
 }
@@ -47,10 +48,11 @@ export async function login(userData: ILoginProps) {
 
     if (!response.ok) {
       const error = await response.json();
-      console.error('❌ Error del backend (login normal):', error);
+      toast.error("Error al ingresar: Credenciales inválidas");
       throw new Error(error.message || "Fallo al ingresar");
     }
 
+    toast.success("Se ha logueado con éxito");
     const result = await response.json();
     console.log('✅ Login normal exitoso:', result);
     console.log('🔑 Token recibido:', result.token ? 'SÍ' : 'NO');
@@ -105,7 +107,10 @@ export async function loginVeterinarian(userData: ILoginProps) {
 export async function getGoogleAuthUrl() {
   try {
     const res = await fetch(`${APIURL}/auth/google/url`);
-    if (!res.ok) throw new Error("Error solicitando URL de autenticación");
+    if (!res.ok){
+      toast.error("Error al intentar ingresar, intente nuevamente")
+      throw new Error("Error solicitando URL de autenticación");
+    } 
     return res.json();
   } catch (error) {
     throw error;

@@ -20,6 +20,30 @@ export interface IUser {
   deletedAt: string | null;
   pets: IPet[];
   requirePasswordChange?: boolean; // Para veterinarios con contraseña temporal
+  buyerSaleOrders: Order[]
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  phone: string | null;
+  country: string | null;
+  address: string | null;
+  city: string | null;
+}
+
+
+export interface Order {
+  id: string
+  total: number
+  status: 'ACTIVE' | 'delivered'
+  items: OrderItem[]
+}
+
+export interface OrderItem {
+  productName: string
+  quantity: number
+  price: number
 }
 
 export interface IPet {
