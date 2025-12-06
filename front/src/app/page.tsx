@@ -13,7 +13,7 @@ export default function Home() {
       <Carousel />
 
       {/* TODO: texto rosa si quieren lo cambiamos */}
-      <p className=' flex justify-center bg-pink-300 text-black font-bold p-6 w-full'>
+      <p className=' flex justify-center bg-cyan-700 text-black font-bold p-6 w-full'>
         Gestiona turnos, segui el calendario de vacunacion y además distrutá de nuestra tienda
       </p>
 
