@@ -9,6 +9,7 @@ import NewPetModal from '../../components/NewPetModal/NewPetModal'
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal'
 import OrderList from '../../components/OrderList/OrderList'
 import { toast } from 'react-toastify'
+import { updateUserProfile } from '@/src/services/user.services';
 
 export default function ClientDashboard() {
   const { userData, setUserData } = useAuth()
@@ -19,51 +20,25 @@ export default function ClientDashboard() {
   const [openEdit, setOpenEdit] = useState(false);
 
   const handleSaveProfile = async (data: any) => {
-  try {
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("phone", data.phone);
-    formData.append("country", data.country);
-    formData.append("address", data.address);
-    formData.append("city", data.city);
+    try {
+      const updated = await updateUserProfile(userData!.user.id, data)
 
-    // Si hay imagen seleccionada
-    if (data.profileImage) {
-      formData.append("profileImage", data.profileImage);
+      // Actualizar el estado global con los nuevos datos
+      setUserData({
+        ...userData!,
+        user: {
+          ...userData!.user,
+          ...data,
+        },
+      });
+      if (updated) {
+        toast.success("Perfil actualizado correctamente");
+        setOpenEdit(false)
+      }
+    } catch (err) {
+      toast.error("Error al intentar editar perfil: Intentelo más tarde");
     }
-
-    const res = await fetch(`http://localhost:3000/users/${userData!.user.id}`, {
-      method: "PATCH",
-      body: formData
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("Error del servidor:", errorText);
-      toast.error("Error al intentar editar perfil");
-      return;
-    }
-
-    const updated = await res.json();
-    if (updated){
-      toast.success("Perfil editado con exito")
-    }
-
-    setUserData({
-      ...userData!,
-      user: {
-        ...userData!.user,
-        ...data,
-      },
-    });
-
-  } catch (err) {
-    toast.error("Error al intentar editar perfil: Intentelo más tarde");
-    throw err;
-  } finally {
-    setOpenEdit(false)
-  }
-};
+  };
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
     nombre: "",
@@ -181,6 +156,14 @@ export default function ClientDashboard() {
                       <label className="text-sm font-medium text-gray-700">Dirección</label>
                       <p className="mt-1 text-base text-gray-900">{userData.user.address || 'No especificada'}</p>
                     </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Ciudad</label>
+                      <p className="mt-1 text-base text-gray-900">
+                        {userData.user.country+" - "+userData.user.city || 'No especificada'}</p>
+                    </div>
+
+
                   </div>
 
                   <button
