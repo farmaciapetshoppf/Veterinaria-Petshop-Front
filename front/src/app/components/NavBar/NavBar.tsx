@@ -72,7 +72,7 @@ export default function Navbar() {
               Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu{" "}
               <Link
                 href={PATHROUTES.PERFIL}
-                className="text-orange-500 hover:text-orange-600 font-semibold"
+                className="text-orange-500 hover:text-orange-600 font-semibold mr-2"
               >
                 perfil
               </Link>

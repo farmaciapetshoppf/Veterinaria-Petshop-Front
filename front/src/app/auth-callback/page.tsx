@@ -38,10 +38,12 @@ export default function AuthCallback() {
             city: response.city || '',
             isDeleted: response.isDeleted || false,
             deletedAt: response.deletedAt || null,
-            pets: response.pets || []
+            pets: response.pets || [],
+            buyerSaleOrders: response.buyerSaleOrders,
+            profileImageUrl: response.profileImageUrl
           },         
         });
-        toast.success("Se ha logeado exitosamente")
+        /* toast.success("Se ha logeado exitosamente") */
         window.location.href = '/'
       } catch (err) {
         console.error("Error de autenticación:", err);

@@ -83,7 +83,7 @@ export default function PetDetailPage() {
         }
     }
 
-    const handleUpdate = async () => {
+    /* const handleUpdate = async () => {
         try {
             const updatedData = {
                 nombre: 'Rey',
@@ -112,7 +112,7 @@ export default function PetDetailPage() {
         } catch (err: any) {
             toast.error(err.message)
         }
-    }
+    } */
 
     if (loading) {
         return (
@@ -170,6 +170,7 @@ export default function PetDetailPage() {
             </div>
 
             {/* Botones de acción */}
+{/* TODO: esperando que abi arregle el Delete de mascota */}
             <div className="flex space-x-4 mt-6">
                 <button
                     onClick={handleDelete}
@@ -184,18 +185,22 @@ export default function PetDetailPage() {
                 >
                     Modificar Mascota
                 </button>
-
+{/* TODO: esperando que abi arregle el Patch de mascota */}
                 <EditPetModal
                     open={openEdit}
                     onClose={() => setOpenEdit(false)}
-                    pet={pet} // 👉 pasamos la mascota actual
+                    pet={pet}
                     onSave={async (updatedData) => {
                         try {
+                            const safeBody = JSON.stringify(updatedData, (_, value) =>
+                                typeof value === 'undefined' ? null : value
+                            );
+
                             const res = await fetch(`${APIURL}/pets/${id}`, {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 credentials: 'include',
-                                body: JSON.stringify(updatedData),
+                                body: safeBody,
                             });
 
                             if (!res.ok) throw new Error('Error al modificar la mascota');
@@ -204,6 +209,8 @@ export default function PetDetailPage() {
                             toast.success('Mascota modificada con éxito');
                             setOpenEdit(false);
                         } catch (err: any) {
+                            console.log(err);
+                            
                             toast.error(err.message);
                         }
                     }}
