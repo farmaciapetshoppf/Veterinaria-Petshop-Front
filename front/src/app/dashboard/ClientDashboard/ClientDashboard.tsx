@@ -10,6 +10,8 @@ import EditProfileModal from '../../components/EditProfileModal/EditProfileModal
 import OrderList from '../../components/OrderList/OrderList'
 import { toast } from 'react-toastify'
 import { updateUserProfile } from '@/src/services/user.services';
+import Image from 'next/image'
+import avatar from "@/src/assets/avatar.jpg"
 
 export default function ClientDashboard() {
   const { userData, setUserData } = useAuth()
@@ -39,6 +41,8 @@ export default function ClientDashboard() {
       toast.error("Error al intentar editar perfil: Intentelo más tarde");
     }
   };
+
+
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
     nombre: "",
@@ -136,31 +140,91 @@ export default function ClientDashboard() {
                     Información Personal
                   </h2>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Nombre completo</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.name}</p>
+                  <div className='flex flex-row justify-between'>
+                    <div className="space-y-4 bg-amber-100 w-1/2">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Nombre completo</label>
+                        <p className="mt-1 text-base text-gray-900">{userData.user.name}</p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Email</label>
+                        <p className="mt-1 text-base text-gray-900">{userData.user.email}</p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Teléfono</label>
+                        <p className="mt-1 text-base text-gray-900">{userData.user.phone || 'No especificado'}</p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Dirección</label>
+                        <p className="mt-1 text-base text-gray-900">{userData.user.address || 'No especificada'}</p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Ciudad</label>
+                        <p className="mt-1 text-base text-gray-900">
+                          {userData.user.country + " - " + userData.user.city || 'No especificada'}</p>
+                      </div>
+
+
                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Email</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.email}</p>
-                    </div>
+                    <div className="relative w-40 h-40">
+                      {userData.user.profileImageUrl ? (
+                        <Image
+                          src={userData.user.profileImageUrl}
+                          width={160}
+                          height={160}
+                          alt="ProfilePicture"
+                          className="rounded-full object-cover w-40 h-40"
+                        />
+                      ) : (
+                        <Image
+                          src={avatar}
+                          width={160}
+                          height={160}
+                          alt="ProfilePicture"
+                          className="rounded-full object-cover w-40 h-40"
+                        />
+                      )}
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Teléfono</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.phone || 'No especificado'}</p>
-                    </div>
+                      {/* Botón lápiz */}
+                      <label
+                        htmlFor="profileImageUpload"
+                        className="absolute bottom-2 right-2 bg-orange-500 p-2 rounded-full shadow-md cursor-pointer hover:bg-orange-600 transition-colors"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536M9 11l6.232-6.232a2 2 0 112.828 2.828L11.828 13.828a2 2 0 01-1.414.586H9v-2z"
+                          />
+                        </svg>
+                      </label>
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Dirección</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.address || 'No especificada'}</p>
-                    </div>
+                      {/* Input oculto */}
+                      <input
+                        id="profileImageUpload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          if (!e.target.files || e.target.files.length === 0) return;
+                          const file = e.target.files[0];
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Ciudad</label>
-                      <p className="mt-1 text-base text-gray-900">
-                        {userData.user.country+" - "+userData.user.city || 'No especificada'}</p>
+                          // Usamos el mismo handleSaveProfile pero pasándole la imagen
+                          await handleSaveProfile({ profileImage: file });
+                        }}
+                      />
                     </div>
 
 
