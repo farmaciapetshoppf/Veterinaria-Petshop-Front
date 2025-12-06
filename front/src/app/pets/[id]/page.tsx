@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
 import img from "@/src/assets/dogCat.jpg"
+import EditPetModal from '../../components/EditPetModal/EditPetModal'
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL
 
@@ -48,12 +49,13 @@ export default function PetDetailPage() {
     const [pet, setPet] = useState<Pet | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [openEdit, setOpenEdit] = useState(false);
 
     useEffect(() => {
         const fetchPet = async () => {
             try {
-                const res = await fetch(`${APIURL}/pets/${id}`, { 
-                    credentials: 'include' 
+                const res = await fetch(`${APIURL}/pets/${id}`, {
+                    credentials: 'include'
                 })
                 if (!res.ok) throw new Error('Error al obtener la mascota')
                 const { data } = await res.json()
@@ -162,7 +164,7 @@ export default function PetDetailPage() {
                 </div>
                 <div>
                     <Image src={img} width={200} height={200} alt='mascota'
-                    className='rounded-full '
+                        className='rounded-full '
                     />
                 </div>
             </div>
@@ -175,12 +177,38 @@ export default function PetDetailPage() {
                 >
                     Eliminar Mascota
                 </button>
+
                 <button
-                    onClick={handleUpdate}
+                    onClick={() => setOpenEdit(true)}
                     className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                 >
                     Modificar Mascota
                 </button>
+
+                <EditPetModal
+                    open={openEdit}
+                    onClose={() => setOpenEdit(false)}
+                    pet={pet} // 👉 pasamos la mascota actual
+                    onSave={async (updatedData) => {
+                        try {
+                            const res = await fetch(`${APIURL}/pets/${id}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify(updatedData),
+                            });
+
+                            if (!res.ok) throw new Error('Error al modificar la mascota');
+                            const { data } = await res.json();
+                            setPet(data);
+                            toast.success('Mascota modificada con éxito');
+                            setOpenEdit(false);
+                        } catch (err: any) {
+                            toast.error(err.message);
+                        }
+                    }}
+                />
+
             </div>
         </div>
     )

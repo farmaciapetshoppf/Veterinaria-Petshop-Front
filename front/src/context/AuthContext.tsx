@@ -78,7 +78,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         isDeleted: user.isDeleted,
                         deletedAt: user.deletedAt,
                         pets: user.pets,
-                        buyerSaleOrders: user.buyerSaleOrders
+                        buyerSaleOrders: user.buyerSaleOrders,
+                        profileImageUrl: user.profileImageUrl
                     },
                     token: token
                 };

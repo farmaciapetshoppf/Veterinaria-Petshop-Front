@@ -24,7 +24,6 @@ export default function ClientDashboard() {
   const handleSaveProfile = async (data: any) => {
     try {
       const updated = await updateUserProfile(userData!.user.id, data)
-
       // Actualizar el estado global con los nuevos datos
       setUserData({
         ...userData!,
@@ -32,17 +31,19 @@ export default function ClientDashboard() {
           ...userData!.user,
           ...data,
         },
+        
       });
       if (updated) {
         toast.success("Perfil actualizado correctamente");
         setOpenEdit(false)
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       }
     } catch (err) {
       toast.error("Error al intentar editar perfil: Intentelo más tarde");
     }
   };
-
-
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
     nombre: "",
@@ -68,6 +69,7 @@ export default function ClientDashboard() {
   // Cargar mascotas desde userData al entrar al dashboard
   useEffect(() => {
     if (userData?.user?.pets) {
+      console.log(userData?.user.profileImageUrl);
       setPets(userData.user.pets)
     }
   }, [userData])
@@ -141,7 +143,7 @@ export default function ClientDashboard() {
                   </h2>
 
                   <div className='flex flex-row justify-between'>
-                    <div className="space-y-4 bg-amber-100 w-1/2">
+                    <div className="space-y-4 w-1/2">
                       <div>
                         <label className="text-sm font-medium text-gray-700">Nombre completo</label>
                         <p className="mt-1 text-base text-gray-900">{userData.user.name}</p>
