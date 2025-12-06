@@ -15,7 +15,7 @@ import {
 import { IVeterinarian } from "@/src/types";
 
 export default function VeterinarianManagement() {
-  const { isLoading, hasAccess } = useRequireRole("superadmin");
+  const { isLoading, hasAccess } = useRequireRole("admin");
   const { userData } = useAuth();
   const [veterinarians, setVeterinarians] = useState<IVeterinarian[]>([]);
   const [loadingVets, setLoadingVets] = useState(true);
@@ -24,7 +24,6 @@ export default function VeterinarianManagement() {
   const [formData, setFormData] = useState<ICreateVeterinarian>({
     name: "",
     email: "",
-    password: "",
     matricula: "",
     description: "",
     phone: "",
@@ -41,10 +40,11 @@ export default function VeterinarianManagement() {
     try {
       setLoadingVets(true);
       const data = await getAllVeterinariansAdmin(userData?.token || "");
-      setVeterinarians(data);
+      // Asegurarse de que data sea un array
+      setVeterinarians(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error al cargar veterinarios:", error);
-      alert("Error al cargar los veterinarios");
+      setVeterinarians([]); // Set vacío en caso de error
     } finally {
       setLoadingVets(false);
     }
@@ -53,13 +53,32 @@ export default function VeterinarianManagement() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createVeterinarian(formData, userData?.token || "");
-      alert("Veterinario creado exitosamente");
+      // Convertir time a formato ISO 8601
+      const dataToSend: ICreateVeterinarian = {
+        ...formData,
+        time: new Date().toISOString(),
+      };
+      const result = await createVeterinarian(dataToSend, userData?.token || "");
+      
+      // Mostrar el mensaje completo del backend (incluye contraseña temporal)
+      if (result.message) {
+        alert(result.message);
+      } else if (result.temporaryPassword || result.password) {
+        const tempPassword = result.temporaryPassword || result.password;
+        alert(
+          `✅ Veterinario creado exitosamente\n\n` +
+          `📧 Email: ${result.email || formData.email}\n` +
+          `🔑 Contraseña temporal: ${tempPassword}\n\n` +
+          `⚠️ IMPORTANTE: Guarda esta contraseña, el veterinario debe cambiarla al iniciar sesión.`
+        );
+      } else {
+        alert("Veterinario creado exitosamente");
+      }
+      
       setShowCreateForm(false);
       setFormData({
         name: "",
         email: "",
-        password: "",
         matricula: "",
         description: "",
         phone: "",
@@ -90,7 +109,6 @@ export default function VeterinarianManagement() {
       setFormData({
         name: "",
         email: "",
-        password: "",
         matricula: "",
         description: "",
         phone: "",
@@ -128,7 +146,6 @@ export default function VeterinarianManagement() {
     setFormData({
       name: vet.name,
       email: vet.email,
-      password: "",
       matricula: vet.matricula,
       description: vet.description,
       phone: vet.phone,
@@ -163,7 +180,6 @@ export default function VeterinarianManagement() {
               setFormData({
                 name: "",
                 email: "",
-                password: "",
                 matricula: "",
                 description: "",
                 phone: "",
@@ -208,22 +224,6 @@ export default function VeterinarianManagement() {
                     required
                   />
                 </div>
-                {!editingVet && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Contraseña
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) =>
-                        setFormData({ ...formData, password: e.target.value })
-                      }
-                      className="w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      required
-                    />
-                  </div>
-                )}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Matrícula
@@ -293,7 +293,6 @@ export default function VeterinarianManagement() {
                     setFormData({
                       name: "",
                       email: "",
-                      password: "",
                       matricula: "",
                       description: "",
                       phone: "",

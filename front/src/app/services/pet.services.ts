@@ -1,7 +1,7 @@
 import { IPet } from "@/src/types";
 import { toast } from "react-toastify";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface Pet {
   id: string

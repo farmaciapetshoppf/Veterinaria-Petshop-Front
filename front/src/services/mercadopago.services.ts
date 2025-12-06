@@ -58,7 +58,7 @@ export const createPaymentPreference = async (orderData: {
   };
 }) => {
   try {
-    const APIURL = process.env.NEXT_PUBLIC_API_URL;
+    const APIURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     
     const response = await fetch(`${APIURL}/payments/create-preference`, {
       method: "POST",
@@ -84,7 +84,9 @@ export const createPaymentPreference = async (orderData: {
 // Obtener métodos de pago disponibles
 export const getPaymentMethods = async () => {
   try {
-    const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY;
+    const publicKey =
+      process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY ||
+      process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
     
     const response = await fetch(
       `https://api.mercadopago.com/v1/payment_methods?public_key=${publicKey}`,

@@ -19,6 +19,7 @@ export interface IUser {
   isDeleted: boolean;
   deletedAt: string | null;
   pets: IPet[];
+  requirePasswordChange?: boolean; // Para veterinarios con contraseña temporal
   buyerSaleOrders: Order[]
 }
 
@@ -106,6 +107,7 @@ export interface IProduct {
     image: string | StaticImageData;
     images?: (string | StaticImageData)[]; // Galería de imágenes adicionales
     categoryId?: number | string; // Puede ser número (mock) o string UUID (backend)
+    quantity?: number; // Cantidad en el carrito (opcional)
 }
 
 export interface ICategory {

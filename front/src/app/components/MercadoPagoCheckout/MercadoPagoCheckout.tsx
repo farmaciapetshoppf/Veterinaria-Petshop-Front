@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useMercadoPago } from "@/src/hooks/useMercadoPago";
 import { getPaymentMethods } from "@/src/services/mercadopago.services";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 interface MercadoPagoCheckoutProps {
   amount: number;
   onSuccess?: (paymentId: string) => void;
@@ -121,7 +123,7 @@ export default function MercadoPagoCheckout({
                 });
 
                 // Enviar los datos al backend para procesar el pago
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/process`, {
+                const response = await fetch(`${API_URL}/payments/process`, {
                   method: "POST",
                   credentials: "include",
                   headers: {

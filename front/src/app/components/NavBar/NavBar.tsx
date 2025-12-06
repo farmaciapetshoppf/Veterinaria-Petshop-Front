@@ -16,7 +16,7 @@ export default function Navbar() {
   const { getItemsCount } = useCart();
   const itemsCount = getItemsCount();
     const {userData, logout} = useAuth();
-    const { isSuperAdmin } = useRole();
+    const { isAdmin } = useRole();
 
   return (
     <header className="fixed top-0 left-0 w-full bg-[#f5f5f5] shadow-sm z-50 transition-all duration-300">
@@ -36,18 +36,26 @@ export default function Navbar() {
         {/* Links Desktop - Hidden en mobile */}
         <div className="hidden md:flex md:flex-col lg:flex-row md:justify-center md:items-center gap-4 lg:gap-8 text-[16px] lg:text-[20px] font-medium text-gray-700">
           <div className="flex gap-4 lg:gap-8 items-center">
-            {navItems.map((navigationItem) => (
-              <Link
-                key={navigationItem.id}
-                href={navigationItem.route}
-                className="hover:text-orange-500 transition whitespace-nowrap"
-              >
-                {navigationItem.nameToRender}
-              </Link>
-            ))}
+            {navItems
+              .filter((item) => {
+                // Admin no ve Historia ni Nuestro equipo
+                if (isAdmin()) {
+                  return item.id === 1; // Solo Tienda
+                }
+                return true; // Otros usuarios ven todo
+              })
+              .map((navigationItem) => (
+                <Link
+                  key={navigationItem.id}
+                  href={navigationItem.route}
+                  className="hover:text-orange-500 transition whitespace-nowrap"
+                >
+                  {navigationItem.nameToRender}
+                </Link>
+              ))}
             
-            {/* Link de Admin solo para superadmin */}
-            {isSuperAdmin() && (
+            {/* Link de Admin solo para admin */}
+            {isAdmin() && (
               <Link
                 href="/admin/veterinarians"
                 className="hover:text-orange-500 transition whitespace-nowrap text-amber-600 font-semibold"
@@ -57,9 +65,9 @@ export default function Navbar() {
             )}
           </div>
           
-          { userData && userData.user && (
+          { userData && userData.user && userData.user.name && (
             <span className="text-gray-700 whitespace-nowrap text-[16px] lg:text-[20px] font-medium">
-              Hola <span className="font-semibold">{userData?.user?.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+              Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
             </span>
           )}
         </div>
@@ -124,19 +132,27 @@ export default function Navbar() {
           }`}
       >
         <div className="px-4 py-6 space-y-4">
-          {navItems.map((navigationItem) => (
-            <Link
-              key={navigationItem.id}
-              href={navigationItem.route}
-              className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {navigationItem.nameToRender}
-            </Link>
-          ))}
+          {navItems
+            .filter((item) => {
+              // Admin no ve Historia ni Nuestro equipo
+              if (isAdmin()) {
+                return item.id === 1; // Solo Tienda
+              }
+              return true; // Otros usuarios ven todo
+            })
+            .map((navigationItem) => (
+              <Link
+                key={navigationItem.id}
+                href={navigationItem.route}
+                className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {navigationItem.nameToRender}
+              </Link>
+            ))}
           
-          {/* Link de Admin para superadmin en mobile */}
-          {isSuperAdmin() && (
+          {/* Link de Admin para admin en mobile */}
+          {isAdmin() && (
             <Link
               href="/admin/veterinarians"
               className="block text-amber-600 hover:text-orange-500 transition py-2 text-base font-semibold"

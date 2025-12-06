@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react"
 import { ILoginProps, IUserSession } from "../types";
 
-const API = process.env.NEXT_PUBLIC_API_URL
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
 export interface IAuthContextProps {
     userData: IUserSession | null,
@@ -33,27 +33,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const checkSession = async () => {
             
             try {
+                console.log('🔍 Verificando sesión con API:', `${API}/auth/me`);
+                
+                // Intentar obtener el token de localStorage
+                const token = localStorage.getItem('authToken') || '';
+                
+                const headers: HeadersInit = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Si hay token, agregarlo al header
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                    console.log('🔑 Enviando token en Authorization header');
+                }
+                
                 const res = await fetch(`${API}/auth/me`, {
                     credentials: "include",
+                    headers: headers
                 });
 
                 if (!res.ok) {
+                    console.log('❌ No hay sesión activa (status:', res.status, ')');
                     setUserData(null);
+                    localStorage.removeItem('authToken');
                     return;
                 }
 
                 const user = await res.json();
-                
-                // Intentar obtener el token de localStorage o cookies
-                let token = localStorage.getItem('authToken') || '';
-                
-                // Si no hay token en localStorage, intentar obtenerlo de las cookies
-                if (!token) {
-                    token = document.cookie
-                        .split('; ')
-                        .find(row => row.startsWith('token='))
-                        ?.split('=')[1] || '';
-                }
+                console.log('✅ Sesión activa encontrada:', user.email);
                 
                 const formattedUser: IUserSession = {
                     user: {
