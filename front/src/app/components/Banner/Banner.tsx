@@ -27,7 +27,7 @@ function Banner() {
       </div>
 
       {/* Imagen */}
-      <div className="flex-1 mt-8 lg:mt-0 lg:ml-10 relative w-full h-[300px] lg:h-[400px]">
+      <div className="flex-1 mt-8 lg:mt-0 lg:ml-10 relative w-full aspect-4/3">
         <Image
           src={gatoCaja}
           alt="Gatito en caja"

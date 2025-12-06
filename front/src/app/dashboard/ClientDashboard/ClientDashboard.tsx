@@ -55,7 +55,7 @@ export default function ClientDashboard() {
     esterilizado: "SI",
     status: "VIVO",
     fecha_nacimiento: "2020-01-15",
-    breed: "",
+    breed: ""
   });
 
   const handleCreatePet = async (e: React.FormEvent) => {
@@ -75,29 +75,6 @@ export default function ClientDashboard() {
     }
   }, [userData])
 
-  // Cargar órdenes desde el historial cuando se cambia a la pestaña de órdenes
-  /*   useEffect(() => {
-      const fetchOrders = async () => {
-        if (activeTab !== 'orders') return
-        
-        if (!userData?.user?.id) return
-  
-        setLoadingOrders(true)
-        try {
-          const historyData = await getOrderHistory(String(userData.user.id), userData.token || '')
-          const ordersData = historyData.data || historyData
-          setOrders(Array.isArray(ordersData) ? ordersData : [])
-        } catch (error) {
-          console.error('Error al cargar historial de órdenes:', error)
-          setOrders([])
-        } finally {
-          setLoadingOrders(false)
-        }
-      }
-  
-      fetchOrders()
-    }, [activeTab, userData?.user?.id, userData?.token]) */
-
   if (!userData) {
     return (
       <div className="bg-white pt-20 min-h-screen flex items-center justify-center">
@@ -113,7 +90,7 @@ export default function ClientDashboard() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
 
           {/* Header del Dashboard */}
-          <div className="mb-8">
+          <div className="">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
               Mi Dashboard
             </h1>
@@ -123,7 +100,7 @@ export default function ClientDashboard() {
           </div>
 
           {/* Tabs de navegación */}
-          <div className="border-b border-gray-200 mb-8">
+          <div className="border-b border-cyan-700 mb-8">
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('profile')}
@@ -190,7 +167,10 @@ export default function ClientDashboard() {
 
                   <button
                     onClick={() => setOpenEdit(true)}
-                    className="px-4 py-2 mt-10 bg-orange-500 hover:bg-orange-600 cursor-pointer text-white rounded-md"
+                    className="px-4 py-2 mt-10
+                    rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white cursor-pointer
+                    hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                     "
                   >
                     Editar Perfil
                   </button>
@@ -207,25 +187,25 @@ export default function ClientDashboard() {
 
             {/* MASCOTAS Y TURNOS */}
             {activeTab === 'pets' && (
-              <div className="md:col-span-2">
-                <div className="space-y-6">
-                  {
-                    pets.length == 0 ? (
-                      <p className="text-gray-500 text-center py-8">No tienes mascotas registradas
-                      </p>
-                    ) : (
-                      pets.map((pet) => (
-                        <CardPet key={pet.id} {...pet} />
-                      )))}
-                  <button
-                    onClick={() => setShowNewPetModal(true)}
-                    className="w-full bg-orange-500 text-white px-4 py-3 
-                    rounded-md hover:bg-orange-600 transition-colors 
+              <div className="md:col-span-2 space-y-6">
+                {
+                  pets.length == 0 ? (
+                    <p className="text-gray-500 text-center py-8">No tienes mascotas registradas
+                    </p>
+                  ) : (
+                    pets.map((pet) => (
+                      <CardPet key={pet.id} {...pet} />
+                    )))}
+                <button
+                  onClick={() => setShowNewPetModal(true)}
+                  className="w-full  px-4 py-3 
+                  rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                   transition-colors 
                     cursor-pointer font-medium"
-                  >
-                    + Agregar Nueva Mascota
-                  </button>
-                </div>
+                >
+                  Agregar Nueva Mascota
+                </button>
               </div>
             )}
 
@@ -290,8 +270,10 @@ export default function ClientDashboard() {
                   </div>
                 </div>
 
-                <button className="mt-6 w-full bg-orange-500 text-white px-4 py-2 rounded-md
-                 hover:bg-orange-600 transition-colors text-sm font-medium
+                <button className="mt-6 w-full px-4 py-2 rounded-md
+                rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                 transition-colors text-sm font-medium
                  cursor-pointer
                  ">
                   Agendar Turno

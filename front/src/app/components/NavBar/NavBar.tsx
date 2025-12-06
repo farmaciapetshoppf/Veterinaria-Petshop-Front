@@ -69,7 +69,11 @@ export default function Navbar() {
           {userData && userData.user ? (
             <button 
               onClick={logout} 
-              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200 whitespace-nowrap text-sm lg:text-base font-medium"
+              className="
+              rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+              px-4 py-2 rounded-md transition-colors duration-200
+               whitespace-nowrap text-sm lg:text-base font-medium"
             >
               Cerrar sesión
             </button>

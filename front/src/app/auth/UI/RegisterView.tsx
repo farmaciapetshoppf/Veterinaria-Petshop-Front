@@ -20,23 +20,23 @@ function RegisterView() {
         <div
             className="flex md:justify-around justify-center items-center 
       bg-linear-to-r from-orange-300 via-orange-300 to-orange-200
-      mt-20 rounded-3xl shadow-xl overflow-hidden"
+      mt-20 rounded-2xl shadow-xl overflow-hidden"
         >
             {/* Imagen lateral */}
-            <div className="hidden lg:block my-5">
+            <div className="hidden lg:block">
                 <Image
                     src={catFood}
                     alt="catFood"
-                    width={500}
-                    height={700}
+                    width={400}
+                    height={500}
                     className="rounded-2xl"
                 />
             </div>
 
             {/* Formulario */}
             <div
-                className="flex flex-col ms-10 items-center rounded-3xl
-        justify-center p-8 bg-white/80 backdrop-blur-sm shadow-lg"
+                className="flex flex-col ms-10 items-center rounded-3xl md:mr-10 my-3
+                    justify-center p-4 bg-white/80 backdrop-blur-sm shadow-lg"
                 style={{
                     backgroundImage: `url(${background.src})`,
                     backgroundSize: "cover",
@@ -44,11 +44,14 @@ function RegisterView() {
                     filter: "brightness(0.9)",
                 }}
             >
-                <p className="text-4xl md:text-5xl font-extrabold text-black mt-4 drop-shadow-md">
+                <p className="text-4xl md:text-5xl text-shadow-2xs
+       text-shadow-amber-600 font-extrabold
+        text-black mt-2 drop-shadow-md">
                     Crear una cuenta
                 </p>
 
-                <p className="text-gray-900 mt-4 text-lg font-medium">
+                <p className="border-2 border-cyan-700 p-2 mt-2
+                rounded-3xl bg-white  text-lg font-medium">
                     ¿Ya tienes cuenta?
                     <Link
                         href="/auth/login"
@@ -80,7 +83,7 @@ function RegisterView() {
                     }}
                 >
                     {({ isValid, isSubmitting }) => (
-                        <Form className="flex flex-col gap-6 my-2 w-full ">
+                        <Form className="flex flex-col w-full ">
 
                             <div className='flex flex-row justify-between'>
                                 <FieldFormikCustom
@@ -89,23 +92,23 @@ function RegisterView() {
                                     type="text"
                                     placeholder="Juan Gutierrez"
                                 />
-
                                 <FieldFormikCustom
-                                    label="Email:"
-                                    nameField="email"
-                                    type="email"
-                                    placeholder="juanGutierrez82@mail.com"
+                                    label="Nombre de usuario:"
+                                    nameField="user"
+                                    type="text"
+                                    placeholder="JGuttierrez"
                                 />
+
                             </div>
 
                             <FieldFormikCustom
-                                label="Nombre de usuario:"
-                                nameField="user"
-                                type="text"
-                                placeholder="JGuttierrez"
+                                label="Email:"
+                                nameField="email"
+                                type="email"
+                                placeholder="juanGutierrez82@mail.com"
                             />
 
-                            <div className='flex flex-row justify-between'>
+                            <div className='flex flex-row justify-between items-center'>
                                 <PasswordFieldFormik
                                     label="Contraseña:"
                                     nameField="password"
@@ -136,20 +139,23 @@ function RegisterView() {
                                     placeholder="Argentina"
                                 />
 
+                                {/*TODO: provincia <FieldFormikCustom
+                                    label="Provincia:"
+                                    nameField="province"
+                                    type="text"
+                                    placeholder="Pringles"
+                                /> */}
+
+                            </div>
+                            <div className='flex flex-row justify-between'>
+
                                 <FieldFormikCustom
                                     label="Ciudad:"
                                     nameField="city"
                                     type="text"
                                     placeholder="Pringles"
                                 />
-                            </div>
-                            <div className='flex flex-row justify-between'>
-                                {/*TODO: provincia <FieldFormikCustom
-                                    label="Ciudad:"
-                                    nameField="city"
-                                    type="text"
-                                    placeholder="Pringles"
-                                /> */}
+
                                 <FieldFormikCustom
                                     label="Dirección:"
                                     nameField="address"

@@ -6,8 +6,8 @@ import CardCategory from '../CardCategory/CardCategory';
 import category1 from '../../../assets/category1.jpg'
 import category2 from '../../../assets/category2.jpg'
 import category3 from '../../../assets/category3.webp'
-import category4 from '../../../assets/category4.webp'
-import category5 from '../../../assets/category5.jpg'
+import category5 from '../../../assets/category4.webp'
+import category4 from '../../../assets/category5.jpg'
 import { ICategoryBasic } from '@/src/types';
 
 

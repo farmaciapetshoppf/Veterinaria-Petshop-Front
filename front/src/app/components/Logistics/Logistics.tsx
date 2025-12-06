@@ -12,14 +12,15 @@ function Logistics() {
   ];
 
   return (
-    <div className="flex flex-wrap gap-8 lg:mt-20 px-4 md:mr-20 ">
+    <div className="flex flex-wrap md:flex-row md:justify-evenly
+      gap-8 px-4 justify-center w-full">
       {items.map((item, index) => (
         <div
           key={index}
           className="
             flex flex-col items-center
             transition-transform duration-300
-            hover:scale-105 hover:shadow-lg
+            hover:scale-110 hover:shadow-lg
             cursor-pointer
           "
         >
