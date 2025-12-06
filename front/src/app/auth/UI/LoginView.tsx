@@ -93,7 +93,9 @@ function LoginView() {
                                 try {
                                     response = await loginVeterinarian(values);
                                     isVeterinarian = true;
-                                    alert("Bienvenido veterinario");
+                                    // IMPORTANTE: El backend ahora devuelve requirePasswordChange
+                                    response.role = 'veterinarian';
+                                    console.log('✅ Login veterinario exitoso. RequirePasswordChange:', response.requirePasswordChange);
                                 } catch (vetError: any) {
                                     console.error('❌ Login veterinario también falló:', vetError.message);
                                     // Si ambos fallan, lanzar el error original del usuario normal
@@ -104,6 +106,7 @@ function LoginView() {
                             console.log('📦 Respuesta completa del login:', response);
                             console.log('🎭 Rol recibido:', response.role);
                             console.log('🔄 RequirePasswordChange:', response.requirePasswordChange);
+                            console.log('🔍 Todas las propiedades de response:', Object.keys(response));
                             
                             // Obtener el token de localStorage (se guardó en el servicio login)
                             const token = localStorage.getItem('authToken') || '';
@@ -132,28 +135,33 @@ function LoginView() {
                             console.log('✅ Usuario formateado:', formatted);
                             console.log('✅ Rol en usuario formateado:', formatted.user.role);
                             
-                            // IMPORTANTE: Guardar el usuario en el contexto Y esperar
+                            // IMPORTANTE: Guardar el usuario en el contexto
                             setUserData(formatted);
                             
-                            // Verificar que el token esté guardado
+                            // Verificar que el token esté guardado (warning, no error crítico)
                             const savedToken = localStorage.getItem('authToken');
                             console.log('💾 Token guardado en localStorage:', savedToken ? 'SÍ' : 'NO');
                             
                             if (!savedToken) {
-                                console.error('❌ ERROR: Token no se guardó en localStorage');
-                                alert('Error: No se pudo guardar la sesión. Intenta nuevamente.');
-                                return;
+                                console.warn('⚠️ WARNING: Token no encontrado inmediatamente, pero continuando...');
                             }
                             
                             // Delay para que React actualice el estado
                             await new Promise(resolve => setTimeout(resolve, 200));
                             
+                            console.log('🔍 VERIFICANDO REDIRECCIÓN:');
+                            console.log('   - response.role:', response.role);
+                            console.log('   - response.requirePasswordChange:', response.requirePasswordChange);
+                            console.log('   - ¿Es veterinario?:', response.role === 'veterinarian');
+                            console.log('   - ¿Requiere cambio?:', response.requirePasswordChange === true);
+                            
                             // Si es veterinario con contraseña temporal, redirigir a cambiar contraseña
                             if (response.role === 'veterinarian' && response.requirePasswordChange) {
-                                console.log('🔐 Redirigiendo a cambio de contraseña...');
+                                console.log('🔐 ✅ Redirigiendo a cambio de contraseña...');
                                 window.location.href = '/change-password';
                             } else {
                                 console.log('🏠 Redirigiendo a home...');
+                                console.log('   - Razón: rol=' + response.role + ', requirePasswordChange=' + response.requirePasswordChange);
                                 window.location.href = '/';
                             }
 
