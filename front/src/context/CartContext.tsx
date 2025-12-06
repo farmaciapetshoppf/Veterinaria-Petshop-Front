@@ -2,12 +2,13 @@
 import { createContext, useContext, useEffect, useState, } from "react";
 import { IProduct } from "../types";
 import { useAuth } from "./AuthContext";
-import { addToCartBackend, removeFromCartBackend, clearCartBackend, getCart } from "../services/order.services";
+import { addToCartBackend, removeFromCartBackend, clearCartBackend, getCart, updateCartQuantity } from "../services/order.services";
 
 interface CartContextProps {
     cartItems: IProduct[];
     addToCart: (product: IProduct) => Promise<void>;
     removeFromCart: (productId: number | string) => Promise<void>;
+    updateQuantity: (productId: number | string, quantity: number) => Promise<void>;
     clearCart: () => Promise<void>;
     getTotal: () => number;
     getIdItems: () => (number | string)[];
@@ -19,6 +20,7 @@ const CartContext = createContext<CartContextProps>({
     cartItems: [],
     addToCart: async () => { },
     removeFromCart: async () => { },
+    updateQuantity: async () => { },
     clearCart: async () => { },
     getTotal: () => 0,
     getIdItems: () => [],
@@ -63,12 +65,36 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
 
         try {
             const cartData = await getCart(String(userData.user.id), userData.token || '');
-            // Asumiendo que el backend retorna un array de productos o un objeto con items
-            const items = Array.isArray(cartData) ? cartData : (cartData?.items || []);
-            setCartItems(items);
-        } catch (error) {
+            // Backend retorna: { id, buyer, items: [{product, quantity, unitPrice}], total, status, expiresAt }
+            // O null si no hay carrito activo o si expiró
+            if (cartData === null) {
+                // Carrito vencido o no existe
+                setCartItems([]);
+                localStorage.removeItem('cart');
+                return;
+            }
+
+            if (cartData && cartData.items) {
+                // Transformar items del backend al formato del frontend
+                const transformedItems = cartData.items.map((item: any) => ({
+                    ...item.product,
+                    quantity: item.quantity
+                }));
+                setCartItems(transformedItems);
+            } else {
+                setCartItems([]);
+            }
+        } catch (error: any) {
             console.error('Error al cargar el carrito desde el backend:', error);
-            // Fallback a localStorage
+            
+            // Si el error indica carrito vencido, limpiar
+            if (error.message && error.message.includes('expirado')) {
+                setCartItems([]);
+                localStorage.removeItem('cart');
+                return;
+            }
+
+            // Fallback a localStorage solo si no es error de expiración
             const dataFromLocalStorage = localStorage.getItem('cart');
             if (dataFromLocalStorage) {
                 setCartItems(JSON.parse(dataFromLocalStorage));
@@ -110,7 +136,11 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
         // Si hay usuario autenticado, sincronizar con el backend
         if (userData?.user?.id) {
             try {
-                await removeFromCartBackend(productId, userData.token || '');
+                await removeFromCartBackend(
+                    String(userData.user.id),
+                    productId,
+                    userData.token || ''
+                );
                 // Recargar el carrito desde el backend después de eliminar
                 await loadCartFromBackend();
             } catch (error) {
@@ -120,6 +150,34 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
         } else {
             // Si no hay usuario, solo actualizar el estado local
             setCartItems((prevItems) => prevItems.filter(item => item.id.toString() !== productId.toString()));
+        }
+    };
+
+    const updateQuantity = async (productId: number | string, quantity: number) => {
+        // Si hay usuario autenticado, sincronizar con el backend
+        if (userData?.user?.id) {
+            try {
+                await updateCartQuantity(
+                    String(userData.user.id),
+                    productId,
+                    quantity,
+                    userData.token || ''
+                );
+                // Recargar el carrito desde el backend después de actualizar
+                await loadCartFromBackend();
+            } catch (error) {
+                console.error('Error al actualizar cantidad:', error);
+                alert("Error al actualizar la cantidad del producto");
+            }
+        } else {
+            // Si no hay usuario, actualizar solo el estado local
+            setCartItems((prevItems) => 
+                prevItems.map(item => 
+                    item.id.toString() === productId.toString() 
+                        ? { ...item, quantity: quantity }
+                        : item
+                )
+            );
         }
     };
 
@@ -167,6 +225,7 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
             cartItems, 
             addToCart, 
             removeFromCart,
+            updateQuantity,
             clearCart, 
             getTotal, 
             getIdItems, 

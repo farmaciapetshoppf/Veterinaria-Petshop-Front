@@ -15,8 +15,8 @@ function VeterinaryCard({ veterinary }: VeterinaryCardProps) {
     if (typeof veterinary.image === 'string') {
       if (veterinary.image.startsWith('http://') || veterinary.image.startsWith('https://')) {
         imageSrc = veterinary.image;
-      } else if (process.env.NEXT_PUBLIC_API_URL) {
-        imageSrc = `${process.env.NEXT_PUBLIC_API_URL}${veterinary.image}`;
+      } else if (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000') {
+        imageSrc = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${veterinary.image}`;
       }
     } else {
       imageSrc = veterinary.image;

@@ -1,9 +1,14 @@
+'use client';
+
 import React from 'react'
-import dashboard2 from '../../assets/dashboard2.png'
 import ClientDashboard from './ClientDashboard/ClientDashboard'
 import VetDashboard from './VetDashboard/VetDashboard'
+import AdminDashboard from './AdminDashboard/AdminDashboard'
+import { useRole } from '@/src/hooks/useRole'
 
 function Page() {
+    const { isAdmin, isVeterinarian } = useRole();
+    
     // Mock veterinarian data - esto vendría del backend/sesión
     const mockVeterinarian = {
         name: "María García",
@@ -14,16 +19,16 @@ function Page() {
         address: "Av. Libertador 5678, CABA, Argentina"
     }
     
-    // TODO: Determinar el rol del usuario desde el contexto de autenticación
-    const isVeterinarian = false // Cambiar según el rol del usuario
-    
     // Renderizar según el rol del usuario
-    if (isVeterinarian) {
+    if (isAdmin()) {
+        return <AdminDashboard />
+    }
+    
+    if (isVeterinarian()) {
         return <VetDashboard veterinarian={mockVeterinarian} />
     }
     
-    return <ClientDashboard /> //<WorkInProgress image={dashboard2}/>//
-    
+    return <ClientDashboard />
 }
 
 export default Page

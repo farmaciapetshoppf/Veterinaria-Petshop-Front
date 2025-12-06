@@ -5,7 +5,7 @@ import shampoo from "../../assets/shampoo.jpg"
 import collar from "../../assets/collar.jpg"
 import cucha from "../../assets/cucha.jpg"
 import trasladador from "../../assets/trasladador.jpg"
-const APIURL = process.env.NEXT_PUBLIC_API_URL;
+const APIURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 // Mapeo de imágenes por categoría para productos sin imagen
 const getCategoryImage = (categoryId: number | string | undefined, name: string) => {
@@ -129,3 +129,60 @@ export const getAllCategories = async (): Promise<ICategoryBasic[]> => {
         console.error('getAllCategories error:', error);
     }
 };
+
+// Actualizar precio de producto (solo admin)
+export const updateProductPrice = async (
+    id: string | number,
+    price: number,
+    token: string
+): Promise<IProduct> => {
+    try {
+        const res = await fetch(`${APIURL}/products/${id}`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify({ price }),
+        });
+
+        if (!res.ok) {
+            throw new Error(`Error al actualizar precio: ${res.status}`);
+        }
+
+        return await res.json();
+    } catch (error) {
+        console.error('updateProductPrice error:', error);
+        throw error;
+    }
+};
+
+// Actualizar producto completo (solo admin)
+export const updateProduct = async (
+    id: string | number,
+    data: Partial<IProduct>,
+    token: string
+): Promise<IProduct> => {
+    try {
+        const res = await fetch(`${APIURL}/products/${id}`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!res.ok) {
+            throw new Error(`Error al actualizar producto: ${res.status}`);
+        }
+
+        return await res.json();
+    } catch (error) {
+        console.error('updateProduct error:', error);
+        throw error;
+    }
+};
+
