@@ -2,6 +2,7 @@
 
 import { ILoginProps, IRegister } from "@/src/types/index";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -191,3 +192,37 @@ export async function getUserById(id: string) {
     throw error;
   }
 }
+
+export async function updateUserProfile(id:string, data: any) {
+
+  try {
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("phone", data.phone);
+    formData.append("country", data.country);
+    formData.append("address", data.address);
+    formData.append("city", data.city);
+
+    // Si hay imagen seleccionada
+    if (data.profileImage) {
+      formData.append("profileImage", data.profileImage);
+    }
+    
+    const res = await fetch(`http://localhost:3000/users/${id}`, {
+      method: "PATCH",
+      body: formData
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error del servidor:", errorText);
+      toast.error("Error al intentar editar perfil");
+    }
+
+    return await res.json();
+
+  } catch (err) {
+    toast.error("Error al intentar editar perfil: Intentelo más tarde");
+    throw err;
+  }
+};

@@ -14,9 +14,10 @@ const CardPet: React.FC<IPet> = (pet) => {
   return (
     <Link href={`/pets/${pet.id}`} passHref>
       <div className="bg-linear-to-br from-orange-100 via-orange-200 to-orange-300 
-      rounded-xl shadow-lg p-6 my-6 max-w-md mx-auto cursor-pointer
+      rounded-xl shadow-lg p-6 my-6 max-w-md md:w-1/2 mx-auto cursor-pointer
       border border-gray-400 hover:shadow-xl transition-shadow">
         <div className="flex flex-col items-center text-center">
+          
           {/* Nombre principal */}
           <h2 className="text-3xl font-bold text-gray-900 mb-2">{pet.nombre}</h2>
 
