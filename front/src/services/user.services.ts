@@ -194,20 +194,21 @@ export async function getUserById(id: string) {
 }
 
 export async function updateUserProfile(id:string, data: any) {
+  const formData = new FormData();
+
+  // Si hay imagen seleccionada
+  if (data.profileImage) {
+    formData.append("profileImage", data.profileImage);
+  }
+
+  // Si vienen campos de texto
+  if (data.name) formData.append("name", data.name);
+  if (data.phone) formData.append("phone", data.phone);
+  if (data.country) formData.append("country", data.country);
+  if (data.address) formData.append("address", data.address);
+  if (data.city) formData.append("city", data.city);
 
   try {
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("phone", data.phone);
-    formData.append("country", data.country);
-    formData.append("address", data.address);
-    formData.append("city", data.city);
-
-    // Si hay imagen seleccionada
-    if (data.profileImage) {
-      formData.append("profileImage", data.profileImage);
-    }
-    
     const res = await fetch(`http://localhost:3000/users/${id}`, {
       method: "PATCH",
       body: formData
