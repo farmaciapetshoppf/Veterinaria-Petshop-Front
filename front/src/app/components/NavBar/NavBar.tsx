@@ -42,9 +42,9 @@ export default function Navbar() {
                 if (isVeterinarian()) {
                   return false;
                 }
-                // Admin no ve Historia ni Nuestro equipo
+                // Admin no ve Store, Historia ni Nuestro equipo
                 if (isAdmin()) {
-                  return item.id === 1; // Solo Tienda
+                  return false;
                 }
                 return true; // Otros usuarios ven todo
               })
@@ -74,6 +74,12 @@ export default function Navbar() {
               {isVeterinarian() ? (
                 <>
                   Hola <span className="font-semibold">Doc. {userData.user.name.split(" ")[0]}</span>
+                </>
+              ) : isAdmin() ? (
+                <>
+                  <Link href="/dashboard" className="font-semibold text-amber-600 hover:text-orange-500 transition">
+                    Panel de Administración
+                  </Link>
                 </>
               ) : (
                 <>
@@ -126,8 +132,8 @@ export default function Navbar() {
             </Link>
           )}
           
-          {/* Carrito - Solo para no veterinarios */}
-          {!isVeterinarian() && (
+          {/* Carrito - Solo para no veterinarios y no admin */}
+          {!isVeterinarian() && !isAdmin() && (
             <>
               <Link href="/cart" className="cursor-pointer">
                 <Image
@@ -174,9 +180,9 @@ export default function Navbar() {
         <div className="px-4 py-6 space-y-4">
           {navItems
             .filter((item) => {
-              // Admin no ve Historia ni Nuestro equipo
+              // Admin no ve nada del nav en mobile
               if (isAdmin()) {
-                return item.id === 1; // Solo Tienda
+                return false;
               }
               return true; // Otros usuarios ven todo
             })
@@ -202,8 +208,8 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Carrito en el menú mobile - Solo para no veterinarios */}
-          {!isVeterinarian() && (
+          {/* Carrito en el menú mobile - Solo para no veterinarios y no admin */}
+          {!isVeterinarian() && !isAdmin() && (
             <Link
               href="/cart"
               className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium border-t border-gray-300 pt-4"
