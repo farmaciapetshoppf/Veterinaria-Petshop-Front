@@ -40,8 +40,14 @@ export default function VeterinarianManagement() {
     try {
       setLoadingVets(true);
       const data = await getAllVeterinariansAdmin(userData?.token || "");
+      console.log('Datos recibidos en loadVeterinarians:', data);
+      
+      // El backend puede devolver {message, data: [...]} o directamente [...]
+      const vetsArray = data?.data || data;
+      console.log('Array de veterinarios a guardar:', vetsArray);
+      
       // Asegurarse de que data sea un array
-      setVeterinarians(Array.isArray(data) ? data : []);
+      setVeterinarians(Array.isArray(vetsArray) ? vetsArray : []);
     } catch (error) {
       console.error("Error al cargar veterinarios:", error);
       setVeterinarians([]); // Set vacío en caso de error

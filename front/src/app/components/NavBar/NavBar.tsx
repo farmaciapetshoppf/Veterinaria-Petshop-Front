@@ -16,7 +16,7 @@ export default function Navbar() {
   const { getItemsCount } = useCart();
   const itemsCount = getItemsCount();
     const {userData, logout} = useAuth();
-    const { isAdmin } = useRole();
+    const { isAdmin, isVeterinarian } = useRole();
 
   return (
     <header className="fixed top-0 left-0 w-full bg-[#f5f5f5] shadow-sm z-50 transition-all duration-300">
@@ -38,6 +38,10 @@ export default function Navbar() {
           <div className="flex gap-4 lg:gap-8 items-center">
             {navItems
               .filter((item) => {
+                // Veterinario no ve nada del nav (sin Store, Historia, Equipo)
+                if (isVeterinarian()) {
+                  return false;
+                }
                 // Admin no ve Historia ni Nuestro equipo
                 if (isAdmin()) {
                   return item.id === 1; // Solo Tienda
@@ -67,8 +71,33 @@ export default function Navbar() {
           
           { userData && userData.user && userData.user.name && (
             <span className="text-gray-700 whitespace-nowrap text-[16px] lg:text-[20px] font-medium">
-              Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+              {isVeterinarian() ? (
+                <>
+                  Hola <span className="font-semibold">Doc. {userData.user.name.split(" ")[0]}</span>
+                </>
+              ) : (
+                <>
+                  Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+                </>
+              )}
             </span>
+          )}
+          
+          {/* Links adicionales para veterinarios */}
+          {isVeterinarian() && (
+            <div className="flex gap-4 items-center">
+              <Link href="/dashboard/vet-profile" className="text-orange-500 hover:text-orange-600 font-semibold text-[16px] lg:text-[20px]">
+                Perfil
+              </Link>
+              <span className="text-gray-400">|</span>
+              <Link href="/dashboard" className="text-orange-500 hover:text-orange-600 font-semibold text-[16px] lg:text-[20px]">
+                Calendario
+              </Link>
+              <span className="text-gray-400">|</span>
+              <Link href="/dashboard/pet-history" className="text-orange-500 hover:text-orange-600 font-semibold text-[16px] lg:text-[20px]">
+                Historiales
+              </Link>
+            </div>
           )}
         </div>
 
@@ -97,22 +126,26 @@ export default function Navbar() {
             </Link>
           )}
           
-          {/* Carrito */}
-          <Link href="/cart" className="cursor-pointer">
-            <Image
-              src={perrocompras}
-              alt='cart'
-              width={90}
-              height={90}
-            />
-          </Link>
-          {itemsCount > 0 && (
-            <span
-              className="absolute md:top-5 md:right-12 animate-bounce bg-amber-700 text-white text-xs font-bold 
-                 w-5 h-5 flex items-center justify-center rounded-full"
-            >
-              {itemsCount}
-            </span>
+          {/* Carrito - Solo para no veterinarios */}
+          {!isVeterinarian() && (
+            <>
+              <Link href="/cart" className="cursor-pointer">
+                <Image
+                  src={perrocompras}
+                  alt='cart'
+                  width={90}
+                  height={90}
+                />
+              </Link>
+              {itemsCount > 0 && (
+                <span
+                  className="absolute md:top-5 md:right-12 animate-bounce bg-amber-700 text-white text-xs font-bold 
+                     w-5 h-5 flex items-center justify-center rounded-full"
+                >
+                  {itemsCount}
+                </span>
+              )}
+            </>
           )}
         </div>
 
@@ -169,22 +202,16 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Carrito en el menú mobile */}
-          <Link
-            href="/cart"
-            className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium border-t border-gray-300 pt-4"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            🛒 Carrito
-            {itemsCount > 0 && (
-              <span
-                className="absolute top-75 left-22 bg-amber-700 text-white text-xs font-bold 
-                 w-5 h-5 flex items-center justify-center rounded-full"
-              >
-                {itemsCount}
-              </span>
-            )}
-          </Link>
+          {/* Carrito en el menú mobile - Solo para no veterinarios */}
+          {!isVeterinarian() && (
+            <Link
+              href="/cart"
+              className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium border-t border-gray-300 pt-4"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              🛒 Mi Carrito {itemsCount > 0 && `(${itemsCount})`}
+            </Link>
+          )}
         </div>
       </div>
     </header>

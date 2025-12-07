@@ -124,7 +124,38 @@ export const toggleVeterinarianStatus = async (id: string, token: string) => {
 // Obtener todos los veterinarios (incluye inactivos para admin)
 export const getAllVeterinariansAdmin = async (token: string) => {
   try {
+    console.log('Llamando a GET /veterinarians con token:', token ? 'Token presente' : 'Sin token');
+    
     const response = await fetch(`${API_URL}/veterinarians`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log('Status de respuesta:', response.status);
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Error del backend:', error);
+      throw new Error(error.message || "Error al obtener veterinarios");
+    }
+
+    const result = await response.json();
+    console.log('Respuesta getAllVeterinariansAdmin:', result);
+    return result;
+  } catch (error) {
+    console.error("Error en getAllVeterinariansAdmin:", error);
+    throw error;
+  }
+};
+
+// Obtener veterinario por ID
+export const getVeterinarianById = async (id: string, token?: string) => {
+  try {
+    const response = await fetch(`${API_URL}/veterinarians/${id}`, {
       method: "GET",
       credentials: "include",
       headers: {
@@ -135,12 +166,79 @@ export const getAllVeterinariansAdmin = async (token: string) => {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || "Error al obtener veterinarios");
+      throw new Error(error.message || "Error al obtener veterinario");
+    }
+
+    const result = await response.json();
+    console.log('Respuesta completa getVeterinarianById:', result);
+    return result;
+  } catch (error) {
+    console.error("Error en getVeterinarianById:", error);
+    throw error;
+  }
+};
+
+// Cambiar contraseña (veterinario autenticado)
+export const changeVeterinarianPassword = async (
+  email: string,
+  currentPassword: string,
+  newPassword: string,
+  repeatNewPassword: string,
+  token: string
+) => {
+  try {
+    const response = await fetch(`${API_URL}/veterinarians/change-password`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ 
+        email, 
+        currentPassword, 
+        newPassword,
+        repeatNewPassword 
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Error al cambiar contraseña");
     }
 
     return await response.json();
   } catch (error) {
-    console.error("Error en getAllVeterinariansAdmin:", error);
+    console.error("Error en changeVeterinarianPassword:", error);
+    throw error;
+  }
+};
+
+// Actualizar perfil del veterinario (descripción, teléfono, imagen)
+export const updateVeterinarianProfile = async (
+  id: string,
+  formData: FormData,
+  token: string
+) => {
+  try {
+    const response = await fetch(`${API_URL}/veterinarians/${id}/profile`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // NO incluir Content-Type para que el browser lo setee automáticamente con boundary
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Error al actualizar perfil");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error en updateVeterinarianProfile:", error);
     throw error;
   }
 };

@@ -289,18 +289,43 @@ export const clearCartBackend = async (userId: string, token: string) => {
     }
 };
 
-// Crear checkout desde el carrito activo
+// Obtener carrito activo del usuario
+export const getActiveCart = async (userId: string, token: string) => {
+    try {
+        const response = await fetch(`${APIURL}/sale-orders/cart/${userId}`, {
+            method: "GET",
+            credentials: 'include',
+            headers: {
+                "Content-Type": "application/json",
+                ...(token && { Authorization: token })
+            },
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Error al obtener carrito: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        return result.data; // puede ser null si no hay carrito activo
+    } catch (error: any) {
+        console.error('Error en getActiveCart:', error);
+        throw error;
+    }
+};
+
+// Crear checkout desde el carrito (NUEVO FLUJO - usa el carrito del backend)
 export const createCheckout = async (userId: string, token: string) => {
     try {
         console.log('🛒 Creando checkout para userId:', userId);
         
+        // Llamar al endpoint correcto de checkout que usa el carrito del backend
         const response = await fetch(`${APIURL}/sale-orders/checkout/${userId}`, {
             method: "POST",
             credentials: 'include',
             headers: {
                 "Content-Type": "application/json",
                 ...(token && { Authorization: token })
-            },
+            }
         });
         
         if (!response.ok) {
@@ -312,7 +337,7 @@ export const createCheckout = async (userId: string, token: string) => {
         const result = await response.json();
         console.log('✅ Respuesta del checkout:', result);
         
-        // Backend retorna { data: { initPoint, sandboxInitPoint, preferenceId } }
+        // Backend retorna { message: string, data: { preferenceId, initPoint, sandboxInitPoint } }
         return result.data;
     } catch (error: any) {
         console.error('Error en createCheckout:', error);
