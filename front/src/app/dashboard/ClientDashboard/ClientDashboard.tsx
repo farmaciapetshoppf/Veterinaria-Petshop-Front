@@ -31,7 +31,7 @@ export default function ClientDashboard() {
           ...userData!.user,
           ...data,
         },
-        
+
       });
       if (updated) {
         toast.success("Perfil actualizado correctamente");
@@ -83,8 +83,7 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-linear-to-br from-orange-100 via-orange-200
-               to-orange-200">
+    <div className="pt-20 min-h-screen bg-orange-200"> 
       <div className="pt-6 pb-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
 
@@ -137,65 +136,30 @@ export default function ClientDashboard() {
             {/* PERFIL */}
             {activeTab === 'profile' && (
               <div className="md:col-span-2">
-                <div className="bg-gre rounded-lg border border-gray-400 p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                    Información Personal
-                  </h2>
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
 
-                  <div className='flex flex-row justify-between'>
-                    <div className="space-y-4 w-1/2">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Nombre completo</label>
-                        <p className="mt-1 text-base text-gray-900">{userData.user.name}</p>
+                  <div className="px-8 pb-8">
+                    {/* Foto de perfil */}
+                    <div className="relative  mb-6">
+                      <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 shadow-lg">
+                        {userData.user.profileImageUrl ? (
+                          <Image
+                            src={userData.user.profileImageUrl}
+                            width={128}
+                            height={128}
+                            alt="ProfilePicture"
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          userData.user.name?.charAt(0) || 'C'
+                        )}
                       </div>
-
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Email</label>
-                        <p className="mt-1 text-base text-gray-900">{userData.user.email}</p>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Teléfono</label>
-                        <p className="mt-1 text-base text-gray-900">{userData.user.phone || 'No especificado'}</p>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Dirección</label>
-                        <p className="mt-1 text-base text-gray-900">{userData.user.address || 'No especificada'}</p>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Ciudad</label>
-                        <p className="mt-1 text-base text-gray-900">
-                          {userData.user.country + " - " + userData.user.city || 'No especificada'}</p>
-                      </div>
-
-
-                    </div>
-
-                    <div className="relative w-40 h-40">
-                      {userData.user.profileImageUrl ? (
-                        <Image
-                          src={userData.user.profileImageUrl}
-                          width={160}
-                          height={160}
-                          alt="ProfilePicture"
-                          className="rounded-full object-cover w-40 h-40"
-                        />
-                      ) : (
-                        <Image
-                          src={avatar}
-                          width={160}
-                          height={160}
-                          alt="ProfilePicture"
-                          className="rounded-full object-cover w-40 h-40"
-                        />
-                      )}
 
                       {/* Botón lápiz */}
                       <label
                         htmlFor="profileImageUpload"
-                        className="absolute bottom-2 right-2 bg-orange-500 p-2 rounded-full shadow-md cursor-pointer hover:bg-orange-600 transition-colors"
+                        className="absolute bottom-2 left-25 bg-orange-500 p-2
+                         rounded-full shadow-md cursor-pointer hover:bg-orange-600 transition-colors"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -213,7 +177,6 @@ export default function ClientDashboard() {
                         </svg>
                       </label>
 
-                      {/* Input oculto */}
                       <input
                         id="profileImageUpload"
                         type="file"
@@ -222,32 +185,74 @@ export default function ClientDashboard() {
                         onChange={async (e) => {
                           if (!e.target.files || e.target.files.length === 0) return;
                           const file = e.target.files[0];
-
-                          // Usamos el mismo handleSaveProfile pero pasándole la imagen
                           await handleSaveProfile({ profileImage: file });
                         }}
                       />
                     </div>
 
+                    {/* Información personal */}
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Nombre Completo
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">{userData.user.name}</p>
+                        </div>
 
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Email
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">{userData.user.email}</p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Teléfono
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">{userData.user.phone || 'No especificado'}</p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Dirección
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">{userData.user.address || 'No especificada'}</p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Ciudad
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">
+                            {userData.user.country && userData.user.city
+                              ? `${userData.user.country} - ${userData.user.city}`
+                              : 'No especificada'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div className="flex gap-4 pt-6 border-t">
+                        <button
+                          onClick={() => setOpenEdit(true)}
+                          className="flex-1 bg-orange-500 text-white py-3 rounded-lg
+                           font-semibold hover:bg-orange-600 transition-colors"
+                        >
+                          Editar Perfil
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Modal de edición */}
+                    <EditProfileModal
+                      open={openEdit}
+                      onClose={() => setOpenEdit(false)}
+                      user={userData.user}
+                      onSave={handleSaveProfile}
+                    />
                   </div>
-
-                  <button
-                    onClick={() => setOpenEdit(true)}
-                    className="px-4 py-2 mt-10
-                    rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white cursor-pointer
-                    hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
-                     "
-                  >
-                    Editar Perfil
-                  </button>
-
-                  <EditProfileModal
-                    open={openEdit}
-                    onClose={() => setOpenEdit(false)}
-                    user={userData.user}
-                    onSave={handleSaveProfile}
-                  />
                 </div>
               </div>
             )}
