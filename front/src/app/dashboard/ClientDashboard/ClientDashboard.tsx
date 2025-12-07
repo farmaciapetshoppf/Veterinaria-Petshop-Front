@@ -17,6 +17,8 @@ export default function ClientDashboard() {
   const [showNewPetModal, setShowNewPetModal] = useState(false)
   const [creatingPet, setCreatingPet] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   const handleSaveProfile = async (data: any) => {
     try {

@@ -19,6 +19,7 @@ import { toast } from 'react-toastify'
 
 function LoginView() {
     const { setUserData } = useAuth();
+    const router = useRouter();
     const [googleLoading, setGoogleLoading] = React.useState(false);
 
     const handleGoogleLogin = async () => {
@@ -64,49 +65,14 @@ function LoginView() {
                     validateOnMount={true}
                     onSubmit={async (values) => {
                         try {
-                            let response: IUser;
-                            let isVeterinarian = false;
-                            
                             console.log('🚀 Iniciando proceso de login...');
                             
-                            // Intentar login como usuario normal primero
-                            try {
-                                console.log('👤 Intentando login como usuario normal...');
-                                response = await login(values);
-                                console.log('✅ Login normal exitoso');
-                            } catch (normalLoginError: any) {
-                                console.log('❌ Login normal falló:', normalLoginError.message);
-                                
-                                // Solo intentar como veterinario si el error indica que no es usuario normal
-                                // NO hacer fallback si es error de contraseña incorrecta
-                                const errorMsg = normalLoginError.message?.toLowerCase() || '';
-                                
-                                if (errorMsg.includes('password') || errorMsg.includes('contraseña') || 
-                                    errorMsg.includes('incorrect') || errorMsg.includes('incorrecta')) {
-                                    // Es un error de contraseña, NO intentar como veterinario
-                                    console.error('🔒 Error de contraseña, no intentando como veterinario');
-                                    throw normalLoginError;
-                                }
-                                
-                                // Intentar como veterinario
-                                console.log('🩺 Intentando login como veterinario...');
-                                try {
-                                    response = await loginVeterinarian(values);
-                                    isVeterinarian = true;
-                                    // IMPORTANTE: El backend ahora devuelve requirePasswordChange
-                                    response.role = 'veterinarian';
-                                    console.log('✅ Login veterinario exitoso. RequirePasswordChange:', response.requirePasswordChange);
-                                } catch (vetError: any) {
-                                    console.error('❌ Login veterinario también falló:', vetError.message);
-                                    // Si ambos fallan, lanzar el error original del usuario normal
-                                    throw normalLoginError;
-                                }
-                            }
-                            
-                            console.log('📦 Respuesta completa del login:', response);
+                            // Un solo intento - el backend decide si es usuario o veterinario
+                            const response = await login(values);
+                            console.log('✅ Login exitoso');
+                            console.log('📦 Respuesta completa:', response);
                             console.log('🎭 Rol recibido:', response.role);
                             console.log('🔄 RequirePasswordChange:', response.requirePasswordChange);
-                            console.log('🔍 Todas las propiedades de response:', Object.keys(response));
                             
                             // Obtener el token de localStorage (se guardó en el servicio login)
                             const token = localStorage.getItem('authToken') || '';
@@ -138,14 +104,6 @@ function LoginView() {
                             // IMPORTANTE: Guardar el usuario en el contexto
                             setUserData(formatted);
                             
-                            // Verificar que el token esté guardado (warning, no error crítico)
-                            const savedToken = localStorage.getItem('authToken');
-                            console.log('💾 Token guardado en localStorage:', savedToken ? 'SÍ' : 'NO');
-                            
-                            if (!savedToken) {
-                                console.warn('⚠️ WARNING: Token no encontrado inmediatamente, pero continuando...');
-                            }
-                            
                             // Delay para que React actualice el estado
                             await new Promise(resolve => setTimeout(resolve, 200));
                             
@@ -158,11 +116,11 @@ function LoginView() {
                             // Si es veterinario con contraseña temporal, redirigir a cambiar contraseña
                             if (response.role === 'veterinarian' && response.requirePasswordChange) {
                                 console.log('🔐 ✅ Redirigiendo a cambio de contraseña...');
-                                window.location.href = '/change-password';
+                                router.push('/change-password');
                             } else {
                                 console.log('🏠 Redirigiendo a home...');
                                 console.log('   - Razón: rol=' + response.role + ', requirePasswordChange=' + response.requirePasswordChange);
-                                window.location.href = '/';
+                                router.push('/');
                             }
 
                         } catch (error: any) {

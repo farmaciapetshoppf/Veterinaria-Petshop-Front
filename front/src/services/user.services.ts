@@ -74,7 +74,7 @@ export async function login(userData: ILoginProps) {
 
 export async function loginVeterinarian(userData: ILoginProps) {
   try {  
-    const response = await fetch(`${APIURL}/auth/signin/veterinarian`, {
+    const response = await fetch(`${APIURL}/auth/signin`, {
       method: "POST",
       headers: {
         "Content-type": "application/json",
