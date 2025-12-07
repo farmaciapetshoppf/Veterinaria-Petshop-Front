@@ -58,8 +58,6 @@ export async function login(userData: ILoginProps) {
     console.log('✅ Login normal exitoso:', result);
     console.log('🔑 Token recibido:', result.token ? 'SÍ' : 'NO');
     
-    alert("Se ha logueado con éxito");
-    
     // Guardar el token en localStorage si viene en la respuesta
     if (result.token) {
       localStorage.setItem('authToken', result.token);
@@ -77,7 +75,7 @@ export async function login(userData: ILoginProps) {
 
 export async function loginVeterinarian(userData: ILoginProps) {
   try {  
-    const response = await fetch(`${APIURL}/auth/veterinarian/signin`, {
+    const response = await fetch(`${APIURL}/auth/signin/veterinarian`, {
       method: "POST",
       headers: {
         "Content-type": "application/json",
