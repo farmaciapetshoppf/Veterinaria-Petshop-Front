@@ -132,16 +132,20 @@ const handleCheckout = async () => {
     console.log('🚀 Iniciando checkout...');
     console.log('🛒 Items en el carrito:', items.length);
     
+    // Llamar al nuevo endpoint que usa el carrito del backend
     const data = await createCheckout(String(userData.user.id), userData.token || '');
     
     console.log('📦 Datos recibidos del checkout:', data);
+    console.log('🔗 USAR ESTE LINK PARA PRODUCCIÓN:', data?.initPoint);
+    console.log('⚠️ Link de sandbox (NO usar en producción):', data?.sandboxInitPoint);
     
-    // Usar initPoint para producción (en lugar de sandboxInitPoint)
-    const checkoutUrl = data?.initPoint || data?.sandboxInitPoint;
-    console.log('🔗 Checkout URL:', checkoutUrl);
+    // IMPORTANTE: Usar initPoint para producción (NO sandboxInitPoint)
+    const checkoutUrl = data?.initPoint;
     
     if (checkoutUrl) {
-      console.log('✅ Redirigiendo a MercadoPago:', checkoutUrl);
+      console.log('✅ Redirigiendo a MercadoPago (PRODUCCIÓN):', checkoutUrl);
+      // Limpiar carrito local antes de redirigir
+      localStorage.removeItem('cart');
       // Redirigir en la misma ventana
       window.location.href = checkoutUrl;
     } else {
@@ -153,7 +157,9 @@ const handleCheckout = async () => {
     
     // Mensaje de error más específico
     if (error.message?.includes('No hay carrito activo')) {
-      toast.error('El carrito está vacío en el servidor. Agrega productos nuevamente.');
+      toast.error('El carrito está vacío. Agrega productos antes de continuar.');
+    } else if (error.message?.includes('Insufficient stock')) {
+      toast.error('Uno o más productos no tienen stock suficiente.');
     } else {
       toast.error(error.message || 'Error al procesar el pago');
     }

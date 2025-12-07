@@ -1,17 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'next/navigation';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { useAuth } from '@/src/context/AuthContext';
+import { changeVeterinarianPassword } from '@/src/services/veterinarian.admin.services';
+import { toast } from 'react-toastify';
 
 export default function ChangePasswordPage() {
+  const { userData } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { userData } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,37 +30,33 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_URL}/veterinarians/change-password`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(userData?.token && { Authorization: `Bearer ${userData.token}` }),
-        },
-        body: JSON.stringify({
-          email: userData?.email,
-          currentPassword,
-          newPassword,
-          repeatNewPassword: confirmPassword,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error al cambiar contraseña');
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No hay sesión activa');
       }
 
-      const result = await response.json();
+      const email = userData?.user?.email;
+      if (!email) {
+        throw new Error('No se pudo obtener el email del usuario');
+      }
+
+      const result = await changeVeterinarianPassword(
+        email,
+        currentPassword,
+        newPassword,
+        confirmPassword,
+        token
+      );
       
       // Si el backend devuelve un nuevo token, guardarlo
       if (result.token) {
         localStorage.setItem('authToken', result.token);
       }
 
-      alert('✅ Contraseña cambiada exitosamente');
+      toast.success('✅ Contraseña cambiada exitosamente');
       
-      // Forzar recarga completa para actualizar la sesión
-      window.location.href = '/dashboard';
+      // Redirigir al dashboard
+      router.push('/dashboard');
     } catch (error: any) {
       alert(error.message || 'Error al cambiar contraseña');
     } finally {
