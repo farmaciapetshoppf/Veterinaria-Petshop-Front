@@ -3,12 +3,15 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/src/context/AuthContext'
 import { createPet, NewPetData } from '@/src/app/services/pet.services'
-import { getOrderHistory } from '@/src/services/order.services'
 import { IPet } from '@/src/types'
 import CardPet from '../../components/CardPet/CardPet'
 import NewPetModal from '../../components/NewPetModal/NewPetModal'
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal'
 import OrderList from '../../components/OrderList/OrderList'
+import { toast } from 'react-toastify'
+import { updateUserProfile } from '@/src/services/user.services';
+import Image from 'next/image'
+import avatar from "@/src/assets/avatar.jpg"
 
 export default function ClientDashboard() {
   const { userData, setUserData } = useAuth()
@@ -22,15 +25,7 @@ export default function ClientDashboard() {
 
   const handleSaveProfile = async (data: any) => {
     try {
-      const res = await fetch(`https://localhost:3000/users/${userData!.user.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-
-      if (!res.ok) throw new Error("Error al actualizar el perfil");
-
-      const updated = await res.json();
+      const updated = await updateUserProfile(userData!.user.id, data)
 
       // Actualizar el estado global con los nuevos datos
       setUserData({
@@ -40,12 +35,16 @@ export default function ClientDashboard() {
           ...data,
         },
       });
-
+      if (updated) {
+        toast.success("Perfil actualizado correctamente");
+        setOpenEdit(false)
+      }
     } catch (err) {
-      console.error(err);
-      throw err; // Re-lanzar el error para que el modal lo maneje
+      toast.error("Error al intentar editar perfil: Intentelo más tarde");
     }
   };
+
+
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
     nombre: "",
@@ -55,7 +54,7 @@ export default function ClientDashboard() {
     esterilizado: "SI",
     status: "VIVO",
     fecha_nacimiento: "2020-01-15",
-    breed: "",
+    breed: ""
   });
 
   const handleCreatePet = async (e: React.FormEvent) => {
@@ -75,29 +74,6 @@ export default function ClientDashboard() {
     }
   }, [userData])
 
-  // Cargar órdenes desde el historial cuando se cambia a la pestaña de órdenes
-  useEffect(() => {
-    const fetchOrders = async () => {
-      if (activeTab !== 'orders') return
-      
-      if (!userData?.user?.id) return
-
-      setLoadingOrders(true)
-      try {
-        const historyData = await getOrderHistory(String(userData.user.id), userData.token || '')
-        const ordersData = historyData.data || historyData
-        setOrders(Array.isArray(ordersData) ? ordersData : [])
-      } catch (error) {
-        console.error('Error al cargar historial de órdenes:', error)
-        setOrders([])
-      } finally {
-        setLoadingOrders(false)
-      }
-    }
-
-    fetchOrders()
-  }, [activeTab, userData?.user?.id, userData?.token])
-
   if (!userData) {
     return (
       <div className="bg-white pt-20 min-h-screen flex items-center justify-center">
@@ -113,7 +89,7 @@ export default function ClientDashboard() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
 
           {/* Header del Dashboard */}
-          <div className="mb-8">
+          <div className="">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
               Mi Dashboard
             </h1>
@@ -123,7 +99,7 @@ export default function ClientDashboard() {
           </div>
 
           {/* Tabs de navegación */}
-          <div className="border-b border-gray-200 mb-8">
+          <div className="border-b border-cyan-700 mb-8">
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('profile')}
@@ -166,31 +142,102 @@ export default function ClientDashboard() {
                     Información Personal
                   </h2>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Nombre completo</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.name}</p>
+                  <div className='flex flex-row justify-between'>
+                    <div className="space-y-4 bg-amber-100 w-1/2">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Nombre completo</label>
+                        <p className="mt-1 text-base text-gray-900">{userData.user.name}</p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Email</label>
+                        <p className="mt-1 text-base text-gray-900">{userData.user.email}</p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Teléfono</label>
+                        <p className="mt-1 text-base text-gray-900">{userData.user.phone || 'No especificado'}</p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Dirección</label>
+                        <p className="mt-1 text-base text-gray-900">{userData.user.address || 'No especificada'}</p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Ciudad</label>
+                        <p className="mt-1 text-base text-gray-900">
+                          {userData.user.country + " - " + userData.user.city || 'No especificada'}</p>
+                      </div>
+
+
                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Email</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.email}</p>
+                    <div className="relative w-40 h-40">
+                      {userData.user.profileImageUrl ? (
+                        <Image
+                          src={userData.user.profileImageUrl}
+                          width={160}
+                          height={160}
+                          alt="ProfilePicture"
+                          className="rounded-full object-cover w-40 h-40"
+                        />
+                      ) : (
+                        <Image
+                          src={avatar}
+                          width={160}
+                          height={160}
+                          alt="ProfilePicture"
+                          className="rounded-full object-cover w-40 h-40"
+                        />
+                      )}
+
+                      {/* Botón lápiz */}
+                      <label
+                        htmlFor="profileImageUpload"
+                        className="absolute bottom-2 right-2 bg-orange-500 p-2 rounded-full shadow-md cursor-pointer hover:bg-orange-600 transition-colors"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536M9 11l6.232-6.232a2 2 0 112.828 2.828L11.828 13.828a2 2 0 01-1.414.586H9v-2z"
+                          />
+                        </svg>
+                      </label>
+
+                      {/* Input oculto */}
+                      <input
+                        id="profileImageUpload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          if (!e.target.files || e.target.files.length === 0) return;
+                          const file = e.target.files[0];
+
+                          // Usamos el mismo handleSaveProfile pero pasándole la imagen
+                          await handleSaveProfile({ profileImage: file });
+                        }}
+                      />
                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Teléfono</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.phone || 'No especificado'}</p>
-                    </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Dirección</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.address || 'No especificada'}</p>
-                    </div>
                   </div>
 
                   <button
                     onClick={() => setOpenEdit(true)}
-                    className="px-4 py-2 mt-10 bg-orange-500 hover:bg-orange-600 cursor-pointer text-white rounded-md"
+                    className="px-4 py-2 mt-10
+                    rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white cursor-pointer
+                    hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                     "
                   >
                     Editar Perfil
                   </button>
@@ -207,25 +254,25 @@ export default function ClientDashboard() {
 
             {/* MASCOTAS Y TURNOS */}
             {activeTab === 'pets' && (
-              <div className="md:col-span-2">
-                <div className="space-y-6">
-                  {
-                    pets.length == 0 ? (
-                      <p className="text-gray-500 text-center py-8">No tienes mascotas registradas
-                      </p>
-                    ) : (
-                      pets.map((pet) => (
-                        <CardPet key={pet.id} {...pet} />
-                      )))}
-                  <button
-                    onClick={() => setShowNewPetModal(true)}
-                    className="w-full bg-orange-500 text-white px-4 py-3 
-                    rounded-md hover:bg-orange-600 transition-colors 
+              <div className="md:col-span-2 space-y-6">
+                {
+                  pets.length == 0 ? (
+                    <p className="text-gray-500 text-center py-8">No tienes mascotas registradas
+                    </p>
+                  ) : (
+                    pets.map((pet) => (
+                      <CardPet key={pet.id} {...pet} />
+                    )))}
+                <button
+                  onClick={() => setShowNewPetModal(true)}
+                  className="w-full  px-4 py-3 
+                  rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                   transition-colors 
                     cursor-pointer font-medium"
-                  >
-                    + Agregar Nueva Mascota
-                  </button>
-                </div>
+                >
+                  Agregar Nueva Mascota
+                </button>
               </div>
             )}
 
@@ -290,8 +337,10 @@ export default function ClientDashboard() {
                   </div>
                 </div>
 
-                <button className="mt-6 w-full bg-orange-500 text-white px-4 py-2 rounded-md
-                 hover:bg-orange-600 transition-colors text-sm font-medium
+                <button className="mt-6 w-full px-4 py-2
+                rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                 transition-colors text-sm font-medium
                  cursor-pointer
                  ">
                   Agendar Turno

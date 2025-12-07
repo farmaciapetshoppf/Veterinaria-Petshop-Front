@@ -20,7 +20,8 @@ export interface IUser {
   deletedAt: string | null;
   pets: IPet[];
   requirePasswordChange?: boolean; // Para veterinarios con contraseña temporal
-  buyerSaleOrders: Order[]
+  buyerSaleOrders: Order[];
+  profileImageUrl: string
 }
 
 export interface UserProfile {

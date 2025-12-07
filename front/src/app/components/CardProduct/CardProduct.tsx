@@ -4,12 +4,12 @@ import Image from 'next/image'
 import { IProduct } from "@/src/types";
 
 interface CardProps {
-    product: IProduct
+  product: IProduct
 }
 
-function Card({product}: CardProps) {
+function Card({ product }: CardProps) {
   const href = product.id ? `/product/${product.id}` : undefined;
-  
+
   // Manejar diferentes tipos de imagen: string URL, objeto StaticImageData, o fallback
   let imageSrc: string | any = '/next.svg';
   if (product.image) {
@@ -20,15 +20,23 @@ function Card({product}: CardProps) {
         imageSrc = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${product.image}`;
       }
     } else {
-      // Es un objeto StaticImageData de Next.js
-      imageSrc = product.image;
+      imageSrc = product.image; // StaticImageData
     }
   }
 
-   const content = (
-    <div className="max-w-sm bg-linear-to-br from-white via-gray-100 to-amber-100 p-4 rounded-lg shadow hover:shadow-xl transition-transform hover:scale-105 cursor-pointer flex flex-col">
-      <div className="w-full aspect-4/3 overflow-hidden rounded-md bg-gray-50 relative">
-        
+  const content = (
+    <div
+      className="
+        group relative
+        max-w-sm 
+        bg-gradient-to-br from-white via-gray-100 to-amber-100 
+        p-4 rounded-lg shadow 
+        cursor-pointer flex flex-col
+        transition-transform duration-300 hover:scale-105
+      "
+    >
+      {/* Imagen normal */}
+      <div className="w-full aspect-[4/3] overflow-hidden rounded-md bg-gray-50 relative">
         <Image
           src={imageSrc}
           alt={product.name}
@@ -39,6 +47,7 @@ function Card({product}: CardProps) {
         />
       </div>
 
+      {/* Info normal */}
       <div className="mt-4 flex-1">
         <h3 className="text-sm text-gray-700 line-clamp-2">
           <span className="inset-0">{product.name}</span>
@@ -49,6 +58,8 @@ function Card({product}: CardProps) {
         <p className="text-lg font-medium text-gray-900">${product.price}</p>
         <span className="text-xs text-gray-500">Stock: {product.stock}</span>
       </div>
+
+      
     </div>
   );
 
@@ -61,4 +72,4 @@ function Card({product}: CardProps) {
   );
 }
 
-export default Card
+export default Card;
