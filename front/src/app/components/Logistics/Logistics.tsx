@@ -37,8 +37,8 @@ function Logistics() {
             <Image
               src={item.img}
               alt={item.text}
-              width={120}
-              height={120}
+              /* width={120}
+              height={120} */
               className="object-contain"
             />
           </div>

@@ -17,11 +17,6 @@ import { IUser, IUserSession } from '@/src/types'
 import { toast } from 'react-toastify'
 
 function LoginView() {
-<<<<<<< HEAD
-    const { setUserData } = useAuth();
-    const router = useRouter();
-    const [googleLoading, setGoogleLoading] = React.useState(false);
-=======
   const { setUserData } = useAuth();
   const [googleLoading, setGoogleLoading] = React.useState(false);
 
@@ -171,7 +166,6 @@ function LoginView() {
       </div>
     </div>
   );
->>>>>>> 510024e71bc5fd6f18beae90220f96184ac66c35
 
     const handleGoogleLogin = async () => {
         try {
