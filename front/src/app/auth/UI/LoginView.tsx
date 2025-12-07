@@ -166,7 +166,7 @@ function LoginView() {
       </div>
     </div>
   );
-
+/* 
     const handleGoogleLogin = async () => {
         try {
             setGoogleLoading(true);
@@ -318,6 +318,6 @@ function LoginView() {
             </div>
         </div>
     )
+} */
 }
-
 export default LoginView
