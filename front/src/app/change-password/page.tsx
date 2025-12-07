@@ -30,16 +30,18 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_URL}/auth/veterinarian/change-password`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/veterinarians/change-password`, {
+        method: 'PATCH',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...(userData?.token && { Authorization: `Bearer ${userData.token}` }),
         },
         body: JSON.stringify({
+          email: userData?.email,
           currentPassword,
           newPassword,
+          repeatNewPassword: confirmPassword,
         }),
       });
 
