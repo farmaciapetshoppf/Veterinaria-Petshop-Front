@@ -58,18 +58,38 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
         if (open) fetchVeterinarians()
     }, [open])
 
+    const normalizeTime = (time: string) => {
+        const [h, m] = time.split(':').map(Number);
+        if (m < 30) return `${String(h).padStart(2, '0')}:00`;
+        return `${String(h).padStart(2, '0')}:30`;
+    };
+
+
     useEffect(() => {
+        if (!form.date || !form.veterinarianId) return
+
         const fetchAppointments = async () => {
-            if (!form.date || !form.veterinarianId) return
-            const res = await fetch(
-                `${APIURL}/appointments?date=${form.date}&veterinarianId=${form.veterinarianId}`,
-                { credentials: 'include' }
-            )
-            const { data } = await res.json()
-            setAppointments(data.map((appt: any) => appt.time))
-        }
+            if (!form.veterinarianId) return;
+
+            const res = await fetch(`${APIURL}/veterinarians/${form.veterinarianId}`, {
+                credentials: 'include',
+            });
+
+            const { data } = await res.json();
+
+            // Filtramos solo los turnos de la fecha seleccionada
+            const filtered = data.appointments
+                .filter((appt: any) => appt.date === form.date)
+                .map((appt: any) => normalizeTime(appt.time)); // normalizamos a bloques de 30 min
+
+                console.log("FILTRADAS:"+filtered);
+                
+            setAppointments(filtered);
+        };
+
         fetchAppointments()
     }, [form.date, form.veterinarianId])
+
 
     const customStyles = {
         control: (base: any) => ({
@@ -182,12 +202,12 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
 
                     {/* Tarjeta del veterinario */}
                     {selectedVet && (
-                        <div className="flex items-center gap-4 mt-4 p-3 bg-white rounded-lg shadow-md border border-gray-200">
+                        <div className="flex items-center gap-4 mt-4 p-3 bg-cyan-700 rounded-lg shadow-md">
                             <Image
                                 width={20} height={20}
                                 src={selectedVet.profileImageUrl || avatar}
                                 alt={selectedVet.name}
-                                className="w-12 h-12 rounded-full object-cover border border-gray-300"
+                                className="w-12 h-12 rounded-full object-cover "
                             />
                             <div>
                                 <p className="text-sm font-semibold text-gray-900">{selectedVet.name}</p>
@@ -218,16 +238,17 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
                                             disabled={isTaken}
                                             onClick={() => setForm({ ...form, time: slot })}
                                             className={`px-2 py-2 rounded-lg text-sm font-medium
-                        ${isTaken
+        ${isTaken
                                                     ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                                                     : 'bg-orange-300 hover:bg-orange-400 cursor-pointer'}
-                        ${form.time === slot ? 'ring-2 ring-cyan-700' : ''}
-                      `}
+        ${form.time === slot ? 'ring-2 ring-cyan-700' : ''}
+      `}
                                         >
                                             {slot}
                                         </button>
                                     )
                                 })}
+
                             </div>
                         </>
                     )}
