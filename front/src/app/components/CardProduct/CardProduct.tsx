@@ -29,14 +29,14 @@ function Card({ product }: CardProps) {
       className="
         group relative
         max-w-sm 
-        bg-gradient-to-br from-white via-gray-100 to-amber-100 
+        bg-linear-to-br from-white via-gray-100 to-amber-100 
         p-4 rounded-lg shadow 
         cursor-pointer flex flex-col
         transition-transform duration-300 hover:scale-105
       "
     >
       {/* Imagen normal */}
-      <div className="w-full aspect-[4/3] overflow-hidden rounded-md bg-gray-50 relative">
+      <div className="w-full aspect-4/3 overflow-hidden rounded-md bg-gray-50 relative">
         <Image
           src={imageSrc}
           alt={product.name}
