@@ -234,14 +234,14 @@ export default function OurTeamClient({ initialVets }: OurTeamClientProps) {
         )}
 
         {/* Grid de veterinarios */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {vets.map((vet) => (
-            <div key={vet.id} className="relative">
+            <div key={vet.id} className="relative h-full min-h-[450px]">
               <VeterinaryCard veterinary={vet} />
               {isAdmin() && (
                 <button
                   onClick={() => handleDelete(vet.id)}
-                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition z-10"
+                  className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg transition z-10 font-bold text-lg"
                   title="Eliminar veterinario"
                 >
                   ✕

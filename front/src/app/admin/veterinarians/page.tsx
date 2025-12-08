@@ -6,11 +6,8 @@ import { useEffect, useState } from "react";
 import {
   createVeterinarian,
   getAllVeterinariansAdmin,
-  updateVeterinarian,
   deleteVeterinarian,
-  toggleVeterinarianStatus,
   ICreateVeterinarian,
-  IUpdateVeterinarian,
 } from "@/src/services/veterinarian.admin.services";
 import { IVeterinarian } from "@/src/types";
 
@@ -20,7 +17,6 @@ export default function VeterinarianManagement() {
   const [veterinarians, setVeterinarians] = useState<IVeterinarian[]>([]);
   const [loadingVets, setLoadingVets] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingVet, setEditingVet] = useState<IVeterinarian | null>(null);
   const [formData, setFormData] = useState<ICreateVeterinarian>({
     name: "",
     email: "",
@@ -96,35 +92,7 @@ export default function VeterinarianManagement() {
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingVet) return;
 
-    try {
-      const updateData: IUpdateVeterinarian = {
-        name: formData.name,
-        email: formData.email,
-        matricula: formData.matricula,
-        description: formData.description,
-        phone: formData.phone,
-        time: formData.time,
-      };
-      await updateVeterinarian(editingVet.id, updateData, userData?.token || "");
-      alert("Veterinario actualizado exitosamente");
-      setEditingVet(null);
-      setFormData({
-        name: "",
-        email: "",
-        matricula: "",
-        description: "",
-        phone: "",
-        time: "",
-      });
-      loadVeterinarians();
-    } catch (error: any) {
-      alert(error.message || "Error al actualizar veterinario");
-    }
-  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Estás seguro de eliminar este veterinario?")) return;
@@ -138,27 +106,9 @@ export default function VeterinarianManagement() {
     }
   };
 
-  const handleToggleStatus = async (id: string) => {
-    try {
-      await toggleVeterinarianStatus(id, userData?.token || "");
-      loadVeterinarians();
-    } catch (error: any) {
-      alert(error.message || "Error al cambiar estado");
-    }
-  };
 
-  const startEdit = (vet: IVeterinarian) => {
-    setEditingVet(vet);
-    setFormData({
-      name: vet.name,
-      email: vet.email,
-      matricula: vet.matricula,
-      description: vet.description,
-      phone: vet.phone,
-      time: vet.time,
-    });
-    setShowCreateForm(false);
-  };
+
+
 
   if (isLoading) {
     return (
@@ -182,7 +132,6 @@ export default function VeterinarianManagement() {
           <button
             onClick={() => {
               setShowCreateForm(!showCreateForm);
-              setEditingVet(null);
               setFormData({
                 name: "",
                 email: "",
@@ -198,13 +147,13 @@ export default function VeterinarianManagement() {
           </button>
         </div>
 
-        {/* Formulario de creación/edición */}
-        {(showCreateForm || editingVet) && (
+        {/* Formulario de creación */}
+        {showCreateForm && (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-amber-200">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              {editingVet ? "Editar Veterinario" : "Crear Nuevo Veterinario"}
+              Crear Nuevo Veterinario
             </h2>
-            <form onSubmit={editingVet ? handleUpdate : handleCreate} className="space-y-4">
+            <form onSubmit={handleCreate} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -289,13 +238,12 @@ export default function VeterinarianManagement() {
                   type="submit"
                   className="bg-linear-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold py-2 px-6 rounded-lg transition-all"
                 >
-                  {editingVet ? "Actualizar" : "Crear"}
+                  Crear
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setShowCreateForm(false);
-                    setEditingVet(null);
                     setFormData({
                       name: "",
                       email: "",
@@ -345,9 +293,6 @@ export default function VeterinarianManagement() {
                       Teléfono
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                      Estado
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                       Acciones
                     </th>
                   </tr>
@@ -361,31 +306,11 @@ export default function VeterinarianManagement() {
                       <td className="px-4 py-3 text-sm text-gray-600">{vet.phone}</td>
                       <td className="px-4 py-3 text-sm">
                         <button
-                          onClick={() => handleToggleStatus(vet.id)}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            vet.isActive
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                          onClick={() => handleDelete(vet.id)}
+                          className="text-red-600 hover:text-red-800 font-semibold"
                         >
-                          {vet.isActive ? "Activo" : "Inactivo"}
+                          Eliminar
                         </button>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => startEdit(vet)}
-                            className="text-blue-600 hover:text-blue-800 font-semibold"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleDelete(vet.id)}
-                            className="text-red-600 hover:text-red-800 font-semibold"
-                          >
-                            Eliminar
-                          </button>
-                        </div>
                       </td>
                     </tr>
                   ))}

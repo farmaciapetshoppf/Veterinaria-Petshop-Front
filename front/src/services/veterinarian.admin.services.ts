@@ -73,11 +73,11 @@ export const updateVeterinarian = async (
   }
 };
 
-// Eliminar veterinario (solo admin)
+// Eliminar (desactivar) veterinario (solo admin)
 export const deleteVeterinarian = async (id: string, token: string) => {
   try {
-    const response = await fetch(`${API_URL}/veterinarians/${id}`, {
-      method: "DELETE",
+    const response = await fetch(`${API_URL}/veterinarians/${id}/deactivate`, {
+      method: "PATCH",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
@@ -87,7 +87,7 @@ export const deleteVeterinarian = async (id: string, token: string) => {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || "Error al eliminar veterinario");
+      throw new Error(error.message || "Error al desactivar veterinario");
     }
 
     return await response.json();
