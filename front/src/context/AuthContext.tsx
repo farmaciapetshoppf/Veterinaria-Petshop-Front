@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react"
 import { ILoginProps, IUserSession } from "../types";
 
-const API = process.env.NEXT_PUBLIC_API_URL
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
 export interface IAuthContextProps {
     userData: IUserSession | null,
@@ -33,16 +33,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const checkSession = async () => {
             
             try {
+                console.log('🔍 Verificando sesión con API:', `${API}/auth/me`);
+                
+                // Intentar obtener el token de localStorage
+                const token = localStorage.getItem('authToken') || '';
+                
+                const headers: HeadersInit = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Si hay token, agregarlo al header
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                    console.log('🔑 Enviando token en Authorization header');
+                }
+                
                 const res = await fetch(`${API}/auth/me`, {
                     credentials: "include",
+                    headers: headers
                 });
 
                 if (!res.ok) {
+                    console.log('❌ No hay sesión activa (status:', res.status, ')');
                     setUserData(null);
+                    localStorage.removeItem('authToken');
                     return;
                 }
 
                 const user = await res.json();
+                console.log('✅ Sesión activa encontrada:', user.email);
                 
                 const formattedUser: IUserSession = {
                     user: {
@@ -58,9 +77,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         city: user.city,
                         isDeleted: user.isDeleted,
                         deletedAt: user.deletedAt,
-                        pets: user.pets
+                        pets: user.pets,
+                        buyerSaleOrders: user.buyerSaleOrders,
+                        profileImageUrl: user.profileImageUrl
                     },
-                    token: ""
+                    token: token
                 };
                 
                 setUserData(formattedUser);
@@ -71,15 +92,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
         };
 
-        checkSession();
-        console.log("🔄 userData cambió a:", userData);        
+        checkSession();      
     }, []);
 
     // Log para debug cuando userData cambia
     useEffect(() => {
-        console.log("🔄 userData cambió a:", userData);
-        setIsLoading(false)       
-    }, []);
+        console.log("🔄 userData cambió a:", userData);      
+    }, [userData]);
 
     const logout = async () => {
         try {
@@ -89,6 +108,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
         } catch (err) {
         } finally {
+            // Limpiar el token de localStorage
+            localStorage.removeItem('authToken');
             setUserData(null);
             router.push("/");
         }

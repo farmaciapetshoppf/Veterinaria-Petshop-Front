@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Huellitas3 from '../../../assets/Huellitas3.png'
@@ -8,6 +9,7 @@ import { navItems } from "../../helpers/navItems";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { PATHROUTES } from "../../helpers/pathRoutes";
+import { useRole } from "@/src/hooks/useRole";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,6 +17,7 @@ export default function Navbar() {
   const { getItemsCount } = useCart();
   const itemsCount = getItemsCount();
     const {userData, logout} = useAuth();
+    const { isAdmin, isVeterinarian } = useRole();
 
   return (
     <header className="fixed top-0 left-0 w-full bg-[#f5f5f5] shadow-sm z-50 transition-all duration-300">
@@ -32,60 +35,125 @@ export default function Navbar() {
         </Link>
 
         {/* Links Desktop - Hidden en mobile */}
-        <div className="hidden md:flex md:flex-col lg:flex-row md:justify-center md:items-center gap-4 lg:gap-8 text-[16px] lg:text-[20px] font-medium text-gray-700">
+        <div className="hidden md:flex md:flex-row md:justify-center md:items-center
+          gap- lg:gap-8 text-[16px] lg:text-[20px] lg:flex-row font-medium text-gray-700">
           <div className="flex gap-4 lg:gap-8 items-center">
-            {navItems.map((navigationItem) => (
+            {navItems
+              .filter((item) => {
+                // Veterinario no ve nada del nav (sin Store, Historia, Equipo)
+                if (isVeterinarian()) {
+                  return false;
+                }
+                // Admin no ve Store, Historia ni Nuestro equipo
+                if (isAdmin()) {
+                  return false;
+                }
+                return true; // Otros usuarios ven todo
+              })
+              .map((navigationItem) => (
+                <Link
+                  key={navigationItem.id}
+                  href={navigationItem.route}
+                  className="hover:text-orange-500 transition whitespace-nowrap"
+                >
+                  {navigationItem.nameToRender}
+                </Link>
+              ))}
+
+            {/* Link de Admin solo para admin */}
+            {isAdmin() && (
               <Link
-                key={navigationItem.id}
-                href={navigationItem.route}
-                className="hover:text-orange-500 transition whitespace-nowrap"
+                href="/admin/veterinarians"
+                className="hover:text-orange-500 transition whitespace-nowrap text-amber-600 font-semibold"
               >
-                {navigationItem.nameToRender}
+                🔧 Gestión Veterinarios
               </Link>
-            ))}
+            )}
           </div>
           
-          { userData && userData.user && (
+          { userData && userData.user && userData.user.name && (
             <span className="text-gray-700 whitespace-nowrap text-[16px] lg:text-[20px] font-medium">
-              Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+              {isVeterinarian() ? (
+                <>
+                  Hola <span className="font-semibold">Doc. {userData.user.name.split(" ")[0]}</span>
+                </>
+              ) : isAdmin() ? (
+                <>
+                  <Link href="/dashboard" className="font-semibold text-amber-600 hover:text-orange-500 transition">
+                    Panel de Administración
+                  </Link>
+                </>
+              ) : (
+                <>
+                  Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+                </>
+              )}
             </span>
+          )}
+          
+          {/* Links adicionales para veterinarios */}
+          {isVeterinarian() && (
+            <div className="flex gap-4 items-center">
+              <Link href="/dashboard/vet-profile" className="text-orange-500 hover:text-orange-600 font-semibold text-[16px] lg:text-[20px]">
+                Perfil
+              </Link>
+              <span className="text-gray-400">|</span>
+              <Link href="/dashboard" className="text-orange-500 hover:text-orange-600 font-semibold text-[16px] lg:text-[20px]">
+                Calendario
+              </Link>
+              <span className="text-gray-400">|</span>
+              <Link href="/dashboard/pet-history" className="text-orange-500 hover:text-orange-600 font-semibold text-[16px] lg:text-[20px]">
+                Historiales
+              </Link>
+            </div>
           )}
         </div>
 
         {/* Botón Cerrar Sesión y Carrito - Desktop */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
           {userData && userData.user ? (
-            <button 
-              onClick={logout} 
-              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200 whitespace-nowrap text-sm lg:text-base font-medium"
+            <button
+              onClick={logout}
+              className="
+              rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+              px-4 py-2 transition-colors duration-200
+               whitespace-nowrap text-sm lg:text-base font-medium"
             >
               Cerrar sesión
             </button>
           ) : (
-            <Link 
-              href="/auth/login" 
-              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200 whitespace-nowrap text-sm lg:text-base font-medium"
+            <Link
+              href="/auth/login"
+              className="rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+              px-4 py-2 transition-colors duration-200 whitespace-nowrap
+               text-sm lg:text-base font-medium"
             >
               Iniciar Sesión
             </Link>
           )}
           
-          {/* Carrito */}
-          <Link href="/cart" className="cursor-pointer">
-            <Image
-              src={perrocompras}
-              alt='cart'
-              width={90}
-              height={90}
-            />
-          </Link>
-          {itemsCount > 0 && (
-            <span
-              className="absolute md:top-5 md:right-12 animate-bounce bg-amber-700 text-white text-xs font-bold 
-                 w-5 h-5 flex items-center justify-center rounded-full"
-            >
-              {itemsCount}
-            </span>
+          {/* Carrito - Solo para no veterinarios y no admin */}
+          {!isVeterinarian() && !isAdmin() && (
+            <>
+              <Link href="/cart" className="cursor-pointer">
+                <Image
+                  src={perrocompras}
+                  alt='cart'
+                  width={90}
+                  height={90}
+                />
+              </Link>
+              {itemsCount > 0 && (
+                <span
+                  className="absolute md:top-5 md:right-12 animate-bounce bg-amber-700 text-white text-xs font-bold 
+                     w-5 h-5 flex items-center justify-center rounded-full"
+                >
+                  {itemsCount}
+                </span>
+              )}
+            </>
           )}
         </div>
 
@@ -112,33 +180,56 @@ export default function Navbar() {
           }`}
       >
         <div className="px-4 py-6 space-y-4">
-          {navItems.map((navigationItem) => (
+          {navItems
+            .filter((item) => {
+              // Admin no ve nada del nav en mobile
+              if (isAdmin()) {
+                return false;
+              }
+              return true; // Otros usuarios ven todo
+            })
+            .map((navigationItem) => (
+              <Link
+                key={navigationItem.id}
+                href={navigationItem.route}
+                className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {navigationItem.nameToRender}
+              </Link>
+            ))}
+            {userData?.user?.name && (
             <Link
-              key={navigationItem.id}
-              href={navigationItem.route}
-              className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium"
+              href={PATHROUTES.PERFIL}
+              onClick={() => setIsMenuOpen(false)}
+              className="md:inline lg:hidden text-orange-500 hover:text-orange-600
+               font-semibold whitespace-nowrap text-[16px]"
+            >
+              {userData.user.name.split(" ")[0]}
+            </Link>
+          )}
+
+          {/* Link de Admin para admin en mobile */}
+          {isAdmin() && (
+            <Link
+              href="/admin/veterinarians"
+              className="block text-amber-600 hover:text-orange-500 transition py-2 text-base font-semibold"
               onClick={() => setIsMenuOpen(false)}
             >
-              {navigationItem.nameToRender}
+              🔧 Gestión Veterinarios
             </Link>
-          ))}
+          )}
 
-          {/* Carrito en el menú mobile */}
-          <Link
-            href="/cart"
-            className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium border-t border-gray-300 pt-4"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            🛒 Carrito
-            {itemsCount > 0 && (
-              <span
-                className="absolute top-75 left-22 bg-amber-700 text-white text-xs font-bold 
-                 w-5 h-5 flex items-center justify-center rounded-full"
-              >
-                {itemsCount}
-              </span>
-            )}
-          </Link>
+          {/* Carrito en el menú mobile - Solo para no veterinarios y no admin */}
+          {!isVeterinarian() && !isAdmin() && (
+            <Link
+              href="/cart"
+              className="block text-gray-700 hover:text-orange-500 transition py-2 text-base font-medium border-t border-gray-300 pt-4"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              🛒 Mi Carrito {itemsCount > 0 && `(${itemsCount})`}
+            </Link>
+          )}
         </div>
       </div>
     </header>

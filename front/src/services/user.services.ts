@@ -1,8 +1,10 @@
 "use client";
 
 import { ILoginProps, IRegister } from "@/src/types/index";
+import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
-const APIURL = process.env.NEXT_PUBLIC_API_URL;
+const APIURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export async function register(userData: IRegister) {
   try {
@@ -21,15 +23,57 @@ export async function register(userData: IRegister) {
     }
 
     const result = await response.json();
-    alert("Usuario registrado con éxito");
+    toast.success("Usuario registrado con éxito");
     return result;
   } catch (error: any) {
-    alert("Error al registrarse, intentelo nuevamente");
+    toast.error("Error al registrarse, intentelo nuevamente");
     throw error;
   }
 }
 
 export async function login(userData: ILoginProps) {
+  try {  
+    console.log('🔵 Intentando login normal en:', `${APIURL}/auth/signin`);
+    console.log('📧 Email:', userData.email);
+    
+    const response = await fetch(`${APIURL}/auth/signin`, {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(userData),
+    });
+
+    console.log('📡 Status del login normal:', response.status);
+
+    if (!response.ok) {
+      const error = await response.json();
+      toast.error("Error al ingresar: Credenciales inválidas");
+      throw new Error(error.message || "Fallo al ingresar");
+    }
+
+    toast.success("Se ha logueado con éxito");
+    const result = await response.json();
+    console.log('✅ Login normal exitoso:', result);
+    console.log('🔑 Token recibido:', result.token ? 'SÍ' : 'NO');
+    
+    // Guardar el token en localStorage si viene en la respuesta
+    if (result.token) {
+      localStorage.setItem('authToken', result.token);
+      console.log('💾 Token guardado en localStorage');
+    } else {
+      console.warn('⚠️ WARNING: Backend no envió token en la respuesta');
+    }
+    
+    return result;
+  } catch (error: any) {
+    console.error('💥 Error capturado en login():', error.message);
+    throw error;
+  }
+}
+
+export async function loginVeterinarian(userData: ILoginProps) {
   try {  
     const response = await fetch(`${APIURL}/auth/signin`, {
       method: "POST",
@@ -42,13 +86,16 @@ export async function login(userData: ILoginProps) {
 
     if (!response.ok) {
       const error = await response.json();
-      alert("Error al ingresar: " + (error.message || "Credenciales inválidas"));
-      throw new Error(error.message || "Fallo al ingresar");
+      throw new Error(error.message || "Credenciales inválidas");
     }
 
     const result = await response.json();
-    alert("Se ha logueado con éxito");
-    console.log("1111"+result);
+    console.log('🔍 RESPUESTA COMPLETA DEL BACKEND (loginVeterinarian):', JSON.stringify(result, null, 2));
+    
+    // Guardar el token en localStorage si viene en la respuesta
+    if (result.token) {
+      localStorage.setItem('authToken', result.token);
+    }
     
     return result;
   } catch (error: any) {
@@ -59,7 +106,10 @@ export async function login(userData: ILoginProps) {
 export async function getGoogleAuthUrl() {
   try {
     const res = await fetch(`${APIURL}/auth/google/url`);
-    if (!res.ok) throw new Error("Error solicitando URL de autenticación");
+    if (!res.ok){
+      toast.error("Error al intentar ingresar, intente nuevamente")
+      throw new Error("Error solicitando URL de autenticación");
+    } 
     return res.json();
   } catch (error) {
     throw error;
@@ -140,3 +190,38 @@ export async function getUserById(id: string) {
     throw error;
   }
 }
+
+export async function updateUserProfile(id:string, data: any) {
+  const formData = new FormData();
+
+  // Si hay imagen seleccionada
+  if (data.profileImage) {
+    formData.append("profileImage", data.profileImage);
+  }
+
+  // Si vienen campos de texto
+  if (data.name) formData.append("name", data.name);
+  if (data.phone) formData.append("phone", data.phone);
+  if (data.country) formData.append("country", data.country);
+  if (data.address) formData.append("address", data.address);
+  if (data.city) formData.append("city", data.city);
+
+  try {
+    const res = await fetch(`http://localhost:3000/users/${id}`, {
+      method: "PATCH",
+      body: formData
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error del servidor:", errorText);
+      toast.error("Error al intentar editar perfil");
+    }
+
+    return await res.json();
+
+  } catch (err) {
+    toast.error("Error al intentar editar perfil: Intentelo más tarde");
+    throw err;
+  }
+};

@@ -3,69 +3,78 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/src/context/AuthContext'
 import { createPet, NewPetData } from '@/src/app/services/pet.services'
-import { getAllOrders } from '@/src/services/order.services'
 import { IPet } from '@/src/types'
 import CardPet from '../../components/CardPet/CardPet'
-
-interface Order {
-  id: string
-  date: string
-  total: number
-  status: 'active' | 'delivered'
-  items: OrderItem[]
-}
-
-interface OrderItem {
-  productName: string
-  quantity: number
-  price: number
-}
+import NewPetModal from '../../components/NewPetModal/NewPetModal'
+import EditProfileModal from '../../components/EditProfileModal/EditProfileModal'
+import OrderList from '../../components/OrderList/OrderList'
+import { toast } from 'react-toastify'
+import { updateUserProfile } from '@/src/services/user.services';
+import Image from 'next/image'
+import avatar from "@/src/assets/avatar.jpg"
 
 export default function ClientDashboard() {
-  const { userData } = useAuth()
-
+  const { userData, setUserData } = useAuth()
   const [activeTab, setActiveTab] = useState<'profile' | 'pets' | 'orders'>('profile')
   const [pets, setPets] = useState<IPet[]>([])
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loadingOrders, setLoadingOrders] = useState(false)
   const [showNewPetModal, setShowNewPetModal] = useState(false)
+  const [creatingPet, setCreatingPet] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
+  const handleSaveProfile = async (data: any) => {
+    try {
+      const updated = await updateUserProfile(userData!.user.id, data)
+      // Actualizar el estado global con los nuevos datos
+      setUserData({
+        ...userData!,
+        user: {
+          ...userData!.user,
+          ...data,
+        },
+
+      });
+      if (updated) {
+        toast.success("Perfil actualizado correctamente");
+        setOpenEdit(false)
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      }
+    } catch (err) {
+      toast.error("Error al intentar editar perfil: Intentelo más tarde");
+    }
+  };
 
   const [newPetForm, setNewPetForm] = useState<NewPetData>({
-    nombre: '',
-    especie: '',
-    sexo: 'MACHO',
-    tamano: 'MEDIANO',
-    esterilizado: 'NO',
-    status: 'VIVO',
-    fecha_nacimiento: ''
-  })
+    nombre: "",
+    especie: "PERRO",
+    sexo: "MACHO",
+    tamano: "MEDIANO",
+    esterilizado: "SI",
+    status: "VIVO",
+    fecha_nacimiento: "2020-01-15",
+    breed: ""
+  });
 
-  const [creatingPet, setCreatingPet] = useState(false)
+  const handleCreatePet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingPet(true);
+
+    const newPet = await createPet(newPetForm, userData!.user!.id); // tu lógica
+    setPets(prev => [...prev, newPet as IPet])
+    setCreatingPet(false);
+    setShowNewPetModal(false);
+  };
 
   // Cargar mascotas desde userData al entrar al dashboard
   useEffect(() => {
     if (userData?.user?.pets) {
+      console.log(userData?.user.profileImageUrl);
       setPets(userData.user.pets)
     }
   }, [userData])
-
-  // Cargar órdenes
-  useEffect(() => {
-    const fetchOrders = async () => {
-      if (!userData?.token) return
-
-      setLoadingOrders(true)
-      try {
-        const userOrders = await getAllOrders(userData.token)
-        const ordersData = userOrders.data || userOrders
-        setOrders(Array.isArray(ordersData) ? ordersData : [])
-      } finally {
-        setLoadingOrders(false)
-      }
-    }
-
-    fetchOrders()
-  }, [userData?.token])
 
   if (!userData) {
     return (
@@ -75,43 +84,13 @@ export default function ClientDashboard() {
     )
   }
 
-  const handleCreatePet = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setCreatingPet(true)
-
-    const petData: NewPetData = { ...newPetForm }
-
-    const newPet = await createPet(petData, String(userData.user.id))
-
-    if (newPet) {
-      // ⭐ Actualización en tiempo real
-      setPets(prev => [...prev, newPet as IPet])
-
-      setShowNewPetModal(false)
-      setNewPetForm({
-        nombre: '',
-        especie: '',
-        sexo: 'MACHO',
-        tamano: 'MEDIANO',
-        esterilizado: 'NO',
-        status: 'VIVO',
-        fecha_nacimiento: ''
-      })
-      alert('¡Mascota creada exitosamente!')
-    } else {
-      alert('Error al crear la mascota.')
-    }
-
-    setCreatingPet(false)
-  }
-
   return (
-    <div className="bg-white pt-20 min-h-screen">
+    <div className="pt-20 min-h-screen bg-orange-200"> 
       <div className="pt-6 pb-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
 
           {/* Header del Dashboard */}
-          <div className="mb-8">
+          <div className="">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
               Mi Dashboard
             </h1>
@@ -121,7 +100,7 @@ export default function ClientDashboard() {
           </div>
 
           {/* Tabs de navegación */}
-          <div className="border-b border-gray-200 mb-8">
+          <div className="border-b border-cyan-700 mb-8">
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('profile')}
@@ -159,320 +138,184 @@ export default function ClientDashboard() {
             {/* PERFIL */}
             {activeTab === 'profile' && (
               <div className="md:col-span-2">
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                    Información Personal
-                  </h2>
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Nombre completo</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.name}</p>
+                  <div className="px-8 pb-8">
+                    {/* Foto de perfil */}
+                    <div className="relative  mb-6">
+                      <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 shadow-lg">
+                        {userData.user.profileImageUrl ? (
+                          <Image
+                            src={userData.user.profileImageUrl}
+                            width={128}
+                            height={128}
+                            alt="ProfilePicture"
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          userData.user.name?.charAt(0) || 'C'
+                        )}
+                      </div>
+
+                      {/* Botón lápiz */}
+                      <label
+                        htmlFor="profileImageUpload"
+                        className="absolute bottom-2 left-25 bg-orange-500 p-2
+                         rounded-full shadow-md cursor-pointer hover:bg-orange-600 transition-colors"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536M9 11l6.232-6.232a2 2 0 112.828 2.828L11.828 13.828a2 2 0 01-1.414.586H9v-2z"
+                          />
+                        </svg>
+                      </label>
+
+                      <input
+                        id="profileImageUpload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          if (!e.target.files || e.target.files.length === 0) return;
+                          const file = e.target.files[0];
+                          await handleSaveProfile({ profileImage: file });
+                        }}
+                      />
                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Email</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.email}</p>
+                    {/* Información personal */}
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Nombre Completo
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">{userData.user.name}</p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Email
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">{userData.user.email}</p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Teléfono
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">{userData.user.phone || 'No especificado'}</p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Dirección
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">{userData.user.address || 'No especificada'}</p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Ciudad
+                          </label>
+                          <p className="mt-2 text-lg text-gray-900">
+                            {userData.user.country && userData.user.city
+                              ? `${userData.user.country} - ${userData.user.city}`
+                              : 'No especificada'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div className="flex gap-4 pt-6 border-t">
+                        <button
+                          onClick={() => setOpenEdit(true)}
+                          className="flex-1 bg-orange-500 text-white py-3 rounded-lg
+                           font-semibold hover:bg-orange-600 transition-colors"
+                        >
+                          Editar Perfil
+                        </button>
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Teléfono</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.phone || 'No especificado'}</p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Dirección</label>
-                      <p className="mt-1 text-base text-gray-900">{userData.user.address || 'No especificada'}</p>
-                    </div>
+                    {/* Modal de edición */}
+                    <EditProfileModal
+                      open={openEdit}
+                      onClose={() => setOpenEdit(false)}
+                      user={userData.user}
+                      onSave={handleSaveProfile}
+                    />
                   </div>
-
-                  <button className="mt-6 bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors">
-                    Editar Perfil
-                  </button>
                 </div>
               </div>
             )}
 
             {/* MASCOTAS Y TURNOS */}
             {activeTab === 'pets' && (
-              <div className="md:col-span-2">
-                <div className="space-y-6">
-                  {
-                    pets.length == 0 ? (
-                      <p className="text-gray-500 text-center py-8">No tienes mascotas registradas
-                      </p>
-                    ) : (
-                      pets.map((pet) => (
-                        <CardPet key={pet.id} {...pet} />  
-                      )))}
-                      {/* Turnos de esta mascota */}
-                          {/* <div className="mt-4 border-t border-gray-200 pt-4">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Turnos</h3>
-                        <div className="space-y-3">
-                          {pet.appointments && pet.appointments.length > 0 ? pet.appointments.map((appointment) => (
-                            <div
-                              key={appointment.id}
-                              className="bg-white rounded-md p-4 border border-gray-200"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-medium text-gray-900">
-                                    {appointment.status}
-                                  </p>
-                                  <p className="text-xs text-gray-600 mt-1">
-                                    {appointment.veterinarian}
-                                  </p>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {new Date(appointment.date).toLocaleDateString('es-ES', {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric'
-                                    })}
-                                  </p>
-                                </div>
-                                <span
-                                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                    appointment.status === 'scheduled'
-                                      ? 'bg-blue-100 text-blue-800'
-                                      : appointment.status === 'completed'
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-red-100 text-red-800'
-                                  }`}
-                                >
-                                  {appointment.status === 'scheduled'
-                                    ? 'Programado'
-                                    : appointment.status === 'completed'
-                                    ? 'Completado'
-                                    : 'Cancelado'}
-                                </span>
-                              </div>
-                            </div>
-                          )) : (
-                            <p className="text-sm text-gray-500">No hay turnos programados</p>
-                          )}
-                        </div>
-                      </div> */}
-                  <button
-                    onClick={() => setShowNewPetModal(true)}
-                    className="w-full bg-orange-500 text-white px-4 py-3 rounded-md hover:bg-orange-600 transition-colors font-medium"
-                  >
-                    + Agregar Nueva Mascota
-                  </button>
-                </div>
+              <div className="md:col-span-2 space-y-6">
+                {
+                  pets.length == 0 ? (
+                    <p className="text-gray-500 text-center py-8">No tienes mascotas registradas
+                    </p>
+                  ) : (
+                    pets.map((pet) => (
+                      <CardPet key={pet.id} {...pet} />
+                    )))}
+                <button
+                  onClick={() => setShowNewPetModal(true)}
+                  className="w-full  px-4 py-3 
+                  rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                   transition-colors 
+                    cursor-pointer font-medium"
+                >
+                  Agregar Nueva Mascota
+                </button>
               </div>
             )}
 
-            {/* Modal para agregar nueva mascota */}
-            {showNewPetModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                    Agregar Nueva Mascota
-                  </h3>
-
-                  <form onSubmit={handleCreatePet} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nombre
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newPetForm.nombre}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, nombre: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Especie
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newPetForm.especie}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, especie: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Ej: Perro, Gato"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Sexo *
-                      </label>
-                      <select
-                        required
-                        value={newPetForm.sexo}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, sexo: e.target.value as 'MACHO' | 'HEMBRA' })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      >
-                        <option value="MACHO">Macho</option>
-                        <option value="HEMBRA">Hembra</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Tamaño *
-                      </label>
-                      <select
-                        required
-                        value={newPetForm.tamano}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, tamano: e.target.value as 'PEQUENO' | 'MEDIANO' | 'GRANDE' })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      >
-                        <option value="PEQUENO">Pequeño</option>
-                        <option value="MEDIANO">Mediano</option>
-                        <option value="GRANDE">Grande</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Esterilizado
-                      </label>
-                      <select
-                        required
-                        value={newPetForm.esterilizado}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, esterilizado: e.target.value as 'SI' | 'NO' })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      >
-                        <option value="SI">Sí</option>
-                        <option value="NO">No</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Fecha de Nacimiento
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        value={newPetForm.fecha_nacimiento}
-                        onChange={(e) => setNewPetForm({ ...newPetForm, fecha_nacimiento: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      />
-                    </div>
-
-                    <div className="flex space-x-3 mt-6">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowNewPetModal(false)
-                          setNewPetForm({
-                            nombre: '',
-                            especie: '',
-                            sexo: 'MACHO',
-                            tamano: 'MEDIANO',
-                            esterilizado: 'NO',
-                            status: 'VIVO',
-                            fecha_nacimiento: ''
-                          })
-                        }}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                        disabled={creatingPet}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={creatingPet}
-                      >
-                        {creatingPet ? 'Creando...' : 'Agregar'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
+            <NewPetModal
+              open={showNewPetModal}
+              creating={creatingPet}
+              form={newPetForm}
+              setForm={setNewPetForm}
+              onClose={() => {
+                setShowNewPetModal(false);
+                setNewPetForm({
+                  nombre: "",
+                  especie: "PERRO",
+                  sexo: "MACHO",
+                  tamano: "MEDIANO",
+                  esterilizado: "NO",
+                  status: "VIVO",
+                  fecha_nacimiento: "",
+                  breed: "",
+                });
+              }}
+              onSubmit={handleCreatePet}
+            />
 
             {/* COMPRAS */}
             {activeTab === 'orders' && (
               <div className="md:col-span-2">
-                {/* Filtros de estado */}
-                <div className="mb-6 flex space-x-4">
-                  <button className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm font-medium">
-                    Todas
-                  </button>
-                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200">
-                    Activas
-                  </button>
-                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200">
-                    Entregadas
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  {loadingOrders ? (
-                    <p className="text-gray-500 text-center py-8">Cargando órdenes...</p>
-                  ) : orders.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No tienes órdenes registradas</p>
-                  ) : (
-                    orders.map((order) => (
-                      <div key={order.id} className="bg-gray-50 rounded-lg p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              Orden #{order.id}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              {new Date(order.date).toLocaleDateString('es-ES', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
-                            </p>
-                          </div>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'active'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-green-100 text-green-800'
-                              }`}
-                          >
-                            {order.status === 'active' ? 'En proceso' : 'Entregada'}
-                          </span>
-                        </div>
-
-                        {/* Items de la orden */}
-                        <div className="border-t border-gray-200 pt-4">
-                          <h4 className="text-sm font-medium text-gray-900 mb-3">Productos</h4>
-                          <div className="space-y-2">
-                            {order.items.map((item, index) => (
-                              <div key={index} className="flex justify-between text-sm">
-                                <span className="text-gray-700">
-                                  {item.productName} x{item.quantity}
-                                </span>
-                                <span className="text-gray-900 font-medium">
-                                  ${item.price * item.quantity}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Total */}
-                        <div className="border-t border-gray-200 mt-4 pt-4 flex justify-between items-center">
-                          <span className="text-base font-semibold text-gray-900">Total</span>
-                          <span className="text-xl font-bold text-gray-900">${order.total}</span>
-                        </div>
-
-                        <button className="mt-4 w-full text-center text-sm text-orange-500 hover:text-orange-600 font-medium">
-                          Ver detalles
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
+                <h2 className="text-xl font-bold mb-4">Órdenes</h2>
+                <OrderList orders={userData?.user.buyerSaleOrders || []} />
               </div>
             )}
 
             {/* Sidebar derecha - Resumen rápido */}
             <div className="mt-8 md:mt-0">
-              <div className="bg-gray-50 rounded-lg p-6 sticky top-24">
+              <div className="bg-linear-to-br from-orange-100 via-orange-200
+               to-orange-200 border border-gray-400  rounded-lg p-6 sticky top-24">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen</h3>
 
                 <div className="space-y-4">
@@ -496,12 +339,17 @@ export default function ClientDashboard() {
                   <div>
                     <p className="text-sm text-gray-600">Compras activas</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {orders.filter((order) => order.status === 'active').length}
+                      {userData.user.buyerSaleOrders.filter((order) => order.status === 'ACTIVE').length}
                     </p>
                   </div>
                 </div>
 
-                <button className="mt-6 w-full bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors text-sm font-medium">
+                <button className="mt-6 w-full px-4 py-2
+                rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                 transition-colors text-sm font-medium
+                 cursor-pointer
+                 ">
                   Agendar Turno
                 </button>
               </div>

@@ -11,6 +11,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@mercadopago/sdk-js": "^0.0.3",
     "country-state-city": "^3.2.1",
     "flowbite": "^4.0.1",
     "formik": "^2.4.9",
@@ -19,6 +20,7 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-select": "^5.10.2",
+    "react-toastify": "^11.0.5",
     "sonner": "^2.0.7",
     "yup": "^1.7.1"
   },

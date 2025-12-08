@@ -5,6 +5,7 @@ import shampoo from "../../assets/shampoo.jpg"
 import collar from "../../assets/collar.jpg"
 import cucha from "../../assets/cucha.jpg"
 import trasladador from "../../assets/trasladador.jpg"
+import { toast } from "react-toastify";
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
 // Mapeo de imágenes por categoría para productos sin imagen
@@ -88,7 +89,7 @@ export const getAllProducts = async (): Promise<IProduct[]> => {
             return product;
         });
         
-        console.log(`✅ ${products.length} productos obtenidos del backend`);
+        /* console.log(`✅ ${products.length} productos obtenidos del backend`); */
         return products;
     } catch (error: any) {
         console.error('getAllProducts error:', error);
@@ -102,7 +103,7 @@ export const getProductById = async (id: string): Promise<IProduct> => {
         product.id.toString() === id || product.id === Number(id)
     );
     if (!product) {
-        console.error(`Producto con id ${id} no encontrado`);
+        toast.error(`Producto no encontrado`);
         console.log('IDs disponibles:', allProducts.map(p => p.id));
         throw new Error('Product no encontrado');
     }
@@ -123,9 +124,10 @@ export const getAllCategories = async (): Promise<ICategoryBasic[]> => {
 
         const result = await res.json();
         const categories = result.data || result;
-        console.log(`✅ ${categories.length} categorías obtenidas del backend`);
+        /* console.log(`✅ ${categories.length} categorías obtenidas del backend`); */
         return categories;
     } catch (error: any) {
         console.error('getAllCategories error:', error);
     }
+    return []
 };

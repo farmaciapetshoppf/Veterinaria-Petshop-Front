@@ -17,8 +17,8 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
     if (typeof image === 'string') {
       if (image.startsWith('http://') || image.startsWith('https://')) {
         return image;
-      } else if (process.env.NEXT_PUBLIC_API_URL) {
-        return `${process.env.NEXT_PUBLIC_API_URL}${image}`;
+      } else if (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000') {
+        return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${image}`;
       }
     }
     return image; // Es StaticImageData
@@ -33,8 +33,8 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           <Image
             alt={productName}
             src={getImageSrc(images[selectedIndex])}
-            width={1000}
-            height={750}
+            width={500}
+            height={250}
             loading="lazy"
             className="object-contain p-8"
             sizes="66vw"
