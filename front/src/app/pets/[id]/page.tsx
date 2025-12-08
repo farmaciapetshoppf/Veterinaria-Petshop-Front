@@ -5,6 +5,9 @@ import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
 import img from "@/src/assets/dogCat.jpg"
+import EditPetModal from '../../components/EditPetModal/EditPetModal'
+import NewAppointmentModal from '../../components/NewAppointmetModal/NewAppointmentModal'
+import { useAuth } from '@/src/context/AuthContext'
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL
 
@@ -45,15 +48,20 @@ interface Pet {
 export default function PetDetailPage() {
     const { id } = useParams<{ id: string }>()
     const router = useRouter()
+    const { userData } = useAuth();
     const [pet, setPet] = useState<Pet | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [openEdit, setOpenEdit] = useState(false);
+    const [openAppointment, setOpenAppointment] = useState(false)
+    
+
 
     useEffect(() => {
         const fetchPet = async () => {
             try {
-                const res = await fetch(`${APIURL}/pets/${id}`, { 
-                    credentials: 'include' 
+                const res = await fetch(`${APIURL}/pets/${id}`, {
+                    credentials: 'include'
                 })
                 if (!res.ok) throw new Error('Error al obtener la mascota')
                 const { data } = await res.json()
@@ -76,37 +84,6 @@ export default function PetDetailPage() {
             if (!res.ok) throw new Error('Error al eliminar la mascota')
             toast.success('Mascota eliminada con éxito')
             router.push('/dashboard') // redirige al perfil
-        } catch (err: any) {
-            toast.error(err.message)
-        }
-    }
-
-    const handleUpdate = async () => {
-        try {
-            const updatedData = {
-                nombre: 'Rey',
-                especie: 'PERRO',
-                sexo: 'MACHO',
-                tamano: 'MEDIANO',
-                esterilizado: 'SI',
-                status: 'VIVO',
-                fecha_nacimiento: '2020-01-15',
-                fecha_fallecimiento: null,
-                breed: '1',
-                image: null,
-            }
-
-            const res = await fetch(`${APIURL}/pets/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(updatedData),
-            })
-
-            if (!res.ok) throw new Error('Error al modificar la mascota')
-            const { data } = await res.json()
-            setPet(data)
-            toast.success('Mascota modificada con éxito')
         } catch (err: any) {
             toast.error(err.message)
         }
@@ -162,26 +139,75 @@ export default function PetDetailPage() {
                 </div>
                 <div>
                     <Image src={img} width={200} height={200} alt='mascota'
-                    className='rounded-full '
+                        className='rounded-full '
                     />
                 </div>
             </div>
 
             {/* Botones de acción */}
-            <div className="flex space-x-4 mt-6">
+            {/* TODO: esperando que abi arregle el Delete de mascota */}
+            <div className="flex mb-4 space-x-4 mt-6">
                 <button
                     onClick={handleDelete}
                     className="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
                 >
                     Eliminar Mascota
                 </button>
+
                 <button
-                    onClick={handleUpdate}
+                    onClick={() => setOpenEdit(true)}
                     className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                 >
                     Modificar Mascota
                 </button>
+                {/* TODO: esperando que abi arregle el Patch de mascota */}
+                <EditPetModal
+                    open={openEdit}
+                    onClose={() => setOpenEdit(false)}
+                    pet={pet}
+                    onSave={async (updatedData) => {
+                        try {
+                            const safeBody = JSON.stringify(updatedData, (_, value) =>
+                                typeof value === 'undefined' ? null : value
+                            );
+
+                            const res = await fetch(`${APIURL}/pets/${id}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: safeBody,
+                            });
+
+                            if (!res.ok) throw new Error('Error al modificar la mascota');
+                            const { data } = await res.json();
+                            setPet(data);
+                            toast.success('Mascota modificada con éxito');
+                            setOpenEdit(false);
+                        } catch (err: any) {
+                            console.log(err);
+
+                            toast.error(err.message);
+                        }
+                    }}
+                />
+
             </div>
+            <button
+                onClick={() => setOpenAppointment(true)}
+                className="rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                px-4 py-2 transition-colors duration-200 whitespace-nowrap
+               text-sm lg:text-base font-medium w-full"
+            >
+                Agendar Tuno
+            </button>
+            <NewAppointmentModal
+                open={openAppointment}
+                onClose={() => setOpenAppointment(false)}
+                userId={userData.user.id}
+                petId={id}
+                onSuccess={() => toast.success('Turno agendado correctamente')}
+            />
         </div>
     )
 }

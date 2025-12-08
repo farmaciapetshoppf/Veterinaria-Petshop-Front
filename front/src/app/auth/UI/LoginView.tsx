@@ -168,6 +168,6 @@ function LoginView() {
             </div>
         </div>
     )
+} */
 }
-
 export default LoginView
