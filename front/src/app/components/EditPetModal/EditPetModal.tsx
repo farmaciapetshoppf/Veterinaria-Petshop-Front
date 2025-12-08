@@ -50,8 +50,9 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
         esterilizado: pet?.esterilizado ?? 'SI',
         status: pet?.status ?? 'VIVO',
         fecha_nacimiento: pet?.fecha_nacimiento ?? '',
-        fecha_fallecimiento: pet?.fecha_fallecimiento ,
+        fecha_fallecimiento: pet?.fecha_fallecimiento,
         breed: pet?.breed ?? '',
+        image: pet?.image ?? ''
     });
 
     if (!open) return null;
@@ -102,6 +103,7 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                         <div className='w-full pr-1'>
                             <label className="text-sm font-medium text-gray-700 mt-1">Especie</label>
                             <Select
+                                styles={customStyles}
                                 options={especieOptions}
                                 value={especieOptions.find(opt => opt.value === form.especie)}
                                 onChange={(selected) => {
@@ -109,7 +111,6 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                                         setForm({ ...form, especie: selected.value })
                                     }
                                 }}
-                                styles={customStyles}
                                 className="react-select-container"
                                 classNamePrefix="react-select"
                                 placeholder="Seleccionar especie"
@@ -208,16 +209,24 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                         placeholder="Raza"
                         className={inputStyle}
                     />
+
+                    <label className="text-sm font-semibold text-gray-700 mt-1">Imagen</label>
+                    <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border-2 border-cyan-700 rounded-lg focus:border-amber-500 focus:outline-none"
+                    />
                 </div>
 
                 <div className="flex justify-evenly mt-2">
-                    <button onClick={onClose} 
-                    className="px-4 py-2 bg-gray-200 rounded cursor-pointer
+                    <button onClick={onClose}
+                        className="px-4 py-2 bg-gray-200 rounded cursor-pointer
                     hover:bg-orange-300 hover:border hover:border-orange-400">
                         Cancelar</button>
 
-                    <button onClick={handleSubmit} 
-                    className="px-4 py-2 bg-cyan-700 cursor-pointer text-white rounded
+                    <button onClick={handleSubmit}
+                        className="px-4 py-2 bg-cyan-700 cursor-pointer text-white rounded
                     hover:bg-cyan-900 hover:border hover:border-cyan-950">
                         Guardar</button>
                 </div>

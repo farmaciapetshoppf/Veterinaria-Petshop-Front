@@ -163,21 +163,6 @@ return (
             <div className="flex flex-col gap-3">
 
                 <label className="text-sm font-medium text-gray-700">Veterinario</label>
-                {/* <Select
-            options={veterinarians.map(v => ({ value: v.id, label: v.name }))}
-            value={
-              veterinarians.find(v => v.id === form.veterinarianId)
-                ? { value: form.veterinarianId, label: veterinarians.find(v => v.id === form.veterinarianId)?.name }
-                : null
-            }
-            onChange={(selected) => {
-              if (selected) setForm({ ...form, veterinarianId: selected.value })
-            }}
-            styles={customStyles}
-            className="react-select-container"
-            classNamePrefix="react-select"
-            placeholder="Seleccionar veterinario"
-          /> */}
 
                 <Select
                     options={veterinarians.map(v => ({ value: v.id, label: v.name }))}
@@ -197,7 +182,7 @@ return (
 
                 {/* Tarjeta del veterinario */}
                 {selectedVet && (
-                    <div className="flex items-center gap-4 mt-4 p-3 bg-cyan-700 rounded-lg shadow-md">
+                    <div className="flex items-center gap-4 mt-4 p-3 bg-orange-300 border border-cyan-700 rounded-lg shadow-md">
                         <Image
                             width={20} height={20}
                             src={selectedVet.profileImageUrl || avatar}
@@ -205,8 +190,8 @@ return (
                             className="w-12 h-12 rounded-full object-cover "
                         />
                         <div>
-                            <p className="text-sm font-semibold text-gray-900">{selectedVet.name}</p>
-                            <p className="text-xs text-gray-600">{selectedVet.description || 'Sin especialidad'}</p>
+                            <p className="text-md font-semibold text-gray-900">{selectedVet.name}</p>
+                            <p className="text-sm text-gray-600">{selectedVet.description || 'Sin especialidad'}</p>
                         </div>
                     </div>
                 )}

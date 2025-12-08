@@ -8,6 +8,7 @@ import img from "@/src/assets/dogCat.jpg"
 import EditPetModal from '../../components/EditPetModal/EditPetModal'
 import NewAppointmentModal from '../../components/NewAppointmetModal/NewAppointmentModal'
 import { useAuth } from '@/src/context/AuthContext'
+import avatar from "@/src/assets/avatarHueso.png"
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL
 
@@ -138,7 +139,7 @@ export default function PetDetailPage() {
     })
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto mt-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-4 mt-22 ">
             {/* Columna izquierda: info mascota */}
             <div className="bg-linear-to-br from-orange-100 via-orange-200 to-orange-300 rounded-lg shadow-md p-6 border border-amber-600">
                 <h1 className="text-3xl font-bold flex justify-center text-gray-900 mb-4">
@@ -157,7 +158,7 @@ export default function PetDetailPage() {
                         <p className="text-gray-700 mb-2"><span className="font-semibold">Fecha de nacimiento:</span> {new Date(pet.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
                     </div>
                     <div>
-                        <Image src={img} width={200} height={200} alt="mascota" className="rounded-full" />
+                        <Image src={pet.image || avatar} width={200} height={200} alt="mascota" className="rounded-full bg-gray-400" />
                     </div>
                 </div>
 
@@ -229,7 +230,7 @@ export default function PetDetailPage() {
             </div>
 
             {/* Columna derecha: turnos futuros */}
-            <div className="space-y-4">
+            <div className="bg-linear-to-br from-orange-100 via-orange-200 to-orange-300 rounded-lg shadow-md p-6 border border-amber-600">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Próximos Turnos</h2>
 
                 {upcomingAppointments.length === 0 ? (
@@ -267,7 +268,8 @@ export default function PetDetailPage() {
                             return (
                                 <div
                                     key={appt.id}
-                                    className="p-4 bg-white rounded-lg shadow-md border border-gray-200 flex items-center justify-between gap-4"
+                                    className="p-4 rounded-lg mt-2 shadow-md border border-cyan-700
+                                     flex items-center justify-between gap-4"
                                 >
                                     <div className="flex items-center gap-4">
                                         <Image
@@ -278,13 +280,14 @@ export default function PetDetailPage() {
                                             className="rounded-full object-cover"
                                         />
                                         <div>
-                                            <p className="text-sm font-semibold text-gray-900">{appt.veterinarian.name}</p>
-                                            <p className="text-xs text-gray-600">{dayName}, {formattedDate} - {formattedTime}</p>
+                                            <p className="text-lg font-semibold text-gray-900">{appt.veterinarian.name}</p>
+                                            <p className="text-md text-gray-600">{dayName}, {formattedDate} - {formattedTime}</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={handleCancel}
-                                        className="px-3 py-1 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                        className="px-3 py-1 text-sm bg-red-100 text-red-600 
+                                        rounded hover:bg-red-500 hover:text-black cursor-pointer"
                                     >
                                         Cancelar
                                     </button>

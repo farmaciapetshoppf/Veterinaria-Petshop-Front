@@ -380,7 +380,7 @@ export default function AdminDashboard() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status.toLowerCase) {
       case 'completed':
       case 'completado':
       case 'confirmed':
