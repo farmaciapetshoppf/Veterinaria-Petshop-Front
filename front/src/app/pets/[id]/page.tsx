@@ -296,7 +296,24 @@ export default function PetDetailPage() {
                         })
                 )}
             </div>
-
+            <button
+                onClick={() => setOpenAppointment(true)}
+                className="rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                px-4 py-2 transition-colors duration-200 whitespace-nowrap
+               text-sm lg:text-base font-medium w-full"
+            >
+                Agendar Tuno
+            </button>
+            {userData?.user?.id && (
+                <NewAppointmentModal
+                    open={openAppointment}
+                    onClose={() => setOpenAppointment(false)}
+                    userId={userData.user.id}
+                    petId={id}
+                    onSuccess={() => toast.success('Turno agendado correctamente')}
+                />
+            )}
         </div>
     )
 }

@@ -317,6 +317,18 @@ export const getActiveCart = async (userId: string, token: string) => {
 export const createCheckout = async (userId: string, token: string) => {
     try {
         console.log('🛒 Creando checkout para userId:', userId);
+        console.log('🔍 Verificando carrito del usuario antes del checkout...');
+        
+        // Primero obtener el carrito para ver qué tiene
+        const cart = await getCart(userId, token);
+        console.log('📦 Carrito actual:', cart);
+        if (cart?.items) {
+            console.log('📊 Items en carrito:');
+            cart.items.forEach((item: any) => {
+                console.log(`  - ${item.product.name}: cantidad=${item.quantity}, precio unitario=$${item.unitPrice}, subtotal=$${item.quantity * item.unitPrice}`);
+            });
+            console.log('💰 Total del carrito según frontend:', cart.total);
+        }
         
         // Llamar al endpoint correcto de checkout que usa el carrito del backend
         const response = await fetch(`${APIURL}/sale-orders/checkout/${userId}`, {

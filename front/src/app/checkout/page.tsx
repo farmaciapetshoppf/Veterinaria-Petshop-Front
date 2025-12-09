@@ -68,6 +68,12 @@ export default function CheckoutPage() {
   }
 
   const total = getTotal();
+  
+  console.log('🛒 CHECKOUT - Items en carrito:', cartItems);
+  console.log('📊 CHECKOUT - Total calculado:', total);
+  cartItems.forEach(item => {
+    console.log(`  📦 ${item.name}: precio=$${item.price}, cantidad=${item.quantity || 1}, subtotal=$${Number(item.price) * (item.quantity || 1)}`);
+  });
 
   return (
     <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 pt-24 pb-12">
@@ -87,8 +93,15 @@ export default function CheckoutPage() {
             <div className="space-y-3 mb-4">
               {cartItems.map((item) => (
                 <div key={item.id} className="flex justify-between items-center py-2 border-b border-amber-100">
-                  <span className="text-gray-700 font-medium">{item.name}</span>
-                  <span className="font-bold text-amber-600">${Number(item.price).toLocaleString()}</span>
+                  <div className="flex flex-col">
+                    <span className="text-gray-700 font-medium">{item.name}</span>
+                    <span className="text-xs text-gray-500">
+                      ${Number(item.price).toLocaleString()} × {item.quantity || 1}
+                    </span>
+                  </div>
+                  <span className="font-bold text-amber-600">
+                    ${(Number(item.price) * (item.quantity || 1)).toLocaleString()}
+                  </span>
                 </div>
               ))}
             </div>
