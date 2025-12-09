@@ -20,7 +20,8 @@ export default function PasswordFieldFormik({ label, nameField, type, placeholde
     return (
         <div className="flex flex-col items-center text-black">
             <div className="relative w-full">
-                <label className="font-bold mr-3 ml-2 flex self-start mt-2">{label}</label>
+                <label className="font-bold mr-3 ml-2 flex mt-2 w-fit
+                 bg-white rounded-2xl p-1 backdrop-blur-sm">{label}</label>
                 <input
                     {...field}
                     type={type}

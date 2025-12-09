@@ -13,15 +13,6 @@ interface Props {
     onSuccess: (newAppointment: any) => void
 }
 
-interface Veterinarian {
-    id: string
-    name: string
-    startHour?: number
-    endHour?: number
-    description: string
-    profileImageUrl: string
-}
-
 const APIURL = process.env.NEXT_PUBLIC_API_URL
 
 // Genera intervalos de 30 min
@@ -33,6 +24,10 @@ const generateTimeSlots = (startHour: number, endHour: number) => {
     }
     return slots
 }
+
+const tomorrow = new Date()
+tomorrow.setDate(tomorrow.getDate() + 1)
+const minDate = tomorrow.toISOString().split('T')[0]
 
 export default function NewAppointmentModal({ open, onClose, userId, petId, onSuccess }: Props) {
     const inputStyle =
@@ -47,6 +42,18 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
         time: '',
         detail: '',
     })
+
+    useEffect(() => {
+        if (open) {
+            setForm({
+                veterinarianId: '',
+                date: '',
+                time: '',
+                detail: '',
+            })
+            setAppointments([])
+        }
+    }, [open])
 
     useEffect(() => {
         const fetchVeterinarians = async () => {
@@ -211,7 +218,7 @@ return (
                     type="date"
                     name="date"
                     value={form.date}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={minDate}
                     onChange={(e) => setForm({ ...form, date: e.target.value })}
                     className={inputStyle}
                 />

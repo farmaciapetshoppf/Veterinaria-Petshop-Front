@@ -24,6 +24,61 @@ export interface IUser {
   profileImageUrl: string
 }
 
+export interface Veterinarian {
+    id: string
+    name: string
+    startHour?: number
+    endHour?: number
+    description: string
+    profileImageUrl: string
+}
+
+export interface Owner {
+    id: string
+    uid: string
+    name: string
+    email: string
+    user: string
+    phone: string
+    country: string
+    address: string
+    city: string
+    profileImageUrl: string
+    role: string
+    isDeleted: boolean
+    deletedAt: string | null
+}
+
+export interface Appointment {
+    id: string
+    date: string
+    time: string
+    status: boolean
+    veterinarian: {
+        id: string
+        name: string
+        profileImageUrl?: string
+    }
+}
+
+export interface Pet {
+    id: string
+    nombre: string
+    especie: string
+    sexo: string
+    tamano: string
+    esterilizado: string
+    status: string
+    fecha_nacimiento: string
+    fecha_fallecimiento: string | null
+    breed: string
+    image: string | null
+    owner: Owner
+    mother: Pet | null
+    father: Pet | null
+    appointments: Appointment[]
+}
+
 export interface UserProfile {
   id: string;
   name: string;
