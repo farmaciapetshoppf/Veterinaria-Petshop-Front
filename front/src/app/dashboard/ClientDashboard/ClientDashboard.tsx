@@ -55,7 +55,8 @@ export default function ClientDashboard() {
     esterilizado: "SI",
     status: "VIVO",
     fecha_nacimiento: "2020-01-15",
-    breed: ""
+    breed: "",
+    ownerId: ""
   });
 
   const handleCreatePet = async (e: React.FormEvent) => {
@@ -146,7 +147,7 @@ export default function ClientDashboard() {
                       <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 shadow-lg">
                         {userData.user.profileImageUrl ? (
                           <Image
-                            src={userData.user.profileImageUrl}
+                            src={userData.user.profileImageUrl} 
                             width={128}
                             height={128}
                             alt="ProfilePicture"
@@ -251,7 +252,7 @@ export default function ClientDashboard() {
                     <EditProfileModal
                       open={openEdit}
                       onClose={() => setOpenEdit(false)}
-                      user={userData.user}
+                      user={{...userData.user, image: userData.user.profileImageUrl || ''}}
                       onSave={handleSaveProfile}
                     />
                   </div>
@@ -287,7 +288,7 @@ export default function ClientDashboard() {
               open={showNewPetModal}
               creating={creatingPet}
               form={newPetForm}
-              setForm={setNewPetForm}
+              setForm={(data) => setNewPetForm({...data, ownerId: userData?.user?.id || ''})}
               onClose={() => {
                 setShowNewPetModal(false);
                 setNewPetForm({
@@ -297,8 +298,9 @@ export default function ClientDashboard() {
                   tamano: "MEDIANO",
                   esterilizado: "NO",
                   status: "VIVO",
-                  fecha_nacimiento: "",
+                  fecha_nacimiento: "2020-01-15",
                   breed: "",
+                  ownerId: ""
                 });
               }}
               onSubmit={handleCreatePet}
@@ -330,7 +332,7 @@ export default function ClientDashboard() {
                       {Array.isArray(pets) ? pets.reduce(
                         (acc, pet) =>
                           acc +
-                          (pet.appointments ? pet.appointments.filter((app) => app.status === 'scheduled').length : 0),
+                          (pet.appointments ? pet.appointments.filter((app) => app.status === true).length : 0),
                         0
                       ) : 0}
                     </p>
@@ -339,7 +341,7 @@ export default function ClientDashboard() {
                   <div>
                     <p className="text-sm text-gray-600">Compras activas</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {userData.user.buyerSaleOrders.filter((order) => order.status === 'ACTIVE').length}
+                      {userData?.user?.buyerSaleOrders?.filter((order) => order.status === 'ACTIVE').length || 0}
                     </p>
                   </div>
                 </div>

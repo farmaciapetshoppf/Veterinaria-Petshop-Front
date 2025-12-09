@@ -201,13 +201,15 @@ export default function PetDetailPage() {
             >
                 Agendar Tuno
             </button>
-            <NewAppointmentModal
-                open={openAppointment}
-                onClose={() => setOpenAppointment(false)}
-                userId={userData.user.id}
-                petId={id}
-                onSuccess={() => toast.success('Turno agendado correctamente')}
-            />
+            {userData?.user?.id && (
+                <NewAppointmentModal
+                    open={openAppointment}
+                    onClose={() => setOpenAppointment(false)}
+                    userId={userData.user.id}
+                    petId={id}
+                    onSuccess={() => toast.success('Turno agendado correctamente')}
+                />
+            )}
         </div>
     )
 }

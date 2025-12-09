@@ -139,12 +139,27 @@ export default function HistoryOrders() {
           <div className="px-6 py-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Productos</h3>
             <div className="space-y-4">
-              {order.items.map((item) => (
+              {order.items.map((item) => {
+                // Validar que la imagen sea una URL válida
+                const getValidImageUrl = () => {
+                  const imgUrl = item.product.image;
+                  if (!imgUrl || imgUrl === 'No image' || imgUrl === 'no image') {
+                    return 'https://placehold.co/400x400/f59e0b/white?text=Sin+Imagen';
+                  }
+                  // Si es una URL válida (empieza con http:// o https://)
+                  if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+                    return imgUrl;
+                  }
+                  // Si es una ruta relativa, no es válida para Image de Next.js
+                  return 'https://placehold.co/400x400/f59e0b/white?text=Sin+Imagen';
+                };
+
+                return (
                 <div key={item.id} className="flex items-center gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
                   {/* Imagen del producto */}
                   <div className="w-16 h-16 rounded-md overflow-hidden bg-gray-100 shrink-0">
                     <Image
-                      src={item.product.imgUrl || item.product.image || '/next.svg'}
+                      src={getValidImageUrl()}
                       alt={item.product.name}
                       width={64}
                       height={64}
@@ -160,14 +175,15 @@ export default function HistoryOrders() {
                   </div>
 
                   {/* Precio */}
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right shrink-0">
                     <p className="text-sm text-gray-500">${Number(item.unitPrice).toLocaleString()} c/u</p>
                     <p className="text-base font-semibold text-gray-900">
                       ${(Number(item.unitPrice) * item.quantity).toLocaleString()}
                     </p>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

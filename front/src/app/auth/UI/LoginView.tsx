@@ -89,7 +89,9 @@ function LoginView() {
                                     isDeleted: response.isDeleted || false,
                                     deletedAt: response.deletedAt || null,
                                     pets: response.pets || [],
-                                    requirePasswordChange: response.requirePasswordChange
+                                    requirePasswordChange: response.requirePasswordChange,
+                                    buyerSaleOrders: response.buyerSaleOrders || [],
+                                    profileImageUrl: response.profileImageUrl || ''
                                 }
                             };
 
@@ -168,6 +170,6 @@ function LoginView() {
             </div>
         </div>
     )
-} */
 }
+
 export default LoginView

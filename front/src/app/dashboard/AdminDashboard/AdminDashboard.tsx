@@ -81,7 +81,7 @@ export default function AdminDashboard() {
     description: '',
     price: '',
     stock: '',
-    image: null as File | null
+    imgUrl: ''
   });
 
   useEffect(() => {
@@ -168,73 +168,21 @@ export default function AdminDashboard() {
     }
 
     try {
-      // Si NO hay imagen, usar JSON en lugar de FormData
-      if (!formData.image) {
-        console.log('📤 Creando producto sin imagen...');
-        const response = await fetch(`${API_URL}/products`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(userData?.token && { Authorization: `Bearer ${userData.token}` }),
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            description: formData.description,
-            price: parseFloat(formData.price),
-            stock: parseInt(formData.stock),
-          }),
-        });
-
-        console.log('📥 Respuesta del servidor:', response.status, response.statusText);
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('✅ Producto creado:', result);
-          alert('Producto creado exitosamente');
-          setShowCreateModal(false);
-          setFormData({ name: '', description: '', price: '', stock: '', image: null });
-          loadProducts();
-        } else {
-          const error = await response.json();
-          console.error('❌ Error del servidor:', error);
-          alert(`Error al crear producto: ${error.message || JSON.stringify(error)}`);
-        }
-        return;
-      }
-
-      // Si HAY imagen, usar FormData
-      const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('price', formData.price);
-      formDataToSend.append('stock', formData.stock);
-      
-      console.log('📸 Imagen seleccionada:', formData.image);
-      console.log('📏 Tamaño:', formData.image.size, 'bytes');
-      console.log('🏷️ Tipo:', formData.image.type);
-      console.log('📛 Nombre:', formData.image.name);
-      
-      // Intentar con el nombre del campo 'image'
-      formDataToSend.append('image', formData.image, formData.image.name);
-
-      console.log('📤 Creando producto con imagen...');
-      console.log('📝 Datos:', {
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        stock: formData.stock,
-        hasImage: true
-      });
-
+      console.log('📤 Creando producto...');
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
         credentials: 'include',
         headers: {
+          'Content-Type': 'application/json',
           ...(userData?.token && { Authorization: `Bearer ${userData.token}` }),
-          // NO incluir Content-Type para que el navegador lo configure automáticamente con boundary
         },
-        body: formDataToSend,
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          stock: parseInt(formData.stock),
+          imgUrl: formData.imgUrl || 'https://via.placeholder.com/150',
+        }),
       });
 
       console.log('📥 Respuesta del servidor:', response.status, response.statusText);
@@ -244,12 +192,12 @@ export default function AdminDashboard() {
         console.log('✅ Producto creado:', result);
         alert('Producto creado exitosamente');
         setShowCreateModal(false);
-        setFormData({ name: '', description: '', price: '', stock: '', image: null });
+        setFormData({ name: '', description: '', price: '', stock: '', imgUrl: '' });
         loadProducts();
       } else {
         const error = await response.json();
         console.error('❌ Error del servidor:', error);
-        alert(`Error al crear producto: ${error.message || JSON.stringify(error)}`);
+          alert(`Error al crear producto: ${error.message || JSON.stringify(error)}`);
       }
     } catch (error) {
       console.error('Error al crear producto:', error);
@@ -264,28 +212,22 @@ export default function AdminDashboard() {
     }
 
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('price', formData.price);
-      formDataToSend.append('stock', formData.stock);
-      if (formData.image) formDataToSend.append('image', formData.image);
-
-      console.log('📤 Enviando actualización para producto:', selectedProduct.id);
-      console.log('📝 Datos:', {
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        stock: formData.stock
-      });
+      console.log('📤 Actualizando producto:', selectedProduct.id);
 
       const response = await fetch(`${API_URL}/products/${selectedProduct.id}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: {
+          'Content-Type': 'application/json',
           ...(userData?.token && { Authorization: `Bearer ${userData.token}` }),
         },
-        body: formDataToSend,
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          stock: parseInt(formData.stock),
+          imgUrl: formData.imgUrl || undefined,
+        }),
       });
 
       console.log('📥 Respuesta del servidor:', response.status, response.statusText);
@@ -316,7 +258,7 @@ export default function AdminDashboard() {
         alert('Producto actualizado exitosamente');
         setShowEditModal(false);
         setSelectedProduct(null);
-        setFormData({ name: '', description: '', price: '', stock: '', image: null });
+        setFormData({ name: '', description: '', price: '', stock: '', imgUrl: '' });
       } else {
         const error = await response.json();
         console.error('❌ Error del servidor:', error);
@@ -362,7 +304,7 @@ export default function AdminDashboard() {
       description: product.description,
       price: product.price.toString(),
       stock: product.stock.toString(),
-      image: null
+      imgUrl: product.imgUrl || ''
     });
     setShowEditModal(true);
   };
@@ -379,7 +321,13 @@ export default function AdminDashboard() {
     return image;
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | boolean) => {
+    // Si es boolean, convertir a string equivalente
+    if (typeof status === 'boolean') {
+      const statusStr = status ? 'pending' : 'cancelled';
+      return getStatusColor(statusStr); // Recursión con el string
+    }
+    
     switch (status.toLowerCase()) {
       case 'completed':
       case 'completado':
@@ -468,7 +416,10 @@ export default function AdminDashboard() {
                         <p className="text-sm text-amber-600">{appointment.time}</p>
                       </div>
                       <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(appointment.status)}`}>
-                        {appointment.status}
+                        {typeof appointment.status === 'boolean' 
+                          ? (appointment.status ? 'Pendiente' : 'Cancelado')
+                          : appointment.status
+                        }
                       </span>
                     </div>
                     
@@ -808,15 +759,19 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Imagen (Temporalmente deshabilitado)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">URL de la Imagen</label>
                 <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none bg-gray-100"
-                  disabled
+                  type="text"
+                  value={formData.imgUrl}
+                  onChange={(e) => setFormData({ ...formData, imgUrl: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                  placeholder="https://ejemplo.com/imagen.jpg"
                 />
-                <p className="text-xs text-red-500 mt-1">⚠️ La carga de imágenes requiere configuración en el backend. Por ahora crea productos sin imagen.</p>
+                {formData.imgUrl && (
+                  <div className="mt-2">
+                    <img src={formData.imgUrl} alt="Vista previa" className="w-32 h-32 object-cover rounded-lg" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -908,22 +863,28 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Nueva Imagen (opcional)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">URL de la Imagen</label>
                 <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })}
+                  type="text"
+                  value={formData.imgUrl}
+                  onChange={(e) => setFormData({ ...formData, imgUrl: e.target.value })}
                   className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                  placeholder="https://ejemplo.com/imagen.jpg"
                 />
-                <p className="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, WEBP. Dejar vacío para mantener la imagen actual.</p>
+                {formData.imgUrl && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-500 mb-1">Vista previa:</p>
+                    <img src={formData.imgUrl} alt="Vista previa" className="w-32 h-32 object-cover rounded-lg" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  </div>
+                )}
               </div>
 
               {/* Imagen actual */}
-              {selectedProduct.image && (
+              {selectedProduct.imgUrl && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Imagen Actual</label>
                   <img
-                    src={getImageSrc(selectedProduct.image)}
+                    src={getImageSrc(selectedProduct.imgUrl)}
                     alt={selectedProduct.name}
                     className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300"
                   />
@@ -941,7 +902,7 @@ export default function AdminDashboard() {
                   onClick={() => {
                     setShowEditModal(false);
                     setSelectedProduct(null);
-                    setFormData({ name: '', description: '', price: '', stock: '', image: null });
+                    setFormData({ name: '', description: '', price: '', stock: '', imgUrl: '' });
                   }}
                   className="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
                 >
