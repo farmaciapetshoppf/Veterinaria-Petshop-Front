@@ -35,10 +35,7 @@ export interface NewPetData {
 export const createPet = async (petData: NewPetData, userId: string): Promise<IPet | null> => {
 
   try {
-    console.log('Datos:', petData)
     petData.ownerId = userId
-    console.log('User ID:', userId)
-    
     const response = await fetch(`${API_URL}/pets/NewPet`, {
       method: 'POST',
       headers: {
@@ -47,8 +44,6 @@ export const createPet = async (petData: NewPetData, userId: string): Promise<IP
       body: JSON.stringify(petData),
     });
 
-    console.log('Respuesta status:', response.status)
-
     if (!response.ok) {
       const errorText = await response.text()
       toast.error('No se pudo crear la mascota, intente nuevamente')
@@ -56,20 +51,76 @@ export const createPet = async (petData: NewPetData, userId: string): Promise<IP
     }
 
     const result = await response.json();
-    toast.success('Mascota creada exitosamente')
-    /* console.log('Datos de la mascota:', result.data || result) */
     
-    // El backend devuelve {message: '...', data: {...}}
-    // Devolvemos solo la data
+    toast.success('Mascota creada exitosamente')
+
     return result.data || result;
   } catch (error) {
-    console.error('Error creating pet:', error);
     toast.error('No se pudo crear la mascota, intente nuevamente')
     return null;
   }
 };
 
-// Buscar mascotas por nombre o ID
+export const deletePet = async (id: string) => {
+  try {
+    const res = await fetch(`${API_URL}/pets/${id}`, {
+    method: 'PUT',
+    credentials: 'include',
+  })
+    if (!res.ok) throw new Error('Error al eliminar la mascota')
+      toast.success('Mascota eliminada con éxito')
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+}
+
+export async function updatePet(id: string, updatedData: any) {
+  // Sanitizar datos: convertir undefined en null
+  const safeBody = JSON.stringify(updatedData, (_, value) =>
+    typeof value === "undefined" ? null : value
+  )
+
+  try {
+    const res = await fetch(`${API_URL}/pets/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: safeBody,
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(errorText || "Error al modificar la mascota")
+    }
+
+    return await res.json() // devuelve { data }
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function updatePetImage(id: string, file: File) {
+  const formData = new FormData()
+  formData.append("image", file)
+
+  try {
+    const res = await fetch(`${API_URL}/pets/${id}`, {
+      method: "PATCH",
+      credentials: "include",
+      body: formData,
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(errorText || "Error al actualizar la imagen")
+    }
+
+    return await res.json() // devuelve { data }
+  } catch (err) {
+    throw err
+  }
+}
+
 export const searchPets = async (query: string, token: string): Promise<Pet[]> => {
   // TODO: Reemplazar con llamada real al backend cuando esté disponible
   // const response = await fetch(`${API_URL}/pets/search?query=${encodeURIComponent(query)}`, ...)

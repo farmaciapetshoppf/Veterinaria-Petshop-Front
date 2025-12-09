@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
 import img from "@/src/assets/dogCat.jpg"
@@ -9,6 +9,7 @@ import EditPetModal from '../../components/EditPetModal/EditPetModal'
 import NewAppointmentModal from '../../components/NewAppointmetModal/NewAppointmentModal'
 import { useAuth } from '@/src/context/AuthContext'
 import avatar from "@/src/assets/avatarHueso.png"
+import { deletePet, updatePet, updatePetImage } from '../../services/pet.services'
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL
 
@@ -60,7 +61,6 @@ interface Pet {
 
 export default function PetDetailPage() {
     const { id } = useParams<{ id: string }>()
-    const router = useRouter()
     const { userData } = useAuth()
     const [pet, setPet] = useState<Pet | null>(null)
     const [loading, setLoading] = useState(true)
@@ -86,15 +86,10 @@ export default function PetDetailPage() {
         if (id) fetchPet()
     }, [id])
 
-    const handleDelete = async () => {
+    const handleDeletePet = async (id: string) => {
         try {
-            const res = await fetch(`${APIURL}/pets/${id}`, {
-                method: 'DELETE',
-                credentials: 'include',
-            })
-            if (!res.ok) throw new Error('Error al eliminar la mascota')
-            toast.success('Mascota eliminada con éxito')
-            router.push('/dashboard')
+            await deletePet(id)
+            window.location.href = '/dashboard'
         } catch (err: any) {
             toast.error(err.message)
         }
@@ -140,6 +135,7 @@ export default function PetDetailPage() {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-4 mt-22 ">
+
             {/* Columna izquierda: info mascota */}
             <div className="bg-linear-to-br from-orange-100 via-orange-200 to-orange-300 rounded-lg shadow-md p-6 border border-amber-600">
                 <h1 className="text-3xl font-bold flex justify-center text-gray-900 mb-4">
@@ -157,15 +153,63 @@ export default function PetDetailPage() {
                         <p className="text-gray-700 mb-2"><span className="font-semibold">Edad:</span> {getPetAge()} años</p>
                         <p className="text-gray-700 mb-2"><span className="font-semibold">Fecha de nacimiento:</span> {new Date(pet.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
                     </div>
-                    <div>
-                        <Image src={pet.image || avatar} width={200} height={200} alt="mascota" className="rounded-full bg-gray-400" />
+                    <div className="relative w-[200px] h-[50px]">
+                        <Image
+                            src={pet.image || avatar}
+                            width={200}
+                            height={200}
+                            alt="mascota"
+                            className="rounded-full bg-gray-400 object-cover"
+                        />
+                        <label
+                            htmlFor="pet-image-upload"
+                            className="absolute bottom-2 right-2 bg-orange-500 p-2 rounded-full shadow-md cursor-pointer hover:bg-orange-600 transition-colors"
+                            title="Cambiar imagen"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.232 5.232l3.536 3.536M9 11l6.232-6.232a2 2 0 112.828 2.828L11.828 13.828a2 2 0 01-1.414.586H9v-2z"
+                                />
+                            </svg>
+                        </label>
+                        <input
+                            id="pet-image-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                                if (!e.target.files || e.target.files.length === 0) return
+                                const file = e.target.files[0]
+
+                                const formData = new FormData()
+                                formData.append("image", file)
+
+                                try {
+                                    const { data } = await updatePetImage(id, file)
+                                    setPet(data) // 🔹 actualiza el estado local
+                                    toast.success("Imagen de la mascota actualizada correctamente")
+                                    window.location.href = '/dashboard'
+                                } catch (err: any) {
+                                    toast.error(err.message || "Error al intentar editar la imagen")
+                                }
+                            }}
+                        />
                     </div>
                 </div>
 
                 {/* Botones */}
                 <div className="flex mb-4 space-x-4 mt-6">
                     <button
-                        onClick={handleDelete}
+                        onClick={() => handleDeletePet(pet.id)}
                         className="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
                     >
                         Eliminar Mascota
@@ -182,20 +226,11 @@ export default function PetDetailPage() {
                         pet={pet}
                         onSave={async (updatedData) => {
                             try {
-                                const safeBody = JSON.stringify(updatedData, (_, value) =>
-                                    typeof value === 'undefined' ? null : value
-                                )
-                                const res = await fetch(`${APIURL}/pets/${id}`, {
-                                    method: 'PATCH',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    credentials: 'include',
-                                    body: safeBody,
-                                })
-                                if (!res.ok) throw new Error('Error al modificar la mascota')
-                                const { data } = await res.json()
+                                const { data } = await updatePet(id, updatedData)
                                 setPet(data)
-                                toast.success('Mascota modificada con éxito')
+                                toast.success("Mascota modificada con éxito")
                                 setOpenEdit(false)
+                                window.location.href = '/dashboard'
                             } catch (err: any) {
                                 toast.error(err.message)
                             }
@@ -264,7 +299,6 @@ export default function PetDetailPage() {
                                     toast.error(err.message)
                                 }
                             }
-
                             return (
                                 <div
                                     key={appt.id}

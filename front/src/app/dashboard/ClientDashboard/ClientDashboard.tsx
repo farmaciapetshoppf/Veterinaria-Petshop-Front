@@ -11,17 +11,13 @@ import OrderList from '../../components/OrderList/OrderList'
 import { toast } from 'react-toastify'
 import { updateUserProfile } from '@/src/services/user.services';
 import Image from 'next/image'
-import avatar from "@/src/assets/avatar.jpg"
 
 export default function ClientDashboard() {
-  const { userData, setUserData } = useAuth()
-  const [activeTab, setActiveTab] = useState<'profile' | 'pets' | 'orders'>('profile')
+  const { userData, setUserData, activeTab, setActiveTab } = useAuth()
   const [pets, setPets] = useState<IPet[]>([])
   const [showNewPetModal, setShowNewPetModal] = useState(false)
   const [creatingPet, setCreatingPet] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(false);
 
   const handleSaveProfile = async (data: any) => {
     try {
@@ -66,12 +62,12 @@ export default function ClientDashboard() {
     setPets(prev => [...prev, newPet as IPet])
     setCreatingPet(false);
     setShowNewPetModal(false);
+    window.location.reload();
   };
 
   // Cargar mascotas desde userData al entrar al dashboard
   useEffect(() => {
     if (userData?.user?.pets) {
-      console.log(userData?.user.profileImageUrl);
       setPets(userData.user.pets)
     }
   }, [userData])
