@@ -51,8 +51,6 @@ export const createPet = async (petData: NewPetData, userId: string): Promise<IP
     }
 
     const result = await response.json();
-    
-    toast.success('Mascota creada exitosamente')
 
     return result.data || result;
   } catch (error) {

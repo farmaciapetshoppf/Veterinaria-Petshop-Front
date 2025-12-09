@@ -88,9 +88,6 @@ export default function ClientDashboard() {
 
           {/* Header del Dashboard */}
           <div className="">
-            {/* <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Mi Dashboard
-            </h1> */}
             <p className="mt-2 text-3xl text-black">
               Bienvenido, {userData.user.name}
             </p>
@@ -104,7 +101,7 @@ export default function ClientDashboard() {
                 className={`${activeTab === 'profile'
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                  } whitespace-nowrap cursor-pointer py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
               >
                 Mi Perfil
               </button>
@@ -113,7 +110,7 @@ export default function ClientDashboard() {
                 className={`${activeTab === 'pets'
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                  } whitespace-nowrap cursor-pointer py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
               >
                 Mis Mascotas
               </button>
@@ -122,7 +119,7 @@ export default function ClientDashboard() {
                 className={`${activeTab === 'orders'
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                  } whitespace-nowrap py-4 cursor-pointer px-1 border-b-2 font-medium text-sm transition-colors`}
               >
                 Mis Compras
               </button>
@@ -269,20 +266,11 @@ export default function ClientDashboard() {
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 ">
                       {pets.map((pet) => (
-                      <CardPet key={pet.id} {...pet} />
+                        <CardPet key={pet.id} {...pet} />
                       ))}
                     </div>
                   )}
-                <button
-                  onClick={() => setShowNewPetModal(true)}
-                  className=" px-4 py-3 ml-3
-                  rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
-                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
-                   transition-colors 
-                    cursor-pointer font-medium"
-                >
-                  Agregar Nueva Mascota
-                </button>
+
               </div>
             )}
 
@@ -302,6 +290,7 @@ export default function ClientDashboard() {
                   status: "VIVO",
                   fecha_nacimiento: "",
                   breed: "",
+                  ownerId: userData.user.id
                 });
               }}
               onSubmit={handleCreatePet}
@@ -347,13 +336,14 @@ export default function ClientDashboard() {
                   </div>
                 </div>
 
-                <button className="mt-6 w-1/2 px-4 py-2
-                rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
-                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
-                 transition-colors text-sm font-medium
-                 cursor-pointer
-                 ">
-                  Agendar Turno
+                <button
+                  onClick={() => setShowNewPetModal(true)}
+                  className=" px-4 py-3 ml-3
+                  rounded-md bg-linear-to-r from-orange-500 to-amber-500 flex self-center mt-4 text-white
+                  hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                  transition-colors cursor-pointer font-medium"
+                >
+                  Agregar Nueva Mascota
                 </button>
               </div>
             </div>

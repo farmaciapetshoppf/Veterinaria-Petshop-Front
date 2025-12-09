@@ -115,7 +115,7 @@ export default function NewPetModal({
                 options={especieOptions}
                 value={especieOptions.find(opt => opt.value === form.especie)}
                 onChange={(selected) => {
-                  if (selected) setForm({ ...form, especie: selected.value })
+                  if (selected) setForm({ ...form, especie: selected.value as "PERRO" | "GATO" | "AVE" | "ROEDOR" | "REPTIL" | "OTRO" })
                 }}
                 className="react-select-container"
                 classNamePrefix="react-select"
@@ -144,7 +144,7 @@ export default function NewPetModal({
                 options={sexoOptions}
                 value={sexoOptions.find(opt => opt.value === form.sexo)}
                 onChange={(selected) => {
-                  if (selected) setForm({ ...form, sexo: selected.value })
+                  if (selected) setForm({ ...form, sexo: selected.value as "MACHO" | "HEMBRA" })
                 }}
                 className="react-select-container"
                 classNamePrefix="react-select"
@@ -160,7 +160,7 @@ export default function NewPetModal({
                 options={tamanoOptions}
                 value={tamanoOptions.find(opt => opt.value === form.tamano)}
                 onChange={(selected) => {
-                  if (selected) setForm({ ...form, tamano: selected.value })
+                  if (selected) setForm({ ...form, tamano: selected.value as "PEQUENO" | "MEDIANO" | "GRANDE"  })
                 }}
                 className="react-select-container"
                 classNamePrefix="react-select"
@@ -177,7 +177,7 @@ export default function NewPetModal({
                   options={esterilizadoOptions}
                   value={esterilizadoOptions.find(opt => opt.value === form.esterilizado)}
                   onChange={(selected) => {
-                    if (selected) setForm({ ...form, esterilizado: selected.value })
+                    if (selected) setForm({ ...form,  esterilizado: selected.value as "SI" | "NO" })
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select"
@@ -193,7 +193,7 @@ export default function NewPetModal({
                   options={statusOptions}
                   value={statusOptions.find(opt => opt.value === form.status)}
                   onChange={(selected) => {
-                    if (selected) setForm({ ...form, status: selected.value })
+                    if (selected) setForm({ ...form, status: selected.value as "VIVO" | "FALLECIDO" })
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select"
