@@ -51,7 +51,8 @@ export default function ClientDashboard() {
     esterilizado: "SI",
     status: "VIVO",
     fecha_nacimiento: "2020-01-15",
-    breed: ""
+    breed: "",
+    ownerId: userData!.user.id!
   });
 
   const handleCreatePet = async (e: React.FormEvent) => {

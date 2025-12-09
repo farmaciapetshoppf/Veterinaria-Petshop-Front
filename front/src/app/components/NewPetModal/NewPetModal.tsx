@@ -55,6 +55,7 @@ const statusOptions = [
 interface NewPetForm {
   nombre: string;
   especie: "PERRO" | "GATO" | "AVE" | "ROEDOR" | "REPTIL" | "OTRO";
+  raza: string;
   sexo: "MACHO" | "HEMBRA";
   tamano: "PEQUENO" | "MEDIANO" | "GRANDE";
   esterilizado: "SI" | "NO";
@@ -85,7 +86,7 @@ export default function NewPetModal({
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       {/* Achicamos el modal: max-w-sm y menos padding */}
-      <div className="absolute inset-0 bg-cyan-700/40 backdrop-blur-sm"/>
+      <div className="absolute inset-0 bg-cyan-700/40 backdrop-blur-sm" />
       <div className="relative bg-orange-200 p-6 rounded-2xl w-full max-w-md mx-4 shadow-lg z-10">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Agregar Nueva Mascota
@@ -122,6 +123,19 @@ export default function NewPetModal({
               />
             </div>
 
+            {/* Raza */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Raza</label>
+              <input
+                type="text"
+                required
+                value={form.breed}
+                onChange={(e) => setForm({ ...form, breed: e.target.value })}
+                placeholder="Raza"
+                className="w-full border border-cyan-700 p-2 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
             {/* Sexo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mt-1">Sexo</label>
@@ -154,38 +168,39 @@ export default function NewPetModal({
               />
             </div>
 
-            {/* Esterilizado */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mt-1">Esterilizado</label>
-              <Select
-                styles={customStyles}
-                options={esterilizadoOptions}
-                value={esterilizadoOptions.find(opt => opt.value === form.esterilizado)}
-                onChange={(selected) => {
-                  if (selected) setForm({ ...form, esterilizado: selected.value })
-                }}
-                className="react-select-container"
-                classNamePrefix="react-select"
-                placeholder="¿Está esterilizado?"
-              />
-            </div>
+            <div className="flex justify-between">
+              {/* Esterilizado */}
+              <div className="w-full mr-1">
+                <label className="block text-sm font-medium text-gray-700 mt-1">Esterilizado</label>
+                <Select
+                  styles={customStyles}
+                  options={esterilizadoOptions}
+                  value={esterilizadoOptions.find(opt => opt.value === form.esterilizado)}
+                  onChange={(selected) => {
+                    if (selected) setForm({ ...form, esterilizado: selected.value })
+                  }}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  placeholder="¿Está esterilizado?"
+                />
+              </div>
 
-            {/* Estado */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mt-1">Estado</label>
-              <Select
-                styles={customStyles}
-                options={statusOptions}
-                value={statusOptions.find(opt => opt.value === form.status)}
-                onChange={(selected) => {
-                  if (selected) setForm({ ...form, status: selected.value })
-                }}
-                className="react-select-container"
-                classNamePrefix="react-select"
-                placeholder="Estado actual"
-              />
+              {/* Estado */}
+              <div className="w-full ml-1">
+                <label className="block text-sm font-medium text-gray-700 mt-1">Estado</label>
+                <Select
+                  styles={customStyles}
+                  options={statusOptions}
+                  value={statusOptions.find(opt => opt.value === form.status)}
+                  onChange={(selected) => {
+                    if (selected) setForm({ ...form, status: selected.value })
+                  }}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  placeholder="Estado actual"
+                />
+              </div>
             </div>
-
             {/* Fecha nacimiento */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
