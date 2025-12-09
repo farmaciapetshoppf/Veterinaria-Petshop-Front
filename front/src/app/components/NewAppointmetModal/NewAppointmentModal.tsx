@@ -120,15 +120,23 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
             return
         }
 
+        // Asegurar que el tiempo esté en formato HH:mm:ss
+        const timeWithSeconds = form.time.includes(':') && form.time.split(':').length === 2 
+            ? `${form.time}:00` 
+            : form.time;
+
         const payload = {
             userId,
             petId,
             veterinarianId: form.veterinarianId,
             date: form.date,
-            time: form.time,
+            time: timeWithSeconds,
             detail: form.detail,
             status: true,
         }
+
+        console.log('📝 Creando turno con payload:', payload);
+        console.log('🔗 URL del endpoint:', `${APIURL}/appointments/NewAppointment`);
 
         try {
             const res = await fetch(`${APIURL}/appointments/NewAppointment`, {
@@ -138,18 +146,20 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
                 body: JSON.stringify(payload),
             })
 
-            if (!res.ok) throw new Error('Error al agendar el turno')
-            const { data: createdAppointment } = await res.json()
-
-           /*  toast.success('Turno agendado correctamente') */
-            onSuccess(createdAppointment)
-
-            // 🔹 Refrescar horarios ocupados inmediatamente
-            await fetchAppointments()
-
-            onClose()
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || 'Error al agendar el turno');
+            }
+            
+            const result = await res.json();
+            console.log('✅ Turno creado:', result);
+            
+            toast.success('Turno agendado correctamente');
+            onSuccess();
+            onClose();
         } catch (err: any) {
-            toast.error(err.message)
+            console.error('❌ Error al crear turno:', err);
+            toast.error(err.message);
         }
     }
 

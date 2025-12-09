@@ -6,7 +6,7 @@ import perrocompras from "../../assets/perrocompras.png"
 import perrocompra from "../../assets/perrocompra.png"
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { useCart } from "@/src/context/CartContext"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { IProduct } from "@/src/types"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/src/context/AuthContext"
@@ -23,6 +23,8 @@ function CartPage() {
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [preferenceId, setPreferenceId] = useState<string | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const hasSyncedRef = useRef(false)
+  const syncPromiseRef = useRef<Promise<void> | null>(null)
 const {
    cartItems,
     removeFromCart,
@@ -53,6 +55,12 @@ useEffect(() => {
       console.log('⏭️ Usuario no autenticado, saltando sincronización');
       return;
     }
+
+    // Evitar sincronización múltiple usando useRef
+    if (hasSyncedRef.current) {
+      console.log('⏭️ Ya se sincronizó anteriormente, saltando...');
+      return;
+    }
   
     // Primero verificar si hay items en localStorage
     const localCart = localStorage.getItem('cart');
@@ -81,11 +89,20 @@ useEffect(() => {
               );
               syncCount++;
             } catch (err: any) {
-              console.error('❌ Error al sincronizar item:', item.name, err.message);
+              // Si el error es que ya existe, no es un problema
+              if (err.message?.includes('ya está en el carrito') || err.message?.includes('already')) {
+                console.log(`  ⏭️ ${item.name} ya está en el carrito del backend`);
+                syncCount++;
+              } else {
+                console.error('❌ Error al sincronizar item:', item.name, err.message);
+              }
             }
           }
           
           console.log(`✅ Sincronizados ${syncCount}/${localItems.length} items`);
+          
+          // Marcar como sincronizado
+          hasSyncedRef.current = true;
           
           // Recargar carrito del backend
           await loadCartFromBackend();
@@ -102,11 +119,62 @@ useEffect(() => {
       // No hay items en localStorage, solo cargar del backend
       console.log('📥 Cargando carrito del backend...');
       await loadCartFromBackend();
+      hasSyncedRef.current = true;
     }
   };
   
   syncCart();
 }, [userData?.user?.id]);
+
+// Función temporal para debugging - ELIMINAR después
+const checkBackendCart = async () => {
+  if (!userData?.token || !userData?.user?.id) {
+    alert('No hay token de autenticación o userId');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`http://localhost:3000/sale-orders/cart/${userData.user.id}`, {
+      headers: {
+        'Authorization': `Bearer ${userData.token}`
+      }
+    });
+    const data = await response.json();
+    console.log('🛒 CARRITO BACKEND COMPLETO:', JSON.stringify(data, null, 2));
+    alert(`Carrito Backend:\n- Items: ${data.data?.items?.length || 0}\n- Total: $${data.data?.total || 0}\n- Ver consola para detalles`);
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al consultar el carrito: ' + error);
+  }
+};
+
+// Función temporal para limpiar carrito - ELIMINAR después
+const clearBackendCart = async () => {
+  if (!userData?.token || !userData?.user?.id) {
+    alert('No hay token de autenticación o userId');
+    return;
+  }
+  
+  if (!confirm('¿Seguro que quieres limpiar el carrito del backend?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`http://localhost:3000/sale-orders/cart/clear/${userData.user.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${userData.token}`
+      }
+    });
+    const data = await response.json();
+    console.log('🧹 CARRITO LIMPIADO:', data);
+    alert('Carrito limpiado exitosamente');
+    await loadCartFromBackend();
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al limpiar el carrito: ' + error);
+  }
+};
 
 const handleCheckout = async () => {
   // Si el usuario no está autenticado, mostrar un toast de error y redirigir al login
@@ -225,7 +293,22 @@ return (
                 <div className="flex h-full w-full border-amber-200 border-2 mb-1 rounded-2xl flex-col overflow-y-auto bg-white shadow-xl">
                   <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
                     <div className="flex items-start justify-between">
-                      <DialogTitle className="text-lg font-medium text-gray-900">Shopping cart</DialogTitle>
+                      <DialogTitle className="text-lg font-medium text-gray-900">Tu carrito</DialogTitle>
+                      {/* Botones temporales de debugging - COMENTADOS */}
+                      {/* <div className="flex gap-2 mr-4">
+                        <button
+                          onClick={checkBackendCart}
+                          className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                        >
+                          Ver Backend
+                        </button>
+                        <button
+                          onClick={clearBackendCart}
+                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                        >
+                          Limpiar Backend
+                        </button>
+                      </div> */}
                       <div className="ml-3 flex h-7 items-center">
                         <button
                           type="button"
@@ -267,9 +350,10 @@ return (
                                       <h3>
                                         <a href={`/product/${item.id}`}>{item.name}</a>
                                       </h3>
-                                      <p className="ml-4">${Number(item.price).toLocaleString()}</p>
+                                      <p className="ml-4">${(Number(item.price) * (item.quantity || 1)).toLocaleString()}</p>
                                     </div>
                                     <p className="mt-1 text-sm text-gray-500 line-clamp-2">{item.description}</p>
+                                    <p className="mt-1 text-xs text-gray-400">Precio unitario: ${Number(item.price).toLocaleString()}</p>
                                   </div>
                                   <div className="flex flex-1 items-end justify-between text-sm">
                                     {/* Control de cantidad */}
@@ -314,7 +398,7 @@ return (
                       <p>${Number(getTotal()).toLocaleString()}</p>
                       
                     </div>
-                    <p className="mt-0.5 text-sm text-gray-500">Shipping and taxes calculated at checkout.</p>
+
                     
                     {/* Botón principal de checkout */}
                     <div className="mt-6">
