@@ -86,16 +86,16 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-orange-200"> 
+    <div className="pt-20 min-h-screen bg-orange-200">
       <div className="pt-6 pb-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        <div className="mx-auto  px-4 sm:px-6 md:px-8">
 
           {/* Header del Dashboard */}
           <div className="">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            {/* <h1 className="text-3xl font-bold tracking-tight text-gray-900">
               Mi Dashboard
-            </h1>
-            <p className="mt-2 text-sm text-gray-600">
+            </h1> */}
+            <p className="mt-2 text-3xl text-black">
               Bienvenido, {userData.user.name}
             </p>
           </div>
@@ -134,17 +134,17 @@ export default function ClientDashboard() {
           </div>
 
           {/* Contenido según el tab activo */}
-          <div className="md:grid md:grid-cols-3 md:gap-x-8">
+          <div className="md:grid md:grid-cols-3  md:gap-x-8">
 
             {/* PERFIL */}
             {activeTab === 'profile' && (
               <div className="md:col-span-2">
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-white border border-cyan-700 rounded-xl shadow-lg overflow-hidden">
 
                   <div className="px-8 pb-8">
                     {/* Foto de perfil */}
                     <div className="relative  mb-6">
-                      <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 shadow-lg">
+                      <div className="w-32 h-32 rounded-full flex items-center justify-center text-4xl font-bold text-gray-600 shadow-lg">
                         {userData.user.profileImageUrl ? (
                           <Image
                             src={userData.user.profileImageUrl} 
@@ -240,8 +240,10 @@ export default function ClientDashboard() {
                       <div className="flex gap-4 pt-6 border-t">
                         <button
                           onClick={() => setOpenEdit(true)}
-                          className="flex-1 bg-orange-500 text-white py-3 rounded-lg
-                           font-semibold hover:bg-orange-600 transition-colors"
+                          className="flex-1 px-4 py-2 cursor-pointer
+                          rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
+                          hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
+                           transition-colors"
                         >
                           Editar Perfil
                         </button>
@@ -262,18 +264,22 @@ export default function ClientDashboard() {
 
             {/* MASCOTAS Y TURNOS */}
             {activeTab === 'pets' && (
-              <div className="md:col-span-2 space-y-6">
+              <div className="md:col-span-2">
                 {
+
                   pets.length == 0 ? (
                     <p className="text-gray-500 text-center py-8">No tienes mascotas registradas
                     </p>
                   ) : (
-                    pets.map((pet) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 ">
+                      {pets.map((pet) => (
                       <CardPet key={pet.id} {...pet} />
-                    )))}
+                      ))}
+                    </div>
+                  )}
                 <button
                   onClick={() => setShowNewPetModal(true)}
-                  className="w-full  px-4 py-3 
+                  className=" px-4 py-3 ml-3
                   rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
                 hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
                    transition-colors 
@@ -321,12 +327,12 @@ export default function ClientDashboard() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen</h3>
 
                 <div className="space-y-4">
-                  <div className="border-b border-gray-200 pb-4">
+                  <div className="border-b border-cyan-700 pb-4">
                     <p className="text-sm text-gray-600">Mascotas registradas</p>
                     <p className="text-2xl font-bold text-gray-900">{pets.length}</p>
                   </div>
 
-                  <div className="border-b border-gray-200 pb-4">
+                  <div className="border-b border-cyan-700  pb-4">
                     <p className="text-sm text-gray-600">Turnos programados</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {Array.isArray(pets) ? pets.reduce(
@@ -346,7 +352,7 @@ export default function ClientDashboard() {
                   </div>
                 </div>
 
-                <button className="mt-6 w-full px-4 py-2
+                <button className="mt-6 w-1/2 px-4 py-2
                 rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
                 hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
                  transition-colors text-sm font-medium

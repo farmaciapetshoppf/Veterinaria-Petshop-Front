@@ -10,7 +10,7 @@ interface Props {
     onClose: () => void
     userId: string
     petId: string
-    onSuccess: () => void
+    onSuccess: (newAppointment: any) => void
 }
 
 interface Veterinarian {
@@ -52,44 +52,33 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
         const fetchVeterinarians = async () => {
             const res = await fetch(`${APIURL}/veterinarians`, { credentials: 'include' })
             const { data } = await res.json()
-            // cada veterinario puede traer startHour y endHour
             setVeterinarians(data)
         }
         if (open) fetchVeterinarians()
     }, [open])
 
     const normalizeTime = (time: string) => {
-        const [h, m] = time.split(':').map(Number);
-        if (m < 30) return `${String(h).padStart(2, '0')}:00`;
-        return `${String(h).padStart(2, '0')}:30`;
-    };
+        const [h, m] = time.split(':').map(Number)
+        if (m < 30) return `${String(h).padStart(2, '0')}:00`
+        return `${String(h).padStart(2, '0')}:30`
+    }
 
+    // 🔹 Función reutilizable
+    const fetchAppointments = async () => {
+        if (!form.date || !form.veterinarianId) return
+        const res = await fetch(`${APIURL}/veterinarians/${form.veterinarianId}`, {
+            credentials: 'include',
+        })
+        const { data } = await res.json()
+        const filtered = data.appointments
+            .filter((appt: any) => appt.date === form.date)
+            .map((appt: any) => normalizeTime(appt.time))
+        setAppointments(filtered)
+    }
 
     useEffect(() => {
-        if (!form.date || !form.veterinarianId) return
-
-        const fetchAppointments = async () => {
-            if (!form.veterinarianId) return;
-
-            const res = await fetch(`${APIURL}/veterinarians/${form.veterinarianId}`, {
-                credentials: 'include',
-            });
-
-            const { data } = await res.json();
-
-            // Filtramos solo los turnos de la fecha seleccionada
-            const filtered = data.appointments
-                .filter((appt: any) => appt.date === form.date)
-                .map((appt: any) => normalizeTime(appt.time)); // normalizamos a bloques de 30 min
-
-                console.log("FILTRADAS:"+filtered);
-                
-            setAppointments(filtered);
-        };
-
         fetchAppointments()
     }, [form.date, form.veterinarianId])
-
 
     const customStyles = {
         control: (base: any) => ({
@@ -175,125 +164,110 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
     const endHour = selectedVet?.endHour ?? 20
     const slots = generateTimeSlots(startHour, endHour)
 
-    return (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="absolute inset-0 bg-cyan-700/40 backdrop-blur-sm" />
-            <div className="relative bg-orange-200 p-6 rounded-2xl w-full max-w-4xl mx-4 shadow-lg z-10">
-                <h2 className="text-xl font-bold mb-4">Agendar Turno</h2>
+return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-cyan-700/40 backdrop-blur-sm" />
+        <div className="relative bg-orange-200 p-6 rounded-2xl w-full max-w-4xl mx-4 shadow-lg z-10">
+            <h2 className="text-xl font-bold mb-4">Agendar Turno</h2>
 
-                <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
 
-                    <label className="text-sm font-medium text-gray-700">Veterinario</label>
-                    {/* <Select
-            options={veterinarians.map(v => ({ value: v.id, label: v.name }))}
-            value={
-              veterinarians.find(v => v.id === form.veterinarianId)
-                ? { value: form.veterinarianId, label: veterinarians.find(v => v.id === form.veterinarianId)?.name }
-                : null
-            }
-            onChange={(selected) => {
-              if (selected) setForm({ ...form, veterinarianId: selected.value })
-            }}
-            styles={customStyles}
-            className="react-select-container"
-            classNamePrefix="react-select"
-            placeholder="Seleccionar veterinario"
-          /> */}
+                <label className="text-sm font-medium text-gray-700">Veterinario</label>
 
-                    <Select
-                        options={veterinarians.map(v => ({ value: v.id, label: v.name }))}
-                        value={selectedVet ? { value: selectedVet.id, label: selectedVet.name } : null}
-                        onChange={(selected) => {
-                            const vet = veterinarians.find(v => v.id === selected?.value)
-                            if (vet) {
-                                setForm({ ...form, veterinarianId: vet.id })
-                                selectedVet = vet
-                            }
-                        }}
-                        styles={customStyles}
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        placeholder="Seleccionar veterinario"
-                    />
+                <Select
+                    options={veterinarians.map(v => ({ value: v.id, label: v.name }))}
+                    value={selectedVet ? { value: selectedVet.id, label: selectedVet.name } : null}
+                    onChange={(selected) => {
+                        const vet = veterinarians.find(v => v.id === selected?.value)
+                        if (vet) {
+                            setForm({ ...form, veterinarianId: vet.id })
+                            selectedVet = vet
+                        }
+                    }}
+                    styles={customStyles}
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                    placeholder="Seleccionar veterinario"
+                />
 
-                    {/* Tarjeta del veterinario */}
-                    {selectedVet && (
-                        <div className="flex items-center gap-4 mt-4 p-3 bg-cyan-700 rounded-lg shadow-md">
-                            <Image
-                                width={20} height={20}
-                                src={selectedVet.profileImageUrl || avatar}
-                                alt={selectedVet.name}
-                                className="w-12 h-12 rounded-full object-cover "
-                            />
-                            <div>
-                                <p className="text-sm font-semibold text-gray-900">{selectedVet.name}</p>
-                                <p className="text-xs text-gray-600">{selectedVet.description || 'Sin especialidad'}</p>
-                            </div>
+                {/* Tarjeta del veterinario */}
+                {selectedVet && (
+                    <div className="flex items-center gap-4 mt-4 p-3 bg-orange-300 border border-cyan-700 rounded-lg shadow-md">
+                        <Image
+                            width={20} height={20}
+                            src={selectedVet.profileImageUrl || avatar}
+                            alt={selectedVet.name}
+                            className="w-12 h-12 rounded-full object-cover "
+                        />
+                        <div>
+                            <p className="text-md font-semibold text-gray-900">{selectedVet.name}</p>
+                            <p className="text-sm text-gray-600">{selectedVet.description || 'Sin especialidad'}</p>
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    <label className="text-sm font-medium text-gray-700">Fecha</label>
-                    <input
-                        type="date"
-                        name="date"
-                        value={form.date}
-                        min={new Date().toISOString().split('T')[0]}
-                        onChange={(e) => setForm({ ...form, date: e.target.value })}
-                        className={inputStyle}
-                    />
+                <label className="text-sm font-medium text-gray-700">Fecha</label>
+                <input
+                    type="date"
+                    name="date"
+                    value={form.date}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    className={inputStyle}
+                />
 
-                    {form.date && form.veterinarianId && (
-                        <>
-                            <label className="text-sm font-medium text-gray-700 mt-3">Horarios disponibles</label>
-                            <div className="grid grid-cols-12 gap-2 mt-1">
-                                {slots.map((slot) => {
-                                    const isTaken = appointments.includes(slot)
-                                    return (
-                                        <button
-                                            key={slot}
-                                            disabled={isTaken}
-                                            onClick={() => setForm({ ...form, time: slot })}
-                                            className={`px-2 py-2 rounded-lg text-sm font-medium
+                {form.date && form.veterinarianId && (
+                    <>
+                        <label className="text-sm font-medium text-gray-700 mt-3">Horarios disponibles</label>
+                        <div className="grid grid-cols-12 gap-2 mt-1">
+                            {slots.map((slot) => {
+                                const isTaken = appointments.includes(slot)
+                                return (
+                                    <button
+                                        key={slot}
+                                        disabled={isTaken}
+                                        onClick={() => setForm({ ...form, time: slot })}
+                                        className={`px-2 py-2 rounded-lg text-sm font-medium
         ${isTaken
-                                                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                                    : 'bg-orange-300 hover:bg-orange-400 cursor-pointer'}
+                                                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                                : 'bg-orange-300 hover:bg-orange-400 cursor-pointer'}
         ${form.time === slot ? 'ring-2 ring-cyan-700' : ''}
       `}
-                                        >
-                                            {slot}
-                                        </button>
-                                    )
-                                })}
+                                    >
+                                        {slot}
+                                    </button>
+                                )
+                            })}
 
-                            </div>
-                        </>
-                    )}
+                        </div>
+                    </>
+                )}
 
-                    <label className="text-sm font-medium text-gray-700 mt-3">Detalle (opcional)</label>
-                    <textarea
-                        name="detail"
-                        value={form.detail}
-                        onChange={(e) => setForm({ ...form, detail: e.target.value })}
-                        className={inputStyle}
-                        rows={1}
-                    />
-                </div>
+                <label className="text-sm font-medium text-gray-700 mt-3">Detalle (opcional)</label>
+                <textarea
+                    name="detail"
+                    value={form.detail}
+                    onChange={(e) => setForm({ ...form, detail: e.target.value })}
+                    className={inputStyle}
+                    rows={1}
+                />
+            </div>
 
-                <div className="flex justify-evenly mt-4">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 bg-gray-200 rounded cursor-pointer hover:bg-orange-300 hover:border hover:border-orange-400"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        className="px-4 py-2 bg-cyan-700 cursor-pointer text-white rounded hover:bg-cyan-900 hover:border hover:border-cyan-950"
-                    >
-                        Agendar
-                    </button>
-                </div>
+            <div className="flex justify-evenly mt-4">
+                <button
+                    onClick={onClose}
+                    className="px-4 py-2 bg-gray-200 rounded cursor-pointer hover:bg-orange-300 hover:border hover:border-orange-400"
+                >
+                    Cancelar
+                </button>
+                <button
+                    onClick={handleSubmit}
+                    className="px-4 py-2 bg-cyan-700 cursor-pointer text-white rounded hover:bg-cyan-900 hover:border hover:border-cyan-950"
+                >
+                    Agendar
+                </button>
             </div>
         </div>
-    )
+    </div>
+)
 }

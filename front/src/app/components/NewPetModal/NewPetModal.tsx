@@ -1,6 +1,56 @@
 "use client";
 
 import React from "react";
+import Select from 'react-select'
+
+const customStyles = {
+  control: (base: any) => ({
+    ...base,
+    backgroundColor: '#FFDCA8',
+    borderRadius: '1rem',
+    borderColor: '#0e7490', // cyan-700
+    padding: '0.25rem',
+    boxShadow: 'none',
+    '&:hover': { borderColor: '#f97316' }, // orange-500
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isFocused ? '#0e7490' : '#FFDCA8', // amber-200
+    borderRadius: state.isFocused ? '1rem' : '',
+    color: '#1f2937', // gray-800
+  }),
+}
+
+const especieOptions = [
+  { value: 'PERRO', label: 'Perro' },
+  { value: 'GATO', label: 'Gato' },
+  { value: 'AVE', label: 'Ave' },
+  { value: 'ROEDOR', label: 'Roedor' },
+  { value: 'REPTIL', label: 'Reptil' },
+  { value: 'OTRO', label: 'Otro' },
+]
+
+const sexoOptions = [
+  { value: 'MACHO', label: 'Macho' },
+  { value: 'HEMBRA', label: 'Hembra' },
+]
+
+const tamanoOptions = [
+  { value: 'PEQUENO', label: 'Pequeño' },
+  { value: 'MEDIANO', label: 'Mediano' },
+  { value: 'GRANDE', label: 'Grande' },
+]
+
+const esterilizadoOptions = [
+  { value: 'SI', label: 'Sí' },
+  { value: 'NO', label: 'No' },
+]
+
+const statusOptions = [
+  { value: 'VIVO', label: 'Vivo' },
+  { value: 'FALLECIDO', label: 'Fallecido' },
+]
+
 
 interface NewPetForm {
   nombre: string;
@@ -33,156 +83,122 @@ export default function NewPetModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       {/* Achicamos el modal: max-w-sm y menos padding */}
-      <div className="bg-white rounded-lg p-4 max-w-sm w-full">
+      <div className="absolute inset-0 bg-cyan-700/40 backdrop-blur-sm"/>
+      <div className="relative bg-orange-200 p-6 rounded-2xl w-full max-w-md mx-4 shadow-lg z-10">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Agregar Nueva Mascota
         </h3>
 
         <form onSubmit={onSubmit} className="space-y-3">
-          {/* Nombre */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Nombre</label>
-            <input
-              type="text"
-              required
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              className="w-full px-2 py-1 border rounded-md focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
+          <form onSubmit={onSubmit} className="space-y-3">
+            {/* Nombre */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+              <input
+                type="text"
+                required
+                value={form.nombre}
+                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                placeholder="Nombre"
+                className="w-full border border-cyan-700 p-2 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
 
-          {/* Especie */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Especie</label>
-            <select
-              required
-              value={form.especie}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  especie: e.target.value as
-                    | "PERRO"
-                    | "GATO"
-                    | "AVE"
-                    | "ROEDOR"
-                    | "REPTIL"
-                    | "OTRO",
-                })
-              }
-              className="w-full px-2 py-1 border rounded-md focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="PERRO">PERRO</option>
-              <option value="GATO">GATO</option>
-              <option value="AVE">AVE</option>
-              <option value="REPTIL">REPTIL</option>
-              <option value="ROEDOR">ROEDOR</option>
-              <option value="OTRO">OTRO</option>
-            </select>
-          </div>
+            {/* Especie */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mt-1">Especie</label>
+              <Select
+                styles={customStyles}
+                options={especieOptions}
+                value={especieOptions.find(opt => opt.value === form.especie)}
+                onChange={(selected) => {
+                  if (selected) setForm({ ...form, especie: selected.value })
+                }}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                placeholder="Seleccionar especie"
+              />
+            </div>
 
-          {/* Raza */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Raza</label>
-            <input
-              type="text"
-              required
-              value={form.breed}
-              onChange={(e) => setForm({ ...form, breed: e.target.value })}
-              className="w-full px-2 py-1 border rounded-md focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
+            {/* Sexo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mt-1">Sexo</label>
+              <Select
+                styles={customStyles}
+                options={sexoOptions}
+                value={sexoOptions.find(opt => opt.value === form.sexo)}
+                onChange={(selected) => {
+                  if (selected) setForm({ ...form, sexo: selected.value })
+                }}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                placeholder="Seleccionar sexo"
+              />
+            </div>
 
-          {/* Sexo */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Sexo</label>
-            <select
-              required
-              value={form.sexo}
-              onChange={(e) =>
-                setForm({ ...form, sexo: e.target.value as "MACHO" | "HEMBRA" })
-              }
-              className="w-full px-2 py-1 border rounded-md focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="MACHO">Macho</option>
-              <option value="HEMBRA">Hembra</option>
-            </select>
-          </div>
+            {/* Tamaño */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mt-1">Tamaño</label>
+              <Select
+                styles={customStyles}
+                options={tamanoOptions}
+                value={tamanoOptions.find(opt => opt.value === form.tamano)}
+                onChange={(selected) => {
+                  if (selected) setForm({ ...form, tamano: selected.value })
+                }}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                placeholder="Seleccionar tamaño"
+              />
+            </div>
 
-          {/* Tamaño */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Tamaño</label>
-            <select
-              required
-              value={form.tamano}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  tamano: e.target.value as "PEQUENO" | "MEDIANO" | "GRANDE",
-                })
-              }
-              className="w-full px-2 py-1 border rounded-md focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="PEQUENO">Pequeño</option>
-              <option value="MEDIANO">Mediano</option>
-              <option value="GRANDE">Grande</option>
-            </select>
-          </div>
+            {/* Esterilizado */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mt-1">Esterilizado</label>
+              <Select
+                styles={customStyles}
+                options={esterilizadoOptions}
+                value={esterilizadoOptions.find(opt => opt.value === form.esterilizado)}
+                onChange={(selected) => {
+                  if (selected) setForm({ ...form, esterilizado: selected.value })
+                }}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                placeholder="¿Está esterilizado?"
+              />
+            </div>
 
-          {/* Esterilizado */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Esterilizado</label>
-            <select
-              required
-              value={form.esterilizado}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  esterilizado: e.target.value as "SI" | "NO",
-                })
-              }
-              className="w-full px-2 py-1 border rounded-md focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="SI">Sí</option>
-              <option value="NO">No</option>
-            </select>
-          </div>
+            {/* Estado */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mt-1">Estado</label>
+              <Select
+                styles={customStyles}
+                options={statusOptions}
+                value={statusOptions.find(opt => opt.value === form.status)}
+                onChange={(selected) => {
+                  if (selected) setForm({ ...form, status: selected.value })
+                }}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                placeholder="Estado actual"
+              />
+            </div>
 
-          {/* Estado */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Estado</label>
-            <select
-              required
-              value={form.status}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  status: e.target.value as "VIVO" | "FALLECIDO",
-                })
-              }
-              className="w-full px-2 py-1 border rounded-md focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="VIVO">Vivo</option>
-              <option value="FALLECIDO">Fallecido</option>
-            </select>
-          </div>
+            {/* Fecha nacimiento */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
+              <input
+                type="date"
+                required
+                value={form.fecha_nacimiento}
+                onChange={(e) => setForm({ ...form, fecha_nacimiento: e.target.value })}
+                className="w-full border border-cyan-700 p-2 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+          </form>
 
-          {/* Fecha nacimiento */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Fecha de Nacimiento
-            </label>
-            <input
-              type="date"
-              required
-              value={form.fecha_nacimiento}
-              onChange={(e) =>
-                setForm({ ...form, fecha_nacimiento: e.target.value })
-              }
-              className="w-full px-2 py-1 border rounded-md focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
 
           {/* Botones */}
           <div className="flex space-x-3 mt-4">

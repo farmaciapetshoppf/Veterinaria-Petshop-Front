@@ -35,7 +35,9 @@ export default function PasswordFieldFormik({ label, nameField, type, placeholde
                 {/* Cartel flotante */}
                 {showRules && (
                     <div
-                        className="absolute top-full left-0 mt-2 w-full
+                        className="absolute mt-2 w-full
+                        bottom-full h-fit
+                        lg:top-0 lg:right-full lg:bottom-0 lg:mr-2 lg:mt-0 
                         p-4 border rounded-xl bg-white shadow-lg z-50 text-sm"
                     >
                         <p className="mb-2 text-gray-700">La contraseña debe contener como mínimo:</p>
