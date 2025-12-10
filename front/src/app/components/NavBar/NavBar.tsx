@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Huellitas3 from '../../../assets/Huellitas3.png'
+import Huellitas3 from '../../../assets/Huellitas3-2.png'
 import perrocompras from '../../../assets/perrocompras.png'
 import Link from "next/link";
 import { navItems } from "../../helpers/navItems";
@@ -28,9 +28,9 @@ export default function Navbar() {
           <Image
             src={Huellitas3}
             alt="Huellitas Pet"
-            width={110}
-            height={110}
-            className="md:w-[120px] md:h-[120px] transition-all duration-300"
+            width={120}
+            height={120}
+            className=" transition-all duration-300"
           />
         </Link>
 

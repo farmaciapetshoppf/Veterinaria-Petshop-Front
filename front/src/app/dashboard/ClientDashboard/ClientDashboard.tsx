@@ -12,7 +12,6 @@ import { toast } from 'react-toastify'
 import { updateUserProfile } from '@/src/services/user.services';
 import { getUserOrders } from '@/src/services/order.services';
 import Image from 'next/image'
-import avatar from "@/src/assets/avatar.jpg"
 
 export default function ClientDashboard({ refreshOrders }: { refreshOrders?: number }) {
   const { userData, setUserData } = useAuth()
@@ -21,8 +20,6 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
   const [showNewPetModal, setShowNewPetModal] = useState(false)
   const [creatingPet, setCreatingPet] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(false);
 
   const handleSaveProfile = async (data: any) => {
     try {
@@ -57,7 +54,7 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
     status: "VIVO",
     fecha_nacimiento: "2020-01-15",
     breed: "",
-    ownerId: ""
+    ownerId: userData!.user.id!
   });
 
   const handleCreatePet = async (e: React.FormEvent) => {
@@ -68,12 +65,12 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
     setPets(prev => [...prev, newPet as IPet])
     setCreatingPet(false);
     setShowNewPetModal(false);
+    window.location.reload();
   };
 
   // Cargar mascotas desde userData al entrar al dashboard
   useEffect(() => {
     if (userData?.user?.pets) {
-      console.log(userData?.user.profileImageUrl);
       setPets(userData.user.pets)
     }
   }, [userData])

@@ -52,7 +52,7 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
         fecha_nacimiento: pet?.fecha_nacimiento ?? '',
         fecha_fallecimiento: pet?.fecha_fallecimiento,
         breed: pet?.breed ?? '',
-        image: pet?.image ?? ''
+/*         image: pet?.image ?? '' */
     });
 
     if (!open) return null;
@@ -210,13 +210,13 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                         className={inputStyle}
                     />
 
-                    <label className="text-sm font-semibold text-gray-700 mt-1">Imagen</label>
+                    {/* <label className="text-sm font-semibold text-gray-700 mt-1">Imagen</label>
                     <input
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
                         onChange={handleChange}
                         className="w-full px-4 py-2 border-2 border-cyan-700 rounded-lg focus:border-amber-500 focus:outline-none"
-                    />
+                    /> */}
                 </div>
 
                 <div className="flex justify-evenly mt-2">
