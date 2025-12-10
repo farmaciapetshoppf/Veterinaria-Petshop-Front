@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react"
 import { IUserSession } from "../types";
 
@@ -32,7 +31,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [userData, setUserData] = useState<IUserSession | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTabState] = useState<'profile' | 'pets' | 'orders'>('profile')
-    const router = useRouter();
 
     useEffect(() => {
         const savedTab = localStorage.getItem("activeTab") as 'profile' | 'pets' | 'orders' | null;
@@ -147,10 +145,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
         } catch (err) {
         } finally {
-            // Limpiar el token de localStorage
             localStorage.removeItem('authToken');
             setUserData(null);
-            router.push("/");
+            window.location.href = "/"
         }
     };
 
