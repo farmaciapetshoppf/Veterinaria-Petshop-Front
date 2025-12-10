@@ -152,14 +152,13 @@ export const getOrderHistory = async (userId: string, token: string) => {
 };
 
 // Obtener el carrito del usuario
-export const getCart = async (userId: string, token: string) => {
+export const getCart = async (userId: string) => {
     try {
         const response = await fetch(`${APIURL}/sale-orders/cart/${userId}`, {
             method: "GET",
             credentials: 'include',
             headers: {
-                "Content-Type": "application/json",
-                ...(token && { Authorization: token })
+                "Content-Type": "application/json"
             },
         });
         
@@ -170,7 +169,8 @@ export const getCart = async (userId: string, token: string) => {
         const result = await response.json();
         // El backend retorna { message: string, data: SaleOrder | null }
         // SaleOrder tiene: { id, buyer, items: [{product, quantity, unitPrice}], total, status, expiresAt }
-        return result.data;
+        
+        return result.data;        
     } catch (error: any) {
         console.error('Error en getCart:', error);
         throw error;

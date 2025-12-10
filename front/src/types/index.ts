@@ -183,7 +183,7 @@ export interface IProduct {
     description: string;
     price: number;
     stock: number;
-    image: string | StaticImageData;
+    image: string;
     images?: (string | StaticImageData)[]; // Galería de imágenes adicionales
     categoryId?: number | string; // Puede ser número (mock) o string UUID (backend)
     quantity?: number; // Cantidad en el carrito (opcional)

@@ -34,11 +34,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CartProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <CartProvider>
             <Navbar />
             {children}
-            <Footer/>
+            <Footer />
             <ToastContainer
               position="top-right"
               autoClose={3000}
@@ -51,8 +51,8 @@ export default function RootLayout({
               pauseOnHover
               theme="colored"
             />
-          </AuthProvider>
-        </CartProvider>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,8 +1,5 @@
 'use client';
 
-import WorkInProgress from "../components/WorkInProgress/WorkInProgress"
-import cart from "../../assets/cart.png"
-import perrocompras from "../../assets/perrocompras.png"
 import perrocompra from "../../assets/perrocompra.png"
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { useCart } from "@/src/context/CartContext"
@@ -10,7 +7,7 @@ import { useEffect, useState, useRef } from "react"
 import { IProduct } from "@/src/types"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/src/context/AuthContext"
-import { createCheckout } from "@/src/services/order.services"
+import { addToCartBackend, createCheckout } from "@/src/services/order.services"
 import { toast } from "sonner"
 import Image from "next/image"
 import { XMarkIcon } from "@heroicons/react/16/solid"
@@ -24,7 +21,7 @@ function CartPage() {
   const [preferenceId, setPreferenceId] = useState<string | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const hasSyncedRef = useRef(false)
-  const syncPromiseRef = useRef<Promise<void> | null>(null)
+
 const {
    cartItems,
     removeFromCart,
@@ -52,7 +49,6 @@ const getLogin = () => {
 useEffect(() => {
   const syncCart = async () => {
     if (!userData?.user?.id) {
-      console.log('⏭️ Usuario no autenticado, saltando sincronización');
       return;
     }
 
@@ -69,13 +65,8 @@ useEffect(() => {
     if (localCart) {
       try {
         const localItems: IProduct[] = JSON.parse(localCart);
-        console.log('📦 Items en localStorage:', localItems.length);
         
         if (localItems.length > 0) {
-          console.log('🔄 Sincronizando items con backend...');
-          toast.info('Sincronizando carrito...');
-          
-          const { addToCartBackend } = await import('@/src/services/order.services');
           
           let syncCount = 0;
           for (const item of localItems) {
@@ -98,8 +89,6 @@ useEffect(() => {
               }
             }
           }
-          
-          console.log(`✅ Sincronizados ${syncCount}/${localItems.length} items`);
           
           // Marcar como sincronizado
           hasSyncedRef.current = true;
@@ -126,55 +115,6 @@ useEffect(() => {
   syncCart();
 }, [userData?.user?.id]);
 
-// Función temporal para debugging - ELIMINAR después
-const checkBackendCart = async () => {
-  if (!userData?.token || !userData?.user?.id) {
-    alert('No hay token de autenticación o userId');
-    return;
-  }
-  
-  try {
-    const response = await fetch(`http://localhost:3000/sale-orders/cart/${userData.user.id}`, {
-      headers: {
-        'Authorization': `Bearer ${userData.token}`
-      }
-    });
-    const data = await response.json();
-    console.log('🛒 CARRITO BACKEND COMPLETO:', JSON.stringify(data, null, 2));
-    alert(`Carrito Backend:\n- Items: ${data.data?.items?.length || 0}\n- Total: $${data.data?.total || 0}\n- Ver consola para detalles`);
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Error al consultar el carrito: ' + error);
-  }
-};
-
-// Función temporal para limpiar carrito - ELIMINAR después
-const clearBackendCart = async () => {
-  if (!userData?.token || !userData?.user?.id) {
-    alert('No hay token de autenticación o userId');
-    return;
-  }
-  
-  if (!confirm('¿Seguro que quieres limpiar el carrito del backend?')) {
-    return;
-  }
-  
-  try {
-    const response = await fetch(`http://localhost:3000/sale-orders/cart/clear/${userData.user.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${userData.token}`
-      }
-    });
-    const data = await response.json();
-    console.log('🧹 CARRITO LIMPIADO:', data);
-    alert('Carrito limpiado exitosamente');
-    await loadCartFromBackend();
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Error al limpiar el carrito: ' + error);
-  }
-};
 
 const handleCheckout = async () => {
   // Si el usuario no está autenticado, mostrar un toast de error y redirigir al login
@@ -196,16 +136,9 @@ const handleCheckout = async () => {
   }
 
   setIsCheckingOut(true);
-  try {
-    console.log('🚀 Iniciando checkout...');
-    console.log('🛒 Items en el carrito:', items.length);
-    
+  try {    
     // Llamar al nuevo endpoint que usa el carrito del backend
     const data = await createCheckout(String(userData.user.id), userData.token || '');
-    
-    console.log('📦 Datos recibidos del checkout:', data);
-    console.log('🔗 USAR ESTE LINK PARA PRODUCCIÓN:', data?.initPoint);
-    console.log('⚠️ Link de sandbox (NO usar en producción):', data?.sandboxInitPoint);
     
     // IMPORTANTE: Usar initPoint para producción (NO sandboxInitPoint)
     const checkoutUrl = data?.initPoint;
@@ -294,21 +227,6 @@ return (
                   <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
                     <div className="flex items-start justify-between">
                       <DialogTitle className="text-lg font-medium text-gray-900">Tu carrito</DialogTitle>
-                      {/* Botones temporales de debugging - COMENTADOS */}
-                      {/* <div className="flex gap-2 mr-4">
-                        <button
-                          onClick={checkBackendCart}
-                          className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                        >
-                          Ver Backend
-                        </button>
-                        <button
-                          onClick={clearBackendCart}
-                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                        >
-                          Limpiar Backend
-                        </button>
-                      </div> */}
                       <div className="ml-3 flex h-7 items-center">
                         <button
                           type="button"
@@ -335,8 +253,8 @@ return (
                               <li key={item.id} className={`flex py-6 px-4 rounded-lg ${index % 2 === 0 ? 'bg-amber-50' : 'bg-white'}`}>
                                 <div className="size-24 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
                                   <Image
-                                   alt={item.name}
-                                    src={(item.image ) ? item.image : (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}${item.image ?? ''}` : '/next.svg')}
+                                    src={item.image}
+                                    alt={item.name}
                                     width={96}
                                     height={96}
                                     loading="lazy"
