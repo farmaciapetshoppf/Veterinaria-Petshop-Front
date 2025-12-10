@@ -1,29 +1,39 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { useAuth } from '@/src/context/AuthContext'
-import { createPet, NewPetData } from '@/src/app/services/pet.services'
-import { IPet } from '@/src/types'
-import CardPet from '../../components/CardPet/CardPet'
-import NewPetModal from '../../components/NewPetModal/NewPetModal'
-import EditProfileModal from '../../components/EditProfileModal/EditProfileModal'
-import OrderList from '../../components/OrderList/OrderList'
-import { toast } from 'react-toastify'
-import { updateUserProfile } from '@/src/services/user.services';
-import { getUserOrders } from '@/src/services/order.services';
-import Image from 'next/image'
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/src/context/AuthContext";
+import { createPet, NewPetData } from "@/src/app/services/pet.services";
+import { IPet } from "@/src/types";
+import CardPet from "../../components/CardPet/CardPet";
+import NewPetModal from "../../components/NewPetModal/NewPetModal";
+import EditProfileModal from "../../components/EditProfileModal/EditProfileModal";
+import OrderList from "../../components/OrderList/OrderList";
+import { toast } from "react-toastify";
+import { updateUserProfile } from "@/src/services/user.services";
+import { getUserOrders } from "@/src/services/order.services";
+import Image from "next/image";
 
-export default function ClientDashboard({ refreshOrders }: { refreshOrders?: number }) {
-  const { userData, setUserData } = useAuth()
-  const [activeTab, setActiveTab] = useState<'profile' | 'pets' | 'orders'>('profile')
-  const [pets, setPets] = useState<IPet[]>([])
-  const [showNewPetModal, setShowNewPetModal] = useState(false)
+export default function ClientDashboard({
+  refreshOrders,
+}: {
+  refreshOrders?: number;
+}) {
+  const { userData, setUserData } = useAuth();
+  const [activeTab, setActiveTab] = useState<"profile" | "pets" | "orders">(
+    "profile"
+  );
+  const [pets, setPets] = useState<IPet[]>([]);
+  const [showNewPetModal, setShowNewPetModal] = useState(false);
   const [creatingPet, setCreatingPet] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
 
+  // Paginación para mascotas
+  const [currentPage, setCurrentPage] = useState(1);
+  const petsPerPage = 4; // Número de mascotas por página
+
   const handleSaveProfile = async (data: any) => {
     try {
-      const updated = await updateUserProfile(userData!.user.id, data)
+      const updated = await updateUserProfile(userData!.user.id, data);
       // Actualizar el estado global con los nuevos datos
       setUserData({
         ...userData!,
@@ -31,11 +41,10 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
           ...userData!.user,
           ...data,
         },
-
       });
       if (updated) {
         toast.success("Perfil actualizado correctamente");
-        setOpenEdit(false)
+        setOpenEdit(false);
         setTimeout(() => {
           window.location.reload();
         }, 3000);
@@ -54,7 +63,7 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
     status: "VIVO",
     fecha_nacimiento: "2020-01-15",
     breed: "",
-    ownerId: userData!.user.id!
+    ownerId: userData!.user.id!,
   });
 
   const handleCreatePet = async (e: React.FormEvent) => {
@@ -62,7 +71,7 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
     setCreatingPet(true);
 
     const newPet = await createPet(newPetForm, userData!.user!.id); // tu lógica
-    setPets(prev => [...prev, newPet as IPet])
+    setPets((prev) => [...prev, newPet as IPet]);
     setCreatingPet(false);
     setShowNewPetModal(false);
     window.location.reload();
@@ -71,25 +80,28 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
   // Cargar mascotas desde userData al entrar al dashboard
   useEffect(() => {
     if (userData?.user?.pets) {
-      setPets(userData.user.pets)
+      setPets(userData.user.pets);
     }
-  }, [userData])
+  }, [userData]);
 
   // Cargar órdenes del usuario
   useEffect(() => {
     const loadUserOrders = async () => {
       if (!userData?.user?.id || !userData?.token) {
-        console.log('⚠️ No hay userData o token para cargar órdenes');
+        console.log("⚠️ No hay userData o token para cargar órdenes");
         return;
       }
-      
+
       setLoadingOrders(true);
-      
+
       try {
-        const userOrders = await getUserOrders(userData.user.id, userData.token);
+        const userOrders = await getUserOrders(
+          userData.user.id,
+          userData.token
+        );
         setOrders(userOrders);
       } catch (error) {
-        console.error('❌ Error al cargar órdenes:', error);
+        console.error("❌ Error al cargar órdenes:", error);
         setOrders([]);
       } finally {
         setLoadingOrders(false);
@@ -97,21 +109,27 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
     };
 
     loadUserOrders();
-  }, [userData?.user?.id, userData?.token, refreshOrders])
+  }, [userData?.user?.id, userData?.token, refreshOrders]);
+
+  const indexOfLastPet = currentPage * petsPerPage;
+  const indexOfFirstPet = indexOfLastPet - petsPerPage;
+  const currentPets = pets.slice(indexOfFirstPet, indexOfLastPet);
+  const totalPages = Math.ceil(pets.length / petsPerPage);
 
   if (!userData) {
     return (
       <div className="bg-white pt-20 min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Debes iniciar sesión para ver tu dashboard</p>
+        <p className="text-gray-500">
+          Debes iniciar sesión para ver tu dashboard
+        </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="pt-20 min-h-screen bg-orange-200">
       <div className="pt-6 pb-16">
         <div className="mx-auto  px-4 sm:px-6 md:px-8">
-
           {/* Header del Dashboard */}
           <div className="">
             {/* <h1 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -126,29 +144,32 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
           <div className="border-b border-cyan-700 mb-8">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveTab('profile')}
-                className={`${activeTab === 'profile'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                onClick={() => setActiveTab("profile")}
+                className={`${
+                  activeTab === "profile"
+                    ? "border-orange-500 text-orange-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
               >
                 Mi Perfil
               </button>
               <button
-                onClick={() => setActiveTab('pets')}
-                className={`${activeTab === 'pets'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                onClick={() => setActiveTab("pets")}
+                className={`${
+                  activeTab === "pets"
+                    ? "border-orange-500 text-orange-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
               >
                 Mis Mascotas
               </button>
               <button
-                onClick={() => setActiveTab('orders')}
-                className={`${activeTab === 'orders'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                onClick={() => setActiveTab("orders")}
+                className={`${
+                  activeTab === "orders"
+                    ? "border-orange-500 text-orange-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
               >
                 Mis Compras
               </button>
@@ -157,26 +178,24 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
 
           {/* Contenido según el tab activo */}
           <div className="md:grid md:grid-cols-3  md:gap-x-8">
-
             {/* PERFIL */}
-            {activeTab === 'profile' && (
+            {activeTab === "profile" && (
               <div className="md:col-span-2">
                 <div className="bg-white border border-cyan-700 rounded-xl shadow-lg overflow-hidden">
-
                   <div className="px-8 pb-8">
                     {/* Foto de perfil */}
                     <div className="relative  mb-6">
                       <div className="w-32 h-32 rounded-full flex items-center justify-center text-4xl font-bold text-gray-600 shadow-lg">
                         {userData.user.profileImageUrl ? (
                           <Image
-                            src={userData.user.profileImageUrl} 
+                            src={userData.user.profileImageUrl}
                             width={128}
                             height={128}
                             alt="ProfilePicture"
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
-                          userData.user.name?.charAt(0) || 'C'
+                          userData.user.name?.charAt(0) || "C"
                         )}
                       </div>
 
@@ -208,7 +227,8 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
                         accept="image/*"
                         className="hidden"
                         onChange={async (e) => {
-                          if (!e.target.files || e.target.files.length === 0) return;
+                          if (!e.target.files || e.target.files.length === 0)
+                            return;
                           const file = e.target.files[0];
                           await handleSaveProfile({ profileImage: file });
                         }}
@@ -222,28 +242,36 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
                           <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                             Nombre Completo
                           </label>
-                          <p className="mt-2 text-lg text-gray-900">{userData.user.name}</p>
+                          <p className="mt-2 text-lg text-gray-900">
+                            {userData.user.name}
+                          </p>
                         </div>
 
                         <div>
                           <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                             Email
                           </label>
-                          <p className="mt-2 text-lg text-gray-900">{userData.user.email}</p>
+                          <p className="mt-2 text-lg text-gray-900">
+                            {userData.user.email}
+                          </p>
                         </div>
 
                         <div>
                           <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                             Teléfono
                           </label>
-                          <p className="mt-2 text-lg text-gray-900">{userData.user.phone || 'No especificado'}</p>
+                          <p className="mt-2 text-lg text-gray-900">
+                            {userData.user.phone || "No especificado"}
+                          </p>
                         </div>
 
                         <div>
                           <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                             Dirección
                           </label>
-                          <p className="mt-2 text-lg text-gray-900">{userData.user.address || 'No especificada'}</p>
+                          <p className="mt-2 text-lg text-gray-900">
+                            {userData.user.address || "No especificada"}
+                          </p>
                         </div>
 
                         <div>
@@ -253,7 +281,7 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
                           <p className="mt-2 text-lg text-gray-900">
                             {userData.user.country && userData.user.city
                               ? `${userData.user.country} - ${userData.user.city}`
-                              : 'No especificada'}
+                              : "No especificada"}
                           </p>
                         </div>
                       </div>
@@ -276,7 +304,10 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
                     <EditProfileModal
                       open={openEdit}
                       onClose={() => setOpenEdit(false)}
-                      user={{...userData.user, image: userData.user.profileImageUrl || ''}}
+                      user={{
+                        ...userData.user,
+                        image: userData.user.profileImageUrl || "",
+                      }}
                       onSave={handleSaveProfile}
                     />
                   </div>
@@ -285,20 +316,110 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
             )}
 
             {/* MASCOTAS Y TURNOS */}
-            {activeTab === 'pets' && (
+            {activeTab === "pets" && (
               <div className="md:col-span-2">
-                {
+                {pets.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">
+                    No tienes mascotas registradas
+                  </p>
+                ) : (
+                  <>
+                    {/* Contador de resultados */}
+                    {totalPages > 1 && (
+                      <div className="mb-4 flex items-center justify-between">
+                        <p className="text-sm text-gray-600">
+                          Mostrando{" "}
+                          <span className="font-semibold">
+                            {indexOfFirstPet + 1}-
+                            {Math.min(indexOfLastPet, pets.length)}
+                          </span>{" "}
+                          de{" "}
+                          <span className="font-semibold">{pets.length}</span>{" "}
+                          mascotas
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Página{" "}
+                          <span className="font-semibold">{currentPage}</span>{" "}
+                          de <span className="font-semibold">{totalPages}</span>
+                        </p>
+                      </div>
+                    )}
 
-                  pets.length == 0 ? (
-                    <p className="text-gray-500 text-center py-8">No tienes mascotas registradas
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 ">
-                      {pets.map((pet) => (
-                      <CardPet key={pet.id} {...pet} />
+                    {/* Grid de mascotas paginadas */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                      {currentPets.map((pet) => (
+                        <CardPet key={pet.id} {...pet} />
                       ))}
                     </div>
-                  )}
+
+                    {/* Controles de paginación */}
+                    {totalPages > 1 && (
+                      <div className="mt-6 mb-6 flex justify-center">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              setCurrentPage((prev) => Math.max(1, prev - 1))
+                            }
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Anterior
+                          </button>
+
+                          <div className="flex gap-2">
+                            {Array.from(
+                              { length: totalPages },
+                              (_, i) => i + 1
+                            ).map((page) => {
+                              if (
+                                page === 1 ||
+                                page === totalPages ||
+                                (page >= currentPage - 1 &&
+                                  page <= currentPage + 1)
+                              ) {
+                                return (
+                                  <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-10 h-10 rounded-lg transition ${
+                                      currentPage === page
+                                        ? "bg-orange-600 text-white font-semibold"
+                                        : "bg-white border border-gray-300 hover:bg-gray-50"
+                                    }`}
+                                  >
+                                    {page}
+                                  </button>
+                                );
+                              } else if (
+                                page === currentPage - 2 ||
+                                page === currentPage + 2
+                              ) {
+                                return (
+                                  <span key={page} className="px-2">
+                                    ...
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+
+                          <button
+                            onClick={() =>
+                              setCurrentPage((prev) =>
+                                Math.min(totalPages, prev + 1)
+                              )
+                            }
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Siguiente
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
                 <button
                   onClick={() => setShowNewPetModal(true)}
                   className=" px-4 py-3 ml-3
@@ -316,7 +437,9 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
               open={showNewPetModal}
               creating={creatingPet}
               form={newPetForm}
-              setForm={(data) => setNewPetForm({...data, ownerId: userData?.user?.id || ''})}
+              setForm={(data) =>
+                setNewPetForm({ ...data, ownerId: userData?.user?.id || "" })
+              }
               onClose={() => {
                 setShowNewPetModal(false);
                 setNewPetForm({
@@ -328,14 +451,14 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
                   status: "VIVO",
                   fecha_nacimiento: "2020-01-15",
                   breed: "",
-                  ownerId: ""
+                  ownerId: "",
                 });
               }}
               onSubmit={handleCreatePet}
             />
 
             {/* COMPRAS */}
-            {activeTab === 'orders' && (
+            {activeTab === "orders" && (
               <div className="md:col-span-2">
                 <h2 className="text-xl font-bold mb-4">Órdenes</h2>
                 {loadingOrders ? (
@@ -351,50 +474,67 @@ export default function ClientDashboard({ refreshOrders }: { refreshOrders?: num
 
             {/* Sidebar derecha - Resumen rápido */}
             <div className="mt-8 md:mt-0">
-              <div className="bg-linear-to-br from-orange-100 via-orange-200
-               to-orange-200 border border-gray-400  rounded-lg p-6 sticky top-24">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen</h3>
+              <div
+                className="bg-linear-to-br from-orange-100 via-orange-200
+               to-orange-200 border border-gray-400  rounded-lg p-6 sticky top-24"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Resumen
+                </h3>
 
                 <div className="space-y-4">
                   <div className="border-b border-cyan-700 pb-4">
-                    <p className="text-sm text-gray-600">Mascotas registradas</p>
-                    <p className="text-2xl font-bold text-gray-900">{pets.length}</p>
+                    <p className="text-sm text-gray-600">
+                      Mascotas registradas
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {pets.length}
+                    </p>
                   </div>
 
                   <div className="border-b border-cyan-700  pb-4">
                     <p className="text-sm text-gray-600">Turnos programados</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {Array.isArray(pets) ? pets.reduce(
-                        (acc, pet) =>
-                          acc +
-                          (pet.appointments ? pet.appointments.filter((app) => app.status === true).length : 0),
-                        0
-                      ) : 0}
+                      {Array.isArray(pets)
+                        ? pets.reduce(
+                            (acc, pet) =>
+                              acc +
+                              (pet.appointments
+                                ? pet.appointments.filter(
+                                    (app) => app.status === true
+                                  ).length
+                                : 0),
+                            0
+                          )
+                        : 0}
                     </p>
                   </div>
 
                   <div>
                     <p className="text-sm text-gray-600">Compras activas</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {userData?.user?.buyerSaleOrders?.filter((order) => order.status === 'ACTIVE').length || 0}
+                      {userData?.user?.buyerSaleOrders?.filter(
+                        (order) => order.status === "ACTIVE"
+                      ).length || 0}
                     </p>
                   </div>
                 </div>
 
-                <button className="mt-6 w-1/2 px-4 py-2
+                <button
+                  className="mt-6 w-1/2 px-4 py-2
                 rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
                 hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
                  transition-colors text-sm font-medium
                  cursor-pointer
-                 ">
+                 "
+                >
                   Agendar Turno
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
