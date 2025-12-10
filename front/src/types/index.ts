@@ -61,7 +61,7 @@ export interface Appointment {
     }
 }
 
-export interface Pet {
+/* export interface Pet {
     id: string
     nombre: string
     especie: string
@@ -77,7 +77,7 @@ export interface Pet {
     mother: Pet | null
     father: Pet | null
     appointments: Appointment[]
-}
+} */
 
 export interface UserProfile {
   id: string;
@@ -100,6 +100,29 @@ export interface OrderItem {
   productName: string
   quantity: number
   price: number
+}
+
+export interface IPetCreate {
+  nombre: string;
+  especie: "PERRO" | "GATO" | "AVE" | "ROEDOR" | "REPTIL" | "OTRO";
+  sexo: "MACHO" | "HEMBRA";
+  tamano: "PEQUENO" | "MEDIANO" | "GRANDE";
+  esterilizado: "SI" | "NO";
+  status: "VIVO" | "FALLECIDO";
+  fecha_nacimiento: string;
+  breed: string;
+}
+
+export interface IPetUpdate {
+  nombre: string;
+  especie: string;
+  sexo: string;
+  tamano: string;
+  esterilizado: string;
+  status: string;
+  fecha_nacimiento: string;
+  fecha_fallecimiento: string | null;
+  breed: string;
 }
 
 export interface IPet {

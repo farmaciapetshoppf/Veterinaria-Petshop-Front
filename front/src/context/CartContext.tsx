@@ -33,46 +33,29 @@ const CartContext = createContext<CartContextProps>({
 });
 
 interface CartProvider {
-    children: React.ReactElement;
+    children: React.ReactNode;
 };
 
 export const CartProvider: React.FC<CartProvider> = ({ children }) => {
     const [cartItems, setCartItems] = useState<IProduct[]>([]);
-    const { userData } = useAuth();
+    const { userData, isLoading } = useAuth();
 
-    // Cargar carrito desde el backend cuando el usuario inicia sesión
     useEffect(() => {
-        if (userData?.user?.id && userData?.token) {
+        if (!isLoading && userData?.user?.id) {
             loadCartFromBackend();
         }
-    }, [userData?.user?.id]);
+    }, [isLoading, userData]);
 
-    // Guardar en localStorage solo como backup
     useEffect(() => {
-        if (cartItems.length > 0) {
-            localStorage.setItem("cart", JSON.stringify(cartItems));
-        }
-    }, [cartItems]);
-
-    // Cargar desde localStorage solo si no hay usuario autenticado
-    useEffect(() => {
-        if (!userData?.user?.id && typeof window !== 'undefined' && window.localStorage) {
-            const dataFromLocalStorage = localStorage.getItem('cart');
-            if (dataFromLocalStorage) {
-                setCartItems(JSON.parse(dataFromLocalStorage));
-            }
-        }
-    }, [userData?.user?.id]);
+    }, [userData]);
 
     const loadCartFromBackend = async () => {
-        if (!userData?.user?.id) return;
-
         try {
-            const cartData = await getCart(String(userData.user.id), userData.token || '');
-            // Backend retorna: { id, buyer, items: [{product, quantity, unitPrice}], total, status, expiresAt }
-            // O null si no hay carrito activo o si expiró
+            if (!userData?.user?.id) {
+                return;
+            }
+            const cartData = await getCart(userData.user.id);
             if (cartData === null) {
-                // Carrito vencido o no existe
                 setCartItems([]);
                 localStorage.removeItem('cart');
                 return;
@@ -118,7 +101,7 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
             }
         } catch (error: any) {
             console.error('Error al cargar el carrito desde el backend:', error);
-            
+
             // Si el error indica carrito vencido, limpiar
             if (error.message && error.message.includes('expirado')) {
                 setCartItems([]);
@@ -141,7 +124,7 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
             console.log('⏸️ Ya se está agregando este producto, esperando a que termine...');
             return existingPromise; // Retornar la misma promesa en vez de crear otra
         }
-        
+
         // Crear la promesa y guardarla en el Map
         const addPromise = (async () => {
             try {
@@ -150,13 +133,13 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
                     // PRIMERO verificar si ya está en el carrito del backend
                     const backendCart = await getCart(String(userData.user.id), userData.token || '');
                     const existsInBackend = backendCart?.items?.some((item: any) => item.product.id === product.id);
-                    
+
                     if (existsInBackend) {
                         console.log('⚠️ Producto ya existe en el carrito del backend');
                         toast.error("El producto ya está en el carrito");
                         return;
                     }
-                    
+
                     await addToCartBackend(
                         String(userData.user.id),
                         product.id,
@@ -173,7 +156,7 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
                         toast.error("El producto ya está en el carrito");
                         return;
                     }
-                    
+
                     // Solo guardar en localStorage
                     setCartItems((prevItems) => [...prevItems, product]);
                     toast.success("El producto se agregó al carrito");
@@ -192,7 +175,7 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
                 }, 2000);
             }
         })();
-        
+
         addToCartInProgress.set(product.id, addPromise);
         return addPromise;
     };
@@ -236,9 +219,9 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
             }
         } else {
             // Si no hay usuario, actualizar solo el estado local
-            setCartItems((prevItems) => 
-                prevItems.map(item => 
-                    item.id.toString() === productId.toString() 
+            setCartItems((prevItems) =>
+                prevItems.map(item =>
+                    item.id.toString() === productId.toString()
                         ? { ...item, quantity: quantity }
                         : item
                 )
@@ -260,22 +243,22 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
             // Si no hay usuario, solo limpiar el estado local
             setCartItems([]);
         }
-        
+
         if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.removeItem('cart');
         }
     };
-    
+
     const getTotal = (): number => {
         return cartItems.reduce((total, item) => {
             const price = Number(item.price);
             const quantity = Number(item.quantity) || 1;
-            
+
             if (isNaN(price)) {
                 console.warn(`Producto ${item.name} (id: ${item.id}) tiene precio inválido:`, item.price);
                 return total;
             }
-            
+
             return total + (price * quantity);
         }, 0);
     };
@@ -283,22 +266,22 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
     const getIdItems = () => {
         return cartItems.map(item => item.id);
     };
-    
+
     const getItemsCount = () => {
         return cartItems.length;
     };
 
     return (
         <CartContext.Provider value={{
-            cartItems, 
-            addToCart, 
+            cartItems,
+            addToCart,
             removeFromCart,
             updateQuantity,
-            clearCart, 
-            getTotal, 
-            getIdItems, 
-            getItemsCount, 
-            loadCartFromBackend 
+            clearCart,
+            getTotal,
+            getIdItems,
+            getItemsCount,
+            loadCartFromBackend
         }}>
             {children}
         </CartContext.Provider>

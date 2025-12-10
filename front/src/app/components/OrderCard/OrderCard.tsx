@@ -1,8 +1,7 @@
 'use client'
 
-import Image from 'next/image'
+import Image, { StaticImageData } from 'next/image'
 import React from 'react'
-import img from "@/src/assets/dogCat.jpg"
 
 interface Product {
   id: string
@@ -10,7 +9,7 @@ interface Product {
   description: string
   price: string
   stock: number
-  imgUrl: string
+  imgUrl: string | StaticImageData
 }
 
 interface OrderItem {
@@ -47,9 +46,8 @@ const OrderCard: React.FC<Props> = ({ order }) => {
       <p className="text-gray-700">
         Estado:{' '}
         <span
-          className={`font-semibold ${
-            order.status === 'ACTIVE' ? 'text-blue-600' : 'text-green-600'
-          }`}
+          className={`font-semibold ${order.status === 'ACTIVE' ? 'text-blue-600' : 'text-green-600'
+            }`}
         >
           {order.status === 'ACTIVE' ? 'Activa' : 'Entregada'}
         </span>
@@ -78,7 +76,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
       <h3 className="mt-3 font-semibold text-gray-800">Items:</h3>
       {order.items.map((item) => {
         // Validar que la imagen sea una URL válida
-        const getValidImageUrl = () => {
+        /* const getValidImageUrl = () => {
           const imgUrl = item.product.imgUrl;
           if (!imgUrl || imgUrl === 'No image' || imgUrl === 'no image') {
             return 'https://placehold.co/400x400/f59e0b/white?text=Sin+Imagen';
@@ -89,27 +87,27 @@ const OrderCard: React.FC<Props> = ({ order }) => {
           }
           // Si es una ruta relativa, no es válida para Image de Next.js
           return 'https://placehold.co/400x400/f59e0b/white?text=Sin+Imagen';
-        };
+        }; */
 
         return (
-        <div
-          key={item.id}
-          className="ml-4 mt-2 text-sm text-gray-600 flex items-start space-x-3"
-        >
-          <Image
-            src={getValidImageUrl()}
-            alt={item.product.name}
-            width={100}
-            height={100}
-            className="w-16 h-16 object-cover rounded-md border"
-          />
-          <div>
-            <p className="font-medium">{item.product.name}</p>
-            <p>{item.product.description}</p>
-            <p className='flex justify-between'>Precio unidad: ${item.unitPrice} Cantidad: {item.quantity}</p>
-            <p>Subtotal: ${parseFloat(item.unitPrice) * item.quantity}</p>
+          <div
+            key={item.id}
+            className="ml-4 mt-2 text-sm text-gray-600 flex items-start space-x-3"
+          >
+            <Image
+              src={item.product.imgUrl || 'https://placehold.co/200x200/f59e0b/white?text=Sin+Imagen' }
+              alt={item.product.name}
+              width={200}
+              height={200}
+              className="w-16 h-16 object-cover rounded-md border"
+            />
+            <div>
+              <p className="font-medium">{item.product.name}</p>
+              <p>{item.product.description}</p>
+              <p className='flex justify-between'>Precio unidad: ${item.unitPrice} Cantidad: {item.quantity}</p>
+              <p>Subtotal: ${parseFloat(item.unitPrice) * item.quantity}</p>
+            </div>
           </div>
-        </div>
         );
       })}
     </div>

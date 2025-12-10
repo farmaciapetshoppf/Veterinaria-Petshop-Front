@@ -120,9 +120,10 @@ export default function EditProfileModal({
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-evenly mt-2">
           <button
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-2xl hover:bg-gray-300 transition-colors"
+            className="px-4 py-2 bg-gray-200 rounded cursor-pointer
+                    hover:bg-orange-300 hover:border hover:border-orange-400"
             onClick={onClose}
             disabled={saving}
           >
@@ -130,8 +131,8 @@ export default function EditProfileModal({
           </button>
 
           <button
-            className="px-4 py-2 bg-orange-500 text-white rounded-2xl
-             hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-cyan-700 cursor-pointer text-white rounded
+                    hover:bg-cyan-900 hover:border hover:border-cyan-950"
             onClick={handleSubmit}
             disabled={saving}
           >

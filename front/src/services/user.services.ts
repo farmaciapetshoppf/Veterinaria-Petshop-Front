@@ -198,7 +198,7 @@ export async function updateUserProfile(id:string, data: any) {
   if (data.city) formData.append("city", data.city);
 
   try {
-    const res = await fetch(`http://localhost:3000/users/${id}`, {
+    const res = await fetch(`${APIURL}/users/${id}`, {
       method: "PATCH",
       body: formData
     });

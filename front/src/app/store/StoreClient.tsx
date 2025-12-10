@@ -64,17 +64,6 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
     }
   };
 
-  // Debug
-  
-/*
-TODO: borrar
-useEffect(() => {
-    console.log('📦 Total productos:', products.length);
-    console.log('🏷️ Categorías:', categories.length);
-    console.log('🔍 Ejemplo de producto:', products[0]);
-    console.log('🔍 Ejemplo de categoría:', categories[0]);
-  }, [products, categories]); */
-
   // Primera carga: si viene category en la URL, setearla
   useEffect(() => {
     if (categoryNameFromUrl) {

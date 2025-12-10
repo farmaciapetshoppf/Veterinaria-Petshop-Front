@@ -132,9 +132,6 @@ export default function ClientDashboard({
         <div className="mx-auto  px-4 sm:px-6 md:px-8">
           {/* Header del Dashboard */}
           <div className="">
-            {/* <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Mi Dashboard
-            </h1> */}
             <p className="mt-2 text-3xl text-black">
               Bienvenido, {userData.user.name}
             </p>

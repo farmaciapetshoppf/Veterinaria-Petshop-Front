@@ -1,8 +1,5 @@
 'use client';
 
-import WorkInProgress from "../components/WorkInProgress/WorkInProgress"
-import cart from "../../assets/cart.png"
-import perrocompras from "../../assets/perrocompras.png"
 import perrocompra from "../../assets/perrocompra.png"
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { useCart } from "@/src/context/CartContext"
@@ -10,7 +7,7 @@ import { useEffect, useState, useRef } from "react"
 import { IProduct } from "@/src/types"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/src/context/AuthContext"
-import { createCheckout } from "@/src/services/order.services"
+import { addToCartBackend, createCheckout } from "@/src/services/order.services"
 import { toast } from "sonner"
 import Image from "next/image"
 import { XMarkIcon } from "@heroicons/react/16/solid"
@@ -24,7 +21,7 @@ function CartPage() {
   const [preferenceId, setPreferenceId] = useState<string | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const hasSyncedRef = useRef(false)
-  const syncPromiseRef = useRef<Promise<void> | null>(null)
+
 const {
    cartItems,
     removeFromCart,
@@ -52,7 +49,6 @@ const getLogin = () => {
 useEffect(() => {
   const syncCart = async () => {
     if (!userData?.user?.id) {
-      console.log('⏭️ Usuario no autenticado, saltando sincronización');
       return;
     }
 
@@ -69,13 +65,8 @@ useEffect(() => {
     if (localCart) {
       try {
         const localItems: IProduct[] = JSON.parse(localCart);
-        console.log('📦 Items en localStorage:', localItems.length);
         
         if (localItems.length > 0) {
-          console.log('🔄 Sincronizando items con backend...');
-          toast.info('Sincronizando carrito...');
-          
-          const { addToCartBackend } = await import('@/src/services/order.services');
           
           let syncCount = 0;
           for (const item of localItems) {
@@ -98,8 +89,6 @@ useEffect(() => {
               }
             }
           }
-          
-          console.log(`✅ Sincronizados ${syncCount}/${localItems.length} items`);
           
           // Marcar como sincronizado
           hasSyncedRef.current = true;
@@ -146,21 +135,9 @@ const handleCheckout = async () => {
   }
 
   setIsCheckingOut(true);
-  try {
-    console.log('🚀 Iniciando checkout...');
-    console.log('🛒 Items en el carrito:', items.length);
-    
+  try {    
     // Llamar al nuevo endpoint que usa el carrito del backend
     const response = await createCheckout(String(userData.user.id), userData.token || '');
-    
-    console.log('📦 Respuesta completa del checkout:', response);
-    
-    // El backend devuelve { message: string, data: { preferenceId, initPoint, sandboxInitPoint } }
-    const data = response?.data || response;
-    
-    console.log('📦 Datos de pago:', data);
-    console.log('🔗 USAR ESTE LINK PARA PRODUCCIÓN:', data?.initPoint);
-    console.log('⚠️ Link de sandbox (NO usar en producción):', data?.sandboxInitPoint);
     
     // IMPORTANTE: Usar initPoint para producción (NO sandboxInitPoint)
     const checkoutUrl = data?.initPoint;
@@ -305,8 +282,8 @@ return (
                               <li key={item.id} className={`flex py-6 px-4 rounded-lg ${index % 2 === 0 ? 'bg-amber-50' : 'bg-white'}`}>
                                 <div className="size-24 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
                                   <Image
-                                   alt={item.name}
-                                    src={(item.image ) ? item.image : (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}${item.image ?? ''}` : '/next.svg')}
+                                    src={item.image}
+                                    alt={item.name}
                                     width={96}
                                     height={96}
                                     loading="lazy"
