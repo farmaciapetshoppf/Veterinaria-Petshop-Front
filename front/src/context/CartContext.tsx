@@ -62,6 +62,34 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
             }
 
             if (cartData && cartData.items) {
+                // 🔍 DETECTAR DUPLICADOS AUTOMÁTICAMENTE
+                const productIds = new Map<string, number>();
+                let hasDuplicates = false;
+                
+                cartData.items.forEach((item: any) => {
+                    const count = productIds.get(item.product.id) || 0;
+                    productIds.set(item.product.id, count + 1);
+                    if (count > 0) {
+                        hasDuplicates = true;
+                    }
+                });
+                
+                // Si hay duplicados, limpiar automáticamente el carrito del backend
+                if (hasDuplicates) {
+                    console.warn('⚠️ Duplicados detectados en el carrito. Limpiando automáticamente...');
+                    try {
+                        await clearCartBackend(String(userData.user.id), userData.token || '');
+                        setCartItems([]);
+                        localStorage.removeItem('cart');
+                        toast.info('Se detectaron items duplicados y fueron eliminados automáticamente.', { 
+                            duration: 4000 
+                        });
+                    } catch (clearError) {
+                        console.error('Error al limpiar duplicados:', clearError);
+                    }
+                    return;
+                }
+                
                 // Transformar items del backend al formato del frontend
                 const transformedItems = cartData.items.map((item: any) => ({
                     ...item.product,
