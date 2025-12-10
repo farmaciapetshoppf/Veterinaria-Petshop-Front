@@ -161,6 +161,7 @@ export interface IProduct {
     price: number;
     stock: number;
     image: string | StaticImageData;
+    imgUrl?: string; // URL de la imagen desde el backend
     images?: (string | StaticImageData)[]; // Galería de imágenes adicionales
     categoryId?: number | string; // Puede ser número (mock) o string UUID (backend)
     quantity?: number; // Cantidad en el carrito (opcional)

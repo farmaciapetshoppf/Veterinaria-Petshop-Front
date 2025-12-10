@@ -99,7 +99,11 @@ function LoginView() {
 
                             // IMPORTANTE: Guardar el usuario en el contexto
                             setUserData(formatted);
-
+                            
+                            // Guardar datos del usuario en localStorage para recuperación
+                            localStorage.setItem('userData', JSON.stringify(formatted.user));
+                            console.log('💾 Datos de usuario guardados en localStorage');
+                            
                             // Delay para que React actualice el estado
                             await new Promise(resolve => setTimeout(resolve, 200));
 

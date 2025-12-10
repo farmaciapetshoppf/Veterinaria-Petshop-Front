@@ -10,10 +10,12 @@ import EditProfileModal from '../../components/EditProfileModal/EditProfileModal
 import OrderList from '../../components/OrderList/OrderList'
 import { toast } from 'react-toastify'
 import { updateUserProfile } from '@/src/services/user.services';
+import { getUserOrders } from '@/src/services/order.services';
 import Image from 'next/image'
 
-export default function ClientDashboard() {
-  const { userData, setUserData, activeTab, setActiveTab } = useAuth()
+export default function ClientDashboard({ refreshOrders }: { refreshOrders?: number }) {
+  const { userData, setUserData } = useAuth()
+  const [activeTab, setActiveTab] = useState<'profile' | 'pets' | 'orders'>('profile')
   const [pets, setPets] = useState<IPet[]>([])
   const [showNewPetModal, setShowNewPetModal] = useState(false)
   const [creatingPet, setCreatingPet] = useState(false);
@@ -72,6 +74,30 @@ export default function ClientDashboard() {
       setPets(userData.user.pets)
     }
   }, [userData])
+
+  // Cargar órdenes del usuario
+  useEffect(() => {
+    const loadUserOrders = async () => {
+      if (!userData?.user?.id || !userData?.token) {
+        console.log('⚠️ No hay userData o token para cargar órdenes');
+        return;
+      }
+      
+      setLoadingOrders(true);
+      
+      try {
+        const userOrders = await getUserOrders(userData.user.id, userData.token);
+        setOrders(userOrders);
+      } catch (error) {
+        console.error('❌ Error al cargar órdenes:', error);
+        setOrders([]);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+
+    loadUserOrders();
+  }, [userData?.user?.id, userData?.token, refreshOrders])
 
   if (!userData) {
     return (
@@ -312,7 +338,14 @@ export default function ClientDashboard() {
             {activeTab === 'orders' && (
               <div className="md:col-span-2">
                 <h2 className="text-xl font-bold mb-4">Órdenes</h2>
-                <OrderList orders={userData?.user.buyerSaleOrders || []} />
+                {loadingOrders ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                    <p className="text-gray-500 mt-2">Cargando órdenes...</p>
+                  </div>
+                ) : (
+                  <OrderList orders={orders} />
+                )}
               </div>
             )}
 
