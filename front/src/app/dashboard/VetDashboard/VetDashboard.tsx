@@ -48,7 +48,7 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
         
         // Primero obtener el veterinario asociado al usuario
         const userId = userData?.user?.id;
-        const token = userData?.token || localStorage.getItem('authToken') || '';
+        const token = userData?.token || localStorage.getItem('authToken');
 
         if (!userId || !token) {
           console.error('❌ No hay ID de usuario o token');

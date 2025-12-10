@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Select from 'react-select'
 import { toast } from 'react-toastify'
 import avatar from "@/src/assets/avatar.jpg"
+import { Veterinarian } from '@/src/types'
 
 interface Props {
     open: boolean
