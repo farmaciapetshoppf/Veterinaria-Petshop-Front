@@ -54,9 +54,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 });
 
                 if (!res.ok) {
-                    console.log('❌ No hay sesión activa (status:', res.status, ')');
+                    console.log('❌ No hay sesión activa desde API (status:', res.status, ')');
+                    
+                    // ⚠️ WORKAROUND TEMPORAL: Si hay token en localStorage, intentar mantener una sesión básica
+                    const storedToken = localStorage.getItem('authToken');
+                    const storedUser = localStorage.getItem('userData');
+                    
+                    if (storedToken && storedUser) {
+                        console.warn('⚠️ Token expirado pero recuperando sesión desde localStorage');
+                        try {
+                            const parsedUser = JSON.parse(storedUser);
+                            setUserData({
+                                user: parsedUser,
+                                token: storedToken
+                            });
+                            console.log('✅ Sesión recuperada desde localStorage');
+                            return;
+                        } catch (e) {
+                            console.error('Error al parsear userData desde localStorage');
+                        }
+                    }
+                    
                     setUserData(null);
-                    localStorage.removeItem('authToken');
+                    // localStorage.removeItem('authToken'); // Comentado para debugging
+                    console.warn('⚠️ El backend debe extender la expiración del token JWT.');
                     return;
                 }
 
@@ -83,6 +104,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     },
                     token: token
                 };
+                
+                // Guardar datos del usuario en localStorage para recuperación
+                localStorage.setItem('userData', JSON.stringify(formattedUser.user));
                 
                 setUserData(formattedUser);
             } catch (err) {

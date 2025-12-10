@@ -76,12 +76,20 @@ export default function AdminDashboard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
+  const [expandedOrderGroups, setExpandedOrderGroups] = useState<Record<string, boolean>>({
+    today: true,
+    week: false,
+    month: false,
+    older: false
+  });
+  const [expandedVetGroups, setExpandedVetGroups] = useState<Record<string, boolean>>({});
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
     stock: '',
-    imgUrl: ''
+    categoryId: '',
+    image: null as File | null
   });
 
   useEffect(() => {
@@ -162,27 +170,45 @@ export default function AdminDashboard() {
   );
 
   const handleCreateProduct = async () => {
-    if (!formData.name || !formData.price || !formData.stock) {
-      alert('Por favor completa todos los campos obligatorios');
+    if (!formData.name || !formData.price || !formData.stock || !formData.image) {
+      alert('Por favor completa todos los campos obligatorios (nombre, precio, stock e imagen)');
       return;
     }
 
     try {
       console.log('📤 Creando producto...');
+      console.log('📋 Datos del formulario:', {
+        name: formData.name,
+        description: formData.description,
+        price: formData.price,
+        stock: formData.stock,
+        categoryId: formData.categoryId,
+        hasImage: !!formData.image,
+        imageName: formData.image?.name,
+        imageSize: formData.image?.size,
+        imageType: formData.image?.type
+      });
+      
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('description', formData.description || '');
+      formDataToSend.append('price', formData.price);
+      formDataToSend.append('stock', formData.stock);
+      if (formData.categoryId) formDataToSend.append('categoryId', formData.categoryId);
+      formDataToSend.append('image', formData.image, formData.image.name);
+
+      console.log('📦 Enviando con FormData');
+      for (let pair of formDataToSend.entries()) {
+        console.log(`  ${pair[0]}:`, pair[1]);
+      }
+
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
           ...(userData?.token && { Authorization: `Bearer ${userData.token}` }),
         },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock),
-          imgUrl: formData.imgUrl || 'https://via.placeholder.com/150',
-        }),
+        body: formDataToSend,
       });
 
       console.log('📥 Respuesta del servidor:', response.status, response.statusText);
@@ -192,12 +218,12 @@ export default function AdminDashboard() {
         console.log('✅ Producto creado:', result);
         alert('Producto creado exitosamente');
         setShowCreateModal(false);
-        setFormData({ name: '', description: '', price: '', stock: '', imgUrl: '' });
+        setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
         loadProducts();
       } else {
         const error = await response.json();
         console.error('❌ Error del servidor:', error);
-          alert(`Error al crear producto: ${error.message || JSON.stringify(error)}`);
+        alert(`Error al crear producto: ${error.message || JSON.stringify(error)}`);
       }
     } catch (error) {
       console.error('Error al crear producto:', error);
@@ -214,20 +240,21 @@ export default function AdminDashboard() {
     try {
       console.log('📤 Actualizando producto:', selectedProduct.id);
 
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('description', formData.description || '');
+      formDataToSend.append('price', formData.price);
+      formDataToSend.append('stock', formData.stock);
+      if (formData.categoryId) formDataToSend.append('categoryId', formData.categoryId);
+      if (formData.image) formDataToSend.append('image', formData.image);
+
       const response = await fetch(`${API_URL}/products/${selectedProduct.id}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
           ...(userData?.token && { Authorization: `Bearer ${userData.token}` }),
         },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock),
-          imgUrl: formData.imgUrl || undefined,
-        }),
+        body: formDataToSend,
       });
 
       console.log('📥 Respuesta del servidor:', response.status, response.statusText);
@@ -258,7 +285,7 @@ export default function AdminDashboard() {
         alert('Producto actualizado exitosamente');
         setShowEditModal(false);
         setSelectedProduct(null);
-        setFormData({ name: '', description: '', price: '', stock: '', imgUrl: '' });
+        setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
       } else {
         const error = await response.json();
         console.error('❌ Error del servidor:', error);
@@ -304,7 +331,8 @@ export default function AdminDashboard() {
       description: product.description,
       price: product.price.toString(),
       stock: product.stock.toString(),
-      imgUrl: product.imgUrl || ''
+      categoryId: '',
+      image: null
     });
     setShowEditModal(true);
   };
@@ -319,6 +347,93 @@ export default function AdminDashboard() {
       }
     }
     return image;
+  };
+
+  const toggleOrderGroup = (group: string) => {
+    setExpandedOrderGroups(prev => ({
+      ...prev,
+      [group]: !prev[group]
+    }));
+  };
+
+  const toggleVetGroup = (vetId: string) => {
+    setExpandedVetGroups(prev => ({
+      ...prev,
+      [vetId]: !prev[vetId]
+    }));
+  };
+
+  const groupAppointmentsByVet = (appointments: Appointment[]) => {
+    const vetGroups: Record<string, { vet: any; appointments: Appointment[] }> = {};
+
+    appointments.forEach(appointment => {
+      const vetId = appointment.veterinarian?.id || 'unknown';
+      const vetName = appointment.veterinarian?.name || 'Sin veterinario asignado';
+      
+      if (!vetGroups[vetId]) {
+        vetGroups[vetId] = {
+          vet: {
+            id: vetId,
+            name: vetName,
+            specialty: appointment.veterinarian?.specialty
+          },
+          appointments: []
+        };
+      }
+      
+      vetGroups[vetId].appointments.push(appointment);
+    });
+
+    // Ordenar citas por fecha dentro de cada grupo
+    Object.values(vetGroups).forEach(group => {
+      group.appointments.sort((a, b) => {
+        const dateA = new Date(a.date + ' ' + a.time);
+        const dateB = new Date(b.date + ' ' + b.time);
+        return dateA.getTime() - dateB.getTime();
+      });
+    });
+
+    return Object.values(vetGroups).sort((a, b) => 
+      a.vet.name.localeCompare(b.vet.name)
+    );
+  };
+
+  const groupOrdersByDate = (orders: Order[]) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const groups: Record<string, Order[]> = {
+      today: [],
+      week: [],
+      month: [],
+      older: []
+    };
+
+    orders.forEach(order => {
+      if (!order.createdAt) return;
+      const orderDate = new Date(order.createdAt);
+      if (orderDate >= today) {
+        groups.today.push(order);
+      } else if (orderDate >= weekAgo) {
+        groups.week.push(order);
+      } else if (orderDate >= monthAgo) {
+        groups.month.push(order);
+      } else {
+        groups.older.push(order);
+      }
+    });
+
+    const calculateTotal = (orders: Order[]) => 
+      orders.reduce((sum, order) => sum + (parseFloat(order.total || '0')), 0);
+
+    return [
+      { title: 'Hoy', key: 'today', orders: groups.today, total: calculateTotal(groups.today) },
+      { title: 'Última semana', key: 'week', orders: groups.week, total: calculateTotal(groups.week) },
+      { title: 'Último mes', key: 'month', orders: groups.month, total: calculateTotal(groups.month) },
+      { title: 'Anteriores', key: 'older', orders: groups.older, total: calculateTotal(groups.older) }
+    ].filter(group => group.orders.length > 0);
   };
 
   const getStatusColor = (status: string | boolean) => {
@@ -392,7 +507,15 @@ export default function AdminDashboard() {
         {/* Content */}
         {activeTab === 'appointments' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Turnos de Todos los Veterinarios</h2>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Turnos de Veterinarios</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {appointments.length} {appointments.length === 1 ? 'turno' : 'turnos'} agendados
+                </p>
+              </div>
+            </div>
+
             {loadingAppointments ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
@@ -404,58 +527,105 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {appointments.map((appointment) => (
-                  <div key={appointment.id} className="bg-linear-to-br from-white to-amber-50 rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 p-6 border border-amber-200 hover:border-amber-400 transform hover:-translate-y-1">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <p className="text-sm text-gray-500">Fecha</p>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {new Date(appointment.date).toLocaleDateString('es-AR')}
-                        </p>
-                        <p className="text-sm text-amber-600">{appointment.time}</p>
-                      </div>
-                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(appointment.status)}`}>
-                        {typeof appointment.status === 'boolean' 
-                          ? (appointment.status ? 'Pendiente' : 'Cancelado')
-                          : appointment.status
-                        }
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-3 border-t border-gray-100 pt-4">
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase">Veterinario</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {appointment.veterinarian?.name || 'No especificado'}
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase">Mascota</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {appointment.pet?.name || 'No especificado'}
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase">Dueño</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {appointment.pet?.user?.name || 'No especificado'}
-                        </p>
-                      </div>
-                      
-                      {appointment.reason && (
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase">Motivo</p>
-                          <p className="text-sm text-gray-700 line-clamp-2">
-                            {appointment.reason}
-                          </p>
+              <div className="space-y-4">
+                {groupAppointmentsByVet(appointments).map((group) => {
+                  const isExpanded = expandedVetGroups[group.vet.id] ?? true;
+
+                  return (
+                    <div key={group.vet.id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                      {/* Header del veterinario */}
+                      <button
+                        onClick={() => toggleVetGroup(group.vet.id)}
+                        className="w-full bg-linear-to-r from-amber-50 to-orange-50 px-6 py-4 border-b border-amber-100 hover:from-amber-100 hover:to-orange-100 transition-colors"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <svg
+                              className={`w-5 h-5 text-amber-600 transform transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                            <div className="text-left">
+                              <h3 className="text-lg font-bold text-gray-900">{group.vet.name}</h3>
+                              <p className="text-sm text-gray-600">
+                                {group.appointments.length} {group.appointments.length === 1 ? 'turno' : 'turnos'}
+                                {group.vet.specialty && ` · ${group.vet.specialty}`}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">🩺</span>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Contenido: turnos del veterinario */}
+                      {isExpanded && (
+                        <div className="divide-y divide-gray-100">
+                          {group.appointments.map((appointment) => (
+                            <div key={appointment.id} className="p-4 hover:bg-gray-50 transition-colors">
+                              <div className="flex items-start justify-between gap-4">
+                                {/* Fecha y hora */}
+                                <div className="flex items-start gap-4 flex-1">
+                                  <div className="shrink-0">
+                                    <div className="bg-amber-100 rounded-lg p-3 text-center min-w-[70px]">
+                                      <p className="text-xs text-amber-700 font-medium uppercase">
+                                        {new Date(appointment.date).toLocaleDateString('es-AR', { month: 'short' })}
+                                      </p>
+                                      <p className="text-2xl font-bold text-amber-900">
+                                        {new Date(appointment.date).getDate()}
+                                      </p>
+                                      <p className="text-xs text-amber-600 font-medium">
+                                        {appointment.time}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Información del turno */}
+                                  <div className="flex-1 min-w-0 space-y-2">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="text-sm">🐾</span>
+                                          <p className="text-sm font-semibold text-gray-900">
+                                            {appointment.pet?.name || 'No especificado'}
+                                          </p>
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="text-xs">👤</span>
+                                          <p className="text-xs text-gray-600">
+                                            {appointment.pet?.user?.name || 'No especificado'}
+                                          </p>
+                                        </div>
+                                        {appointment.reason && (
+                                          <div className="mt-2 bg-gray-50 rounded p-2">
+                                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Motivo</p>
+                                            <p className="text-sm text-gray-700">{appointment.reason}</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                      
+                                      {/* Estado */}
+                                      <span className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${getStatusColor(appointment.status)}`}>
+                                        {typeof appointment.status === 'boolean' 
+                                          ? (appointment.status ? 'Pendiente' : 'Cancelado')
+                                          : appointment.status
+                                        }
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -463,7 +633,15 @@ export default function AdminDashboard() {
 
         {activeTab === 'orders' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Historial de Compras</h2>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Historial de Compras</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {orders.length} {orders.length === 1 ? 'orden' : 'órdenes'} · Total: ${orders.reduce((sum, order) => sum + parseFloat(order.total || '0'), 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+
             {loadingOrders ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
@@ -475,69 +653,118 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                {orders.map((order) => (
-                  <div key={order.id} className="bg-linear-to-r from-white to-orange-50 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 p-4 border border-amber-200 hover:border-orange-400 transform hover:scale-[1.01]">
-                    <div className="flex items-center justify-between gap-4">
-                      {/* Orden y Fecha */}
-                      <div className="flex items-center gap-4 min-w-0 flex-1">
-                        <div className="shrink-0">
-                          <p className="text-xs text-gray-500 uppercase">Orden</p>
-                          <p className="text-sm font-semibold text-gray-900">
-                            #{order.id?.substring(0, 8) || 'N/A'}
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString('es-AR') : 'Sin fecha'}
-                          </p>
-                        </div>
-                        
-                        {/* Cliente */}
-                        <div className="shrink-0 border-l border-gray-200 pl-4">
-                          <p className="text-xs text-gray-500 uppercase">Cliente</p>
-                          <p className="text-sm font-medium text-gray-900">
-                            {order.buyer?.name || 'No especificado'}
-                          </p>
-                          {order.buyer?.email && (
-                            <p className="text-xs text-gray-500">{order.buyer.email}</p>
-                          )}
-                        </div>
-                        
-                        {/* Productos */}
-                        {order.items && order.items.length > 0 && (
-                          <div className="flex-1 min-w-0 border-l border-gray-200 pl-4">
-                            <p className="text-xs text-gray-500 uppercase mb-1">Productos</p>
-                            <div className="flex flex-wrap gap-1">
-                              {order.items.slice(0, 2).map((item, index) => (
-                                <span key={index} className="text-xs text-gray-700 bg-gray-50 px-2 py-1 rounded">
-                                  {item.product?.name || 'Producto'} (x{item.quantity})
-                                </span>
-                              ))}
-                              {order.items.length > 2 && (
-                                <span className="text-xs text-gray-500 italic px-2 py-1">
-                                  +{order.items.length - 2} más
-                                </span>
-                              )}
+              <div className="space-y-4">
+                {groupOrdersByDate(orders).map((group) => {
+                  const isExpanded = expandedOrderGroups[group.key];
+
+                  return (
+                    <div key={group.key} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                      {/* Header del grupo */}
+                      <button
+                        onClick={() => toggleOrderGroup(group.key)}
+                        className="w-full bg-linear-to-r from-amber-50 to-orange-50 px-6 py-4 border-b border-amber-100 hover:from-amber-100 hover:to-orange-100 transition-colors"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <svg
+                              className={`w-5 h-5 text-amber-600 transform transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                            <div className="text-left">
+                              <h3 className="text-lg font-bold text-gray-900">{group.title}</h3>
+                              <p className="text-sm text-gray-600">
+                                {group.orders.length} {group.orders.length === 1 ? 'orden' : 'órdenes'}
+                              </p>
                             </div>
                           </div>
-                        )}
-                      </div>
-                      
-                      {/* Total y Estado */}
-                      <div className="flex items-center gap-4 shrink-0">
-                        <div className="text-right border-l border-gray-200 pl-4">
-                          <p className="text-xs text-gray-500 uppercase">Total</p>
-                          <p className="text-xl font-bold text-amber-600">
-                            ${order.total ? parseFloat(order.total).toLocaleString('es-AR', { minimumFractionDigits: 2 }) : '0.00'}
-                          </p>
+                          <div className="text-right">
+                            <p className="text-sm text-gray-600">Total</p>
+                            <p className="text-2xl font-bold text-amber-600">
+                              ${group.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
                         </div>
-                        
-                        <span className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${getStatusColor(order.status || 'pending')}`}>
-                          {order.status || 'Pendiente'}
-                        </span>
-                      </div>
+                      </button>
+
+                      {/* Contenido del grupo (desplegable) */}
+                      {isExpanded && (
+                        <div className="divide-y divide-gray-100">
+                          {group.orders.map((order) => (
+                            <div key={order.id} className="p-4 hover:bg-gray-50 transition-colors">
+                              <div className="flex items-center justify-between gap-4">
+                                {/* Orden y Fecha */}
+                                <div className="flex items-center gap-4 min-w-0 flex-1">
+                                  <div className="shrink-0">
+                                    <p className="text-xs text-gray-500 uppercase">Orden</p>
+                                    <p className="text-sm font-semibold text-gray-900">
+                                      #{order.id?.substring(0, 8) || 'N/A'}
+                                    </p>
+                                    <p className="text-xs text-gray-600">
+                                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString('es-AR', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      }) : 'Sin fecha'}
+                                    </p>
+                                  </div>
+                                  
+                                  {/* Cliente */}
+                                  <div className="shrink-0 border-l border-gray-200 pl-4">
+                                    <p className="text-xs text-gray-500 uppercase">Cliente</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                      {order.buyer?.name || 'No especificado'}
+                                    </p>
+                                    {order.buyer?.email && (
+                                      <p className="text-xs text-gray-500">{order.buyer.email}</p>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Productos */}
+                                  {order.items && order.items.length > 0 && (
+                                    <div className="flex-1 min-w-0 border-l border-gray-200 pl-4">
+                                      <p className="text-xs text-gray-500 uppercase mb-1">Productos</p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {order.items.slice(0, 2).map((item, index) => (
+                                          <span key={index} className="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                                            {item.product?.name || 'Producto'} (x{item.quantity})
+                                          </span>
+                                        ))}
+                                        {order.items.length > 2 && (
+                                          <span className="text-xs text-gray-500 italic px-2 py-1">
+                                            +{order.items.length - 2} más
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Total y Estado */}
+                                <div className="flex items-center gap-4 shrink-0">
+                                  <div className="text-right border-l border-gray-200 pl-4">
+                                    <p className="text-xs text-gray-500 uppercase">Total</p>
+                                    <p className="text-xl font-bold text-amber-600">
+                                      ${order.total ? parseFloat(order.total).toLocaleString('es-AR', { minimumFractionDigits: 2 }) : '0.00'}
+                                    </p>
+                                  </div>
+                                  
+                                  <span className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${getStatusColor(order.status || 'pending')}`}>
+                                    {order.status || 'Pendiente'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -615,7 +842,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-4 min-w-0 flex-1">
                           <div className="shrink-0 w-20 h-20 bg-white rounded-lg overflow-hidden border-2 border-amber-200">
                             <img
-                              src={getImageSrc(product.image)}
+                              src={getImageSrc(product.imgUrl || product.image)}
                               alt={product.name}
                               className="w-full h-full object-cover"
                             />
@@ -702,7 +929,7 @@ export default function AdminDashboard() {
               <button
                 onClick={() => {
                   setShowCreateModal(false);
-                  setFormData({ name: '', description: '', price: '', stock: '', image: null });
+                  setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
                 }}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
               >
@@ -759,18 +986,26 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">URL de la Imagen</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Categoría ID (opcional)</label>
                 <input
                   type="text"
-                  value={formData.imgUrl}
-                  onChange={(e) => setFormData({ ...formData, imgUrl: e.target.value })}
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
-                  placeholder="https://ejemplo.com/imagen.jpg"
+                  placeholder="550e8400-e29b-41d4-a716-446655440000"
                 />
-                {formData.imgUrl && (
-                  <div className="mt-2">
-                    <img src={formData.imgUrl} alt="Vista previa" className="w-32 h-32 object-cover rounded-lg" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                  </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Imagen del Producto</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                />
+                {formData.image && (
+                  <p className="text-xs text-green-600 mt-1">✓ Archivo seleccionado: {formData.image.name}</p>
                 )}
               </div>
 
@@ -784,7 +1019,7 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => {
                     setShowCreateModal(false);
-                    setFormData({ name: '', description: '', price: '', stock: '', image: null });
+                    setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
                   }}
                   className="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
                 >
@@ -806,7 +1041,7 @@ export default function AdminDashboard() {
                 onClick={() => {
                   setShowEditModal(false);
                   setSelectedProduct(null);
-                  setFormData({ name: '', description: '', price: '', stock: '', image: null });
+                  setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
                 }}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
               >
@@ -863,28 +1098,35 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">URL de la Imagen</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Categoría ID (opcional)</label>
                 <input
                   type="text"
-                  value={formData.imgUrl}
-                  onChange={(e) => setFormData({ ...formData, imgUrl: e.target.value })}
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
-                  placeholder="https://ejemplo.com/imagen.jpg"
+                  placeholder="550e8400-e29b-41d4-a716-446655440000"
                 />
-                {formData.imgUrl && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500 mb-1">Vista previa:</p>
-                    <img src={formData.imgUrl} alt="Vista previa" className="w-32 h-32 object-cover rounded-lg" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                  </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Nueva Imagen (opcional)</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                />
+                {formData.image && (
+                  <p className="text-xs text-green-600 mt-1">✓ Archivo seleccionado: {formData.image.name}</p>
                 )}
               </div>
 
               {/* Imagen actual */}
-              {selectedProduct.imgUrl && (
+              {(selectedProduct.imgUrl || selectedProduct.image) && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Imagen Actual</label>
                   <img
-                    src={getImageSrc(selectedProduct.imgUrl)}
+                    src={getImageSrc(selectedProduct.imgUrl || selectedProduct.image)}
                     alt={selectedProduct.name}
                     className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300"
                   />
@@ -902,7 +1144,7 @@ export default function AdminDashboard() {
                   onClick={() => {
                     setShowEditModal(false);
                     setSelectedProduct(null);
-                    setFormData({ name: '', description: '', price: '', stock: '', imgUrl: '' });
+                    setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
                   }}
                   className="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
                 >

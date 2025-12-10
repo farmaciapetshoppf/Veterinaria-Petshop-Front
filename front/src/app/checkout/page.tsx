@@ -3,14 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
-import MercadoPagoCheckout from "../components/MercadoPagoCheckout/MercadoPagoCheckout";
-import { useEffect } from "react";
+import MercadoPagoWallet from "../components/MercadoPagoWallet/MercadoPagoWallet";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { createCheckout } from "@/src/services/order.services";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, getTotal, clearCart } = useCart();
   const { userData } = useAuth();
+  const [preferenceId, setPreferenceId] = useState<string | null>(null);
+  const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
 
   useEffect(() => {
     // Redirigir si no hay usuario o carrito vacío
@@ -23,44 +26,77 @@ export default function CheckoutPage() {
     if (cartItems.length === 0) {
       toast.error("Tu carrito está vacío");
       router.push("/store");
+      return;
     }
-  }, [userData, cartItems, router]);
+
+    // Crear el checkout automáticamente al cargar la página
+    initCheckout();
+  }, [userData, cartItems]);
+
+  const initCheckout = async () => {
+    if (!userData || cartItems.length === 0 || isLoadingCheckout) return;
+
+    setIsLoadingCheckout(true);
+    
+    try {
+      console.log('🚀 Iniciando checkout...');
+      console.log('👤 Usuario ID:', userData.user.id);
+      console.log('🔑 Token:', userData.token?.substring(0, 20) + '...');
+      
+      const response = await createCheckout(String(userData.user.id), userData.token);
+      
+      console.log('✅ Respuesta COMPLETA del checkout:', JSON.stringify(response, null, 2));
+      
+      // El backend devuelve: { message: string, data: { preferenceId: string, initPoint: string, sandboxInitPoint: string } }
+      const prefId = response.data?.preferenceId || response.preferenceId || response.preference_id || response.id;
+      
+      if (prefId) {
+        console.log('🎯 PreferenceId encontrado:', prefId);
+        setPreferenceId(prefId);
+        toast.success('Checkout creado exitosamente');
+      } else {
+        console.error('❌ No se encontró preferenceId en la respuesta. Estructura completa:', response);
+        throw new Error('No se recibió el preferenceId del backend');
+      }
+    } catch (error: any) {
+      console.error('❌ Error COMPLETO al crear checkout:', {
+        message: error.message,
+        stack: error.stack,
+        error: error
+      });
+      toast.error(error.message || 'Error al crear el checkout', {
+        description: 'Revisa la consola para más detalles',
+        duration: 10000
+      });
+    } finally {
+      setIsLoadingCheckout(false);
+    }
+  };
 
   const handlePaymentSuccess = async (paymentId: string) => {
     console.log("✅ Pago exitoso! ID:", paymentId);
     
-    toast.custom(() => (
-      <div className="flex items-center gap-3 rounded-md border border-green-800 bg-green-100 px-4 py-2 text-green-900">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-        </svg>
-        <div className="text-sm font-medium">¡Pago realizado con éxito!</div>
-      </div>
-    ), { duration: 4000 });
+    toast.success('¡Pago realizado con éxito!', {
+      description: 'Redirigiendo al dashboard...',
+      duration: 3000
+    });
 
     // Limpiar el carrito
     await clearCart();
     
     // Redirigir al dashboard después de 2 segundos
     setTimeout(() => {
-      router.push("/dashboard");
+      router.push("/dashboard?payment=success");
     }, 2000);
   };
 
   const handlePaymentError = (error: any) => {
     console.error("❌ Error en el pago:", error);
     
-    toast.custom(() => (
-      <div className="flex flex-col gap-1 rounded-md border border-red-800 bg-red-100 px-4 py-2 text-red-900">
-        <div className="flex items-center gap-3">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
-          <div className="text-sm font-medium">Error al procesar el pago</div>
-        </div>
-        <div className="text-xs text-red-800">{error.message || "Intenta nuevamente"}</div>
-      </div>
-    ), { duration: 6000 });
+    toast.error('Error al procesar el pago', {
+      description: error.message || 'Intenta nuevamente',
+      duration: 5000
+    });
   };
 
   if (!userData || cartItems.length === 0) {
@@ -117,11 +153,36 @@ export default function CheckoutPage() {
 
         {/* Formulario de pago */}
         <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-orange-200">
-          <MercadoPagoCheckout
-            amount={total}
-            onSuccess={handlePaymentSuccess}
-            onError={handlePaymentError}
-          />
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-600" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+            </svg>
+            Método de pago
+          </h2>
+
+          {isLoadingCheckout && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+              <p className="text-gray-600 font-medium">Preparando checkout...</p>
+            </div>
+          )}
+
+          {!isLoadingCheckout && !preferenceId && (
+            <div className="text-center py-8">
+              <p className="text-red-600 mb-4">No se pudo crear el checkout</p>
+              <button
+                onClick={initCheckout}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg transition"
+              >
+                Reintentar
+              </button>
+            </div>
+          )}
+
+          {preferenceId && (
+            <MercadoPagoWallet preferenceId={preferenceId} />
+          )}
         </div>
 
         {/* Botón volver */}

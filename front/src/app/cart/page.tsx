@@ -126,56 +126,6 @@ useEffect(() => {
   syncCart();
 }, [userData?.user?.id]);
 
-// Función temporal para debugging - ELIMINAR después
-const checkBackendCart = async () => {
-  if (!userData?.token || !userData?.user?.id) {
-    alert('No hay token de autenticación o userId');
-    return;
-  }
-  
-  try {
-    const response = await fetch(`http://localhost:3000/sale-orders/cart/${userData.user.id}`, {
-      headers: {
-        'Authorization': `Bearer ${userData.token}`
-      }
-    });
-    const data = await response.json();
-    console.log('🛒 CARRITO BACKEND COMPLETO:', JSON.stringify(data, null, 2));
-    alert(`Carrito Backend:\n- Items: ${data.data?.items?.length || 0}\n- Total: $${data.data?.total || 0}\n- Ver consola para detalles`);
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Error al consultar el carrito: ' + error);
-  }
-};
-
-// Función temporal para limpiar carrito - ELIMINAR después
-const clearBackendCart = async () => {
-  if (!userData?.token || !userData?.user?.id) {
-    alert('No hay token de autenticación o userId');
-    return;
-  }
-  
-  if (!confirm('¿Seguro que quieres limpiar el carrito del backend?')) {
-    return;
-  }
-  
-  try {
-    const response = await fetch(`http://localhost:3000/sale-orders/cart/clear/${userData.user.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${userData.token}`
-      }
-    });
-    const data = await response.json();
-    console.log('🧹 CARRITO LIMPIADO:', data);
-    alert('Carrito limpiado exitosamente');
-    await loadCartFromBackend();
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Error al limpiar el carrito: ' + error);
-  }
-};
-
 const handleCheckout = async () => {
   // Si el usuario no está autenticado, mostrar un toast de error y redirigir al login
   if (!userData?.user?.id) {
@@ -201,9 +151,14 @@ const handleCheckout = async () => {
     console.log('🛒 Items en el carrito:', items.length);
     
     // Llamar al nuevo endpoint que usa el carrito del backend
-    const data = await createCheckout(String(userData.user.id), userData.token || '');
+    const response = await createCheckout(String(userData.user.id), userData.token || '');
     
-    console.log('📦 Datos recibidos del checkout:', data);
+    console.log('📦 Respuesta completa del checkout:', response);
+    
+    // El backend devuelve { message: string, data: { preferenceId, initPoint, sandboxInitPoint } }
+    const data = response?.data || response;
+    
+    console.log('📦 Datos de pago:', data);
     console.log('🔗 USAR ESTE LINK PARA PRODUCCIÓN:', data?.initPoint);
     console.log('⚠️ Link de sandbox (NO usar en producción):', data?.sandboxInitPoint);
     
@@ -217,19 +172,49 @@ const handleCheckout = async () => {
       // Redirigir en la misma ventana
       window.location.href = checkoutUrl;
     } else {
-      console.error('❌ No se recibió initPoint del backend');
-      toast.error('Error: No se pudo generar el link de pago');
+      console.warn('⚠️ MercadoPago no configurado, orden creada sin initPoint');
+      
+      // Limpiar carrito local
+      localStorage.removeItem('cart');
+      
+      toast.success(
+        `✅ ¡Orden #${data.id?.slice(0, 8)} creada exitosamente! Total: $${data.total}. Redirigiendo al historial...`,
+        { autoClose: 3000 }
+      );
+      
+      // Redirigir al dashboard
+      setTimeout(() => {
+        setOpen(false);
+        router.push('/dashboard');
+      }, 2000);
     }
   } catch (error: any) {
     console.error('❌ Error al crear checkout:', error);
     
+    // Extraer información específica del error
+    const errorMessage = error.message || '';
+    
     // Mensaje de error más específico
-    if (error.message?.includes('No hay carrito activo')) {
+    if (errorMessage.includes('No hay carrito activo') || errorMessage.includes('vacío')) {
       toast.error('El carrito está vacío. Agrega productos antes de continuar.');
-    } else if (error.message?.includes('Insufficient stock')) {
-      toast.error('Uno o más productos no tienen stock suficiente.');
+    } else if (errorMessage.includes('Insufficient stock')) {
+      // Extraer el nombre del producto y las cantidades del mensaje
+      const productMatch = errorMessage.match(/product "([^"]+)"/);
+      const availableMatch = errorMessage.match(/Available: (\d+)/);
+      const requestedMatch = errorMessage.match(/requested: (\d+)/);
+      
+      if (productMatch && availableMatch && requestedMatch) {
+        const productName = productMatch[1];
+        const available = availableMatch[1];
+        const requested = requestedMatch[1];
+        toast.error(`"${productName}" no tiene stock suficiente. Disponible: ${available}, solicitado: ${requested}. Por favor ajusta la cantidad.`, {
+          autoClose: 8000
+        });
+      } else {
+        toast.error('Uno o más productos no tienen stock suficiente. Por favor verifica las cantidades.');
+      }
     } else {
-      toast.error(error.message || 'Error al procesar el pago');
+      toast.error(errorMessage || 'Error al procesar el pago');
     }
   } finally {
     setIsCheckingOut(false);
@@ -294,21 +279,6 @@ return (
                   <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
                     <div className="flex items-start justify-between">
                       <DialogTitle className="text-lg font-medium text-gray-900">Tu carrito</DialogTitle>
-                      {/* Botones temporales de debugging - COMENTADOS */}
-                      {/* <div className="flex gap-2 mr-4">
-                        <button
-                          onClick={checkBackendCart}
-                          className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                        >
-                          Ver Backend
-                        </button>
-                        <button
-                          onClick={clearBackendCart}
-                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                        >
-                          Limpiar Backend
-                        </button>
-                      </div> */}
                       <div className="ml-3 flex h-7 items-center">
                         <button
                           type="button"
@@ -399,7 +369,6 @@ return (
                       
                     </div>
 
-                    
                     {/* Botón principal de checkout */}
                     <div className="mt-6">
                       <button

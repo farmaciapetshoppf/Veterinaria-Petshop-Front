@@ -23,7 +23,7 @@ export default function CheckoutSuccess() {
 
     // Limpiar el carrito del localStorage
     localStorage.removeItem('cart');
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
@@ -82,12 +82,12 @@ export default function CheckoutSuccess() {
 
         {/* Acciones */}
         <div className="space-y-3">
-          <Link
-            href="/dashboard"
-            className="block w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-4 rounded-lg text-center transition-colors"
+          <button
+            onClick={() => router.push('/dashboard?payment=success')}
+            className="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-lg text-center transition-colors shadow-lg text-lg"
           >
-            Ver Mis Pedidos
-          </Link>
+            ✅ Ir a Mi Dashboard
+          </button>
           
           <Link
             href="/"

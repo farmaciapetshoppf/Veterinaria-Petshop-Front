@@ -7,12 +7,45 @@ import AdminDashboard from './AdminDashboard/AdminDashboard'
 import { useRole } from '@/src/hooks/useRole'
 import { useAuth } from '@/src/context/AuthContext'
 import { getVeterinarianById } from '@/src/services/veterinarian.admin.services'
+import { toast } from 'sonner'
 
 function Page() {
     const { isAdmin, isVeterinarian } = useRole();
     const { userData } = useAuth();
     const [veterinarianData, setVeterinarianData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [refreshOrders, setRefreshOrders] = useState(0); // Para forzar recarga de órdenes
+    
+    // Detectar parámetros de pago de MercadoPago
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const payment = urlParams.get('payment');
+        
+        if (payment === 'success') {
+            toast.success('¡Pago realizado exitosamente!', {
+                description: 'Tu orden ha sido procesada correctamente',
+                duration: 5000
+            });
+            // Limpiar el parámetro de la URL
+            window.history.replaceState({}, '', '/dashboard');
+            // Forzar recarga de órdenes
+            setRefreshOrders(prev => prev + 1);
+        } else if (payment === 'pending') {
+            toast.info('Tu pago está siendo procesado', {
+                description: 'Te notificaremos cuando se confirme',
+                duration: 5000
+            });
+            window.history.replaceState({}, '', '/dashboard');
+            // Forzar recarga de órdenes
+            setRefreshOrders(prev => prev + 1);
+        } else if (payment === 'failure') {
+            toast.error('El pago no pudo ser procesado', {
+                description: 'Por favor, intenta nuevamente',
+                duration: 5000
+            });
+            window.history.replaceState({}, '', '/dashboard');
+        }
+    }, []);
     
     useEffect(() => {
         const fetchVeterinarianData = async () => {
@@ -64,7 +97,9 @@ function Page() {
         return <VetDashboard veterinarian={formattedVeterinarian} />
     }
     
-    return <ClientDashboard />
+    if (isAdmin()) return <AdminDashboard />
+    
+    return <ClientDashboard refreshOrders={refreshOrders} />
 }
 
 export default Page
