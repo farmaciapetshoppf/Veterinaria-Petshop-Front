@@ -232,7 +232,7 @@ export default function StoreClient({ initialProducts, categories }: StoreClient
 
           {/* Sidebar de filtros */}
           <aside className={`lg:block ${showFilters ? 'block' : 'hidden'} lg:col-span-1 mb-8 lg:mb-0`}>
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
+            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-40">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-900">Filtros</h2>
                 <button
