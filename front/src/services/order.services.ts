@@ -350,7 +350,7 @@ export const createCheckout = async (userId: string, token: string) => {
         console.log('🔍 Verificando carrito del usuario antes del checkout...');
         
         // Primero obtener el carrito para ver qué tiene
-        const cart = await getCart(userId, token);
+        const cart = await getCart(userId);
         console.log('📦 Carrito actual:', cart);
         
         if (!cart || !cart.items || cart.items.length === 0) {
@@ -376,12 +376,11 @@ export const createCheckout = async (userId: string, token: string) => {
         
         // Llamar al endpoint de checkout que convierte el carrito en orden
         // El backend requiere success_url, failure_url y pending_url por separado
-        const response = await fetch(`${APIURL}/sale-orders/checkout/${userId}`, {
+        const response = await fetch(`${APIURL}/sale-orders/checkout`, {
             method: "POST",
             credentials: 'include',
             headers: {
                 "Content-Type": "application/json",
-                ...(token && { Authorization: token })
             },
             body: JSON.stringify({ 
                 success_url: `${baseUrl}/payment-result?status=success`,
