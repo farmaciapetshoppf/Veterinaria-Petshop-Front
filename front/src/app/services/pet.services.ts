@@ -1,4 +1,4 @@
-import { IPet } from "@/src/types";
+import { IPet, IPetUpdate } from "@/src/types";
 import { toast } from "react-toastify";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -72,7 +72,7 @@ export const deletePet = async (id: string) => {
     }
 }
 
-export async function updatePet(id: string, updatedData: any) {
+export async function updatePet(id: string, updatedData: IPetUpdate) {
   // Sanitizar datos: convertir undefined en null
   const safeBody = JSON.stringify(updatedData, (_, value) =>
     typeof value === "undefined" ? null : value

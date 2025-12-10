@@ -1,4 +1,5 @@
 'use client'
+import { IPetUpdate } from '@/src/types'
 import { useState } from 'react'
 import Select from 'react-select'
 
@@ -35,14 +36,14 @@ const statusOptions = [
 interface Props {
     open: boolean
     onClose: () => void
-    pet: NewPetData
-    onSave: (updatedData: NewPetData) => Promise<void>
+    pet: IPetUpdate
+    onSave: (updatedData: IPetUpdate) => Promise<void>
 }
 
 export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
     const inputStyle = "w-full border border-cyan-700 p-2 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
 
-    const [form, setForm] = useState<NewPetData>({
+    const [form, setForm] = useState<IPetUpdate>({
         nombre: pet?.nombre ?? '',
         especie: pet?.especie ?? 'PERRO',
         sexo: pet?.sexo ?? 'MACHO',
@@ -50,9 +51,8 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
         esterilizado: pet?.esterilizado ?? 'SI',
         status: pet?.status ?? 'VIVO',
         fecha_nacimiento: pet?.fecha_nacimiento ?? '',
-        fecha_fallecimiento: pet?.fecha_fallecimiento,
-        breed: pet?.breed ?? '',
-/*         image: pet?.image ?? '' */
+        fecha_fallecimiento: pet?.fecha_fallecimiento ?? '',
+        breed: pet?.breed ?? ''
     });
 
     if (!open) return null;
@@ -196,7 +196,7 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                     <input
                         type="date"
                         name="fecha_fallecimiento"
-                        value={form.fecha_fallecimiento}
+                        value={form.fecha_fallecimiento || ""}
                         onChange={handleChange}
                         className={inputStyle}
                     />
@@ -209,14 +209,6 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                         placeholder="Raza"
                         className={inputStyle}
                     />
-
-                    {/* <label className="text-sm font-semibold text-gray-700 mt-1">Imagen</label>
-                    <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border-2 border-cyan-700 rounded-lg focus:border-amber-500 focus:outline-none"
-                    /> */}
                 </div>
 
                 <div className="flex justify-evenly mt-2">

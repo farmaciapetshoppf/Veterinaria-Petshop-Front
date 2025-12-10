@@ -112,7 +112,8 @@ export default function PetDetailPage() {
                             <p className="text-gray-700 mb-2"><span className="font-semibold">Esterilizado:</span> {pet.esterilizado}</p>
                             <p className="text-gray-700 mb-2"><span className="font-semibold">Estado:</span> {pet.status}</p>
                             <p className="text-gray-700 mb-2"><span className="font-semibold">Edad:</span> {getPetAge()} años</p>
-                            <p className="text-gray-700 mb-2"><span className="font-semibold">Fecha de nacimiento:</span> {new Date(pet.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
+                            <p className="text-gray-700 mb-2"><span className="font-semibold">Fecha de nacimiento:
+                                </span> {new Date(pet.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
                         </div>
                         <div className="relative w-[200px] h-[50px]">
                             <Image
@@ -216,7 +217,7 @@ export default function PetDetailPage() {
                         petId={id}
                         onSuccess={(newAppointment) => {
                             toast.success('Turno agendado correctamente')
-                            setPet((prev) =>
+                            setPet((prev: any) =>
                                 prev
                                     ? {
                                         ...prev,
@@ -230,7 +231,8 @@ export default function PetDetailPage() {
                 </div>
 
                 {/* Columna derecha: turnos futuros */}
-                <div className="bg-linear-to-br from-orange-100 via-orange-200 to-orange-300 rounded-lg shadow-md p-6 border border-amber-600">
+                <div className="bg-linear-to-br from-orange-100 via-orange-200
+                 to-orange-300 rounded-lg shadow-md p-6 border border-amber-600">
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Próximos Turnos</h2>
 
                     {upcomingAppointments.length === 0 ? (

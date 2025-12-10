@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Huellitas3 from '../../../assets/Huellitas3-2.png'
 import perrocompras from '../../../assets/perrocompras.png'
@@ -29,8 +29,8 @@ export default function Navbar() {
             src={Huellitas3}
             alt="Huellitas Pet"
             width={120}
-            height={120}
             className=" transition-all duration-300"
+            loading="eager"
           />
         </Link>
 
@@ -39,7 +39,7 @@ export default function Navbar() {
           gap- lg:gap-8 text-[16px] lg:text-[20px] lg:flex-row font-medium text-gray-700">
           <div className="flex gap-4 lg:gap-8 items-center">
             {navItems
-              .filter((item) => {
+              .filter(() => {
                 // Veterinario no ve nada del nav (sin Store, Historia, Equipo)
                 if (isVeterinarian()) {
                   return false;
@@ -72,7 +72,7 @@ export default function Navbar() {
           </div>
           
           { userData && userData.user && userData.user.name && (
-            <span className="text-gray-700 whitespace-nowrap text-[16px] lg:text-[20px] font-medium">
+            <span className="text-gray-700 whitespace-nowrap ml-3 text-[16px] lg:text-[20px] font-medium">
               {isVeterinarian() ? (
                 <>
                   Hola <span className="font-semibold">Doc. {userData.user.name.split(" ")[0]}</span>
@@ -85,7 +85,9 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}</span>, accedé a tu <Link href={PATHROUTES.PERFIL} className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
+                  Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}
+                    </span>, accedé a tu <Link href={PATHROUTES.PERFIL} 
+                    className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
                 </>
               )}
             </span>
@@ -181,7 +183,7 @@ export default function Navbar() {
       >
         <div className="px-4 py-6 space-y-4">
           {navItems
-            .filter((item) => {
+            .filter(() => {
               // Admin no ve nada del nav en mobile
               if (isAdmin()) {
                 return false;

@@ -73,7 +73,7 @@ export default function ClientDashboard() {
     }
   }, [userData])
 
-  if (!userData) {
+  if (!userData?.user?.pets) {
     return (
       <div className="bg-white pt-20 min-h-screen flex items-center justify-center">
         <p className="text-gray-500">Debes iniciar sesión para ver tu dashboard</p>
