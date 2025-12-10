@@ -137,10 +137,11 @@ const handleCheckout = async () => {
   setIsCheckingOut(true);
   try {    
     // Llamar al nuevo endpoint que usa el carrito del backend
-    const response = await createCheckout(String(userData.user.id), userData.token || '');
+    const data = await createCheckout(userData.user.id, userData.token || '');
     
     // IMPORTANTE: Usar initPoint para producción (NO sandboxInitPoint)
-    const checkoutUrl = data?.initPoint;
+    const checkoutUrl = data?.init_point || data?.sandbox_init_point;
+
     
     if (checkoutUrl) {
       console.log('✅ Redirigiendo a MercadoPago (PRODUCCIÓN):', checkoutUrl);

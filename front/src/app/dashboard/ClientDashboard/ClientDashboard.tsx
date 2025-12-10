@@ -516,17 +516,6 @@ export default function ClientDashboard({
                     </p>
                   </div>
                 </div>
-
-                <button
-                  className="mt-6 w-1/2 px-4 py-2
-                rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
-                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
-                 transition-colors text-sm font-medium
-                 cursor-pointer
-                 "
-                >
-                  Agendar Turno
-                </button>
               </div>
             </div>
           </div>
