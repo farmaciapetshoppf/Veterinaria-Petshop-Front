@@ -75,36 +75,6 @@ export async function login(userData: ILoginProps) {
   }
 }
 
-/* export async function loginVeterinarian(userData: ILoginProps) {
-  try {  
-    const response = await fetch(`${APIURL}/auth/signin`, {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Credenciales inválidas");
-    }
-
-    const result = await response.json();
-    console.log('🔍 RESPUESTA COMPLETA DEL BACKEND (loginVeterinarian):', JSON.stringify(result, null, 2));
-    
-    // Guardar el token en localStorage si viene en la respuesta
-    if (result.token) {
-      localStorage.setItem('authToken', result.token);
-    }
-    
-    return result;
-  } catch (error: any) {
-    throw error;
-  }
-} */
-
 export async function getGoogleAuthUrl() {
   try {
     const res = await fetch(`${APIURL}/auth/google/url`);

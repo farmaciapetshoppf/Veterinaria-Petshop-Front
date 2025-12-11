@@ -7,6 +7,7 @@ import Footer from "./components/Footer/Footer";
 import { CartProvider } from "../context/CartContext";
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from "react-toastify";
+import RequirePasswordChangeGuard from "./components/RequirePasswordChangeGuard.tsx/RequirePasswordChangeGuard";
 
 
 const geistSans = Geist({
@@ -35,23 +36,25 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <CartProvider>
-            <Navbar />
-            {children}
-            <Footer />
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-            />
-          </CartProvider>
+          <RequirePasswordChangeGuard>
+            <CartProvider>
+              <Navbar />
+              {children}
+              <Footer />
+              <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+              />
+            </CartProvider>
+          </RequirePasswordChangeGuard>
         </AuthProvider>
       </body>
     </html>
