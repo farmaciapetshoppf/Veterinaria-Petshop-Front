@@ -156,9 +156,7 @@ const handleCheckout = async () => {
       localStorage.removeItem('cart');
       
       toast.success(
-        `✅ ¡Orden #${data.id?.slice(0, 8)} creada exitosamente! Total: $${data.total}. Redirigiendo al historial...`,
-        { autoClose: 3000 }
-      );
+        `✅ ¡Orden #${data.id?.slice(0, 8)} creada exitosamente! Total: $${data.total}. Redirigiendo al historial...`);
       
       // Redirigir al dashboard
       setTimeout(() => {

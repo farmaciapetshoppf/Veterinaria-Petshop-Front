@@ -13,10 +13,7 @@ import { updateUserProfile } from "@/src/services/user.services";
 import Image from "next/image";
 
 export default function ClientDashboard() {
-  const { userData, setUserData } = useAuth();
-  const [activeTab, setActiveTab] = useState<"profile" | "pets" | "orders">(
-    "profile"
-  );
+  const { userData, setUserData, activeTab ,setActiveTab } = useAuth();
   const [pets, setPets] = useState<IPet[]>([]);
   const [showNewPetModal, setShowNewPetModal] = useState(false);
   const [creatingPet, setCreatingPet] = useState(false);
@@ -30,19 +27,18 @@ export default function ClientDashboard() {
     try {
       const updated = await updateUserProfile(userData!.user.id, data);
       // Actualizar el estado global con los nuevos datos
-      setUserData({
-        ...userData!,
-        user: {
-          ...userData!.user,
-          ...data,
-        },
-      });
+      if (updated) {
+        setUserData({
+          ...userData!,
+          user: {
+            ...userData!.user,
+            ... updated, // 👈 esto incluye la nueva imagen
+          },
+        });
+      }
       if (updated) {
         toast.success("Perfil actualizado correctamente");
         setOpenEdit(false);
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
       }
     } catch (err) {
       toast.error("Error al intentar editar perfil: Intentelo más tarde");
@@ -72,7 +68,6 @@ export default function ClientDashboard() {
     window.location.reload();
   };
 
-  // Cargar mascotas desde userData al entrar al dashboard
   useEffect(() => {
     if (userData?.user?.pets) {
       setPets(userData.user.pets);
@@ -422,7 +417,7 @@ export default function ClientDashboard() {
             {activeTab === "orders" && (
               <div className="md:col-span-2">
                 <h2 className="text-xl font-bold mb-4">Órdenes</h2>
-                  <OrderList orders={userData.user.buyerSaleOrders} />
+                <OrderList orders={userData.user.buyerSaleOrders} />
               </div>
             )}
 
@@ -460,7 +455,7 @@ export default function ClientDashboard() {
 
                                 return (
                                   app.status === true &&
-                                  appDate.getDate() === today.getDate()+1 &&
+                                  appDate.getDate() === today.getDate() + 1 &&
                                   appDate.getMonth() === today.getMonth() &&
                                   appDate.getFullYear() === today.getFullYear()
                                 );
