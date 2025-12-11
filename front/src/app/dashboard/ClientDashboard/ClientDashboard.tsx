@@ -10,18 +10,11 @@ import EditProfileModal from "../../components/EditProfileModal/EditProfileModal
 import OrderList from "../../components/OrderList/OrderList";
 import { toast } from "react-toastify";
 import { updateUserProfile } from "@/src/services/user.services";
-import { getUserOrders } from "@/src/services/order.services";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-export default function ClientDashboard({
-  refreshOrders,
-}: {
-  refreshOrders?: number;
-}) {
-  const { userData, setUserData } = useAuth();
-  const [activeTab, setActiveTab] = useState<"profile" | "pets" | "orders">(
-    "profile"
-  );
+export default function ClientDashboard() {
+  const { userData, setUserData, activeTab ,setActiveTab } = useAuth();
   const [pets, setPets] = useState<IPet[]>([]);
   const [showNewPetModal, setShowNewPetModal] = useState(false);
   const [creatingPet, setCreatingPet] = useState(false);
@@ -37,19 +30,18 @@ export default function ClientDashboard({
     try {
       const updated = await updateUserProfile(userData!.user.id, data);
       // Actualizar el estado global con los nuevos datos
-      setUserData({
-        ...userData!,
-        user: {
-          ...userData!.user,
-          ...data,
-        },
-      });
+      if (updated) {
+        setUserData({
+          ...userData!,
+          user: {
+            ...userData!.user,
+            ... updated, // 👈 esto incluye la nueva imagen
+          },
+        });
+      }
       if (updated) {
         toast.success("Perfil actualizado correctamente");
         setOpenEdit(false);
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
       }
     } catch (err) {
       toast.error("Error al intentar editar perfil: Intentelo más tarde");
@@ -79,52 +71,21 @@ export default function ClientDashboard({
     window.location.reload();
   };
 
-  // Cargar mascotas desde userData al entrar al dashboard
   useEffect(() => {
     if (userData?.user?.pets) {
       setPets(userData.user.pets);
     }
   }, [userData]);
 
-  // Cargar órdenes del usuario
-  useEffect(() => {
-    const loadUserOrders = async () => {
-      if (!userData?.user?.id || !userData?.token) {
-        console.log("⚠️ No hay userData o token para cargar órdenes");
-        return;
-      }
-
-      setLoadingOrders(true);
-
-      try {
-        const userOrders = await getUserOrders(
-          userData.user.id,
-          userData.token
-        );
-        setOrders(userOrders);
-      } catch (error) {
-        console.error("❌ Error al cargar órdenes:", error);
-        setOrders([]);
-      } finally {
-        setLoadingOrders(false);
-      }
-    };
-
-    loadUserOrders();
-  }, [userData?.user?.id, userData?.token, refreshOrders]);
-
   const indexOfLastPet = currentPage * petsPerPage;
   const indexOfFirstPet = indexOfLastPet - petsPerPage;
   const currentPets = pets.slice(indexOfFirstPet, indexOfLastPet);
   const totalPages = Math.ceil(pets.length / petsPerPage);
+  const router = useRouter()
 
   if (!userData) {
     return (
-      <div className="bg-white pt-20 min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">
-          Debes iniciar sesión para ver tu dashboard
-        </p>
-      </div>
+      router.push("/")
     );
   }
 
@@ -144,31 +105,28 @@ export default function ClientDashboard({
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab("profile")}
-                className={`${
-                  activeTab === "profile"
-                    ? "border-orange-500 text-orange-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                className={`${activeTab === "profile"
+                  ? "border-orange-500 text-orange-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
               >
                 Mi Perfil
               </button>
               <button
                 onClick={() => setActiveTab("pets")}
-                className={`${
-                  activeTab === "pets"
-                    ? "border-orange-500 text-orange-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                className={`${activeTab === "pets"
+                  ? "border-orange-500 text-orange-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
               >
                 Mis Mascotas
               </button>
               <button
                 onClick={() => setActiveTab("orders")}
-                className={`${
-                  activeTab === "orders"
-                    ? "border-orange-500 text-orange-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                className={`${activeTab === "orders"
+                  ? "border-orange-500 text-orange-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
               >
                 Mis Compras
               </button>
@@ -380,11 +338,10 @@ export default function ClientDashboard({
                                   <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
-                                    className={`w-10 h-10 rounded-lg transition ${
-                                      currentPage === page
-                                        ? "bg-orange-600 text-white font-semibold"
-                                        : "bg-white border border-gray-300 hover:bg-gray-50"
-                                    }`}
+                                    className={`w-10 h-10 rounded-lg transition ${currentPage === page
+                                      ? "bg-orange-600 text-white font-semibold"
+                                      : "bg-white border border-gray-300 hover:bg-gray-50"
+                                      }`}
                                   >
                                     {page}
                                   </button>
@@ -460,14 +417,7 @@ export default function ClientDashboard({
             {activeTab === "orders" && (
               <div className="md:col-span-2">
                 <h2 className="text-xl font-bold mb-4">Órdenes</h2>
-                {loadingOrders ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-                    <p className="text-gray-500 mt-2">Cargando órdenes...</p>
-                  </div>
-                ) : (
-                  <OrderList orders={orders} />
-                )}
+                <OrderList orders={userData.user.buyerSaleOrders} />
               </div>
             )}
 
@@ -491,20 +441,47 @@ export default function ClientDashboard({
                     </p>
                   </div>
 
-                  <div className="border-b border-cyan-700  pb-4">
-                    <p className="text-sm text-gray-600">Turnos programados</p>
+                  <div className="border-b border-cyan-700 pb-4">
+                    <p className="text-sm text-gray-600">Turnos programados para hoy</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {Array.isArray(pets)
                         ? pets.reduce(
-                            (acc, pet) =>
-                              acc +
-                              (pet.appointments
-                                ? pet.appointments.filter(
-                                    (app) => app.status === true
-                                  ).length
-                                : 0),
-                            0
-                          )
+                          (acc, pet) =>
+                            acc +
+                            (pet.appointments
+                              ? pet.appointments.filter((app) => {
+                                const appDate = new Date(app.date);
+                                const today = new Date();
+
+                                return (
+                                  app.status === true &&
+                                  appDate.getDate() === today.getDate() + 1 &&
+                                  appDate.getMonth() === today.getMonth() &&
+                                  appDate.getFullYear() === today.getFullYear()
+                                );
+                              }).length
+                              : 0),
+                          0
+                        )
+                        : 0}
+                    </p>
+                  </div>
+
+                  <div className="border-b border-cyan-700 pb-4">
+                    <p className="text-sm text-gray-600">Proximos turnos</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {Array.isArray(pets)
+                        ? pets.reduce(
+                          (acc, pet) =>
+                            acc +
+                            (pet.appointments
+                              ? pet.appointments.filter(
+                                (app) => app.status === true &&
+                                  new Date(app.date) > new Date()
+                              ).length
+                              : 0),
+                          0
+                        )
                         : 0}
                     </p>
                   </div>
@@ -518,17 +495,6 @@ export default function ClientDashboard({
                     </p>
                   </div>
                 </div>
-
-                <button
-                  className="mt-6 w-1/2 px-4 py-2
-                rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
-                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
-                 transition-colors text-sm font-medium
-                 cursor-pointer
-                 "
-                >
-                  Agendar Turno
-                </button>
               </div>
             </div>
           </div>

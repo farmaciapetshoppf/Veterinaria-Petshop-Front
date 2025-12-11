@@ -137,13 +137,14 @@ const handleCheckout = async () => {
   setIsCheckingOut(true);
   try {    
     // Llamar al nuevo endpoint que usa el carrito del backend
-    const response = await createCheckout(String(userData.user.id), userData.token || '');
+    const data = await createCheckout(userData.user.id, userData.token || '');
     
     // Extraer datos de la respuesta
     const data = response?.data;
     
     // IMPORTANTE: Usar initPoint para producción (NO sandboxInitPoint)
-    const checkoutUrl = data?.initPoint;
+    const checkoutUrl = data?.init_point || data?.sandbox_init_point;
+
     
     if (checkoutUrl) {
       console.log('✅ Redirigiendo a MercadoPago (PRODUCCIÓN):', checkoutUrl);
@@ -187,9 +188,7 @@ const handleCheckout = async () => {
         const productName = productMatch[1];
         const available = availableMatch[1];
         const requested = requestedMatch[1];
-        toast.error(`"${productName}" no tiene stock suficiente. Disponible: ${available}, solicitado: ${requested}. Por favor ajusta la cantidad.`, {
-          autoClose: 8000
-        });
+        toast.error(`"${productName}" no tiene stock suficiente. Disponible: ${available}, solicitado: ${requested}. Por favor ajusta la cantidad.`);
       } else {
         toast.error('Uno o más productos no tienen stock suficiente. Por favor verifica las cantidades.');
       }

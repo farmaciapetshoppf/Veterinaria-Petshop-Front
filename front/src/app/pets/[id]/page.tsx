@@ -15,13 +15,14 @@ import {
   updatePetImage,
 } from "../../services/pet.services";
 import Link from "next/link";
+import { IPet } from "@/src/types";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function PetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { userData } = useAuth();
-  const [pet, setPet] = useState<Pet | null>(null);
+  const [pet, setPet] = useState<IPet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openEdit, setOpenEdit] = useState(false);
@@ -345,15 +346,6 @@ export default function PetDetailPage() {
           )}
         </div>
       </div>
-      <button
-        onClick={() => setOpenAppointment(true)}
-        className="rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
-                hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
-                px-4 py-2 transition-colors duration-200 whitespace-nowrap
-               text-sm lg:text-base font-medium w-full"
-      >
-        Agendar Tuno
-      </button>
       {userData?.user?.id && (
         <NewAppointmentModal
           open={openAppointment}

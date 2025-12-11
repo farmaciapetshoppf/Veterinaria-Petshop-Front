@@ -376,12 +376,11 @@ export const createCheckout = async (userId: string, token: string) => {
         
         // Llamar al endpoint de checkout que convierte el carrito en orden
         // El backend requiere success_url, failure_url y pending_url por separado
-        const response = await fetch(`${APIURL}/sale-orders/checkout/${userId}`, {
+        const response = await fetch(`${APIURL}/sale-orders/checkout`, {
             method: "POST",
             credentials: 'include',
             headers: {
                 "Content-Type": "application/json",
-                ...(token && { Authorization: token })
             },
             body: JSON.stringify({ 
                 success_url: `${baseUrl}/payment-result?status=success`,
