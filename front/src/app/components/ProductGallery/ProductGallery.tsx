@@ -28,43 +28,45 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
     <>
       {/* Desktop */}
       <div className="col-span-2 max-lg:hidden">
-        {/* Imagen principal */}
-        <div className="aspect-w-4 aspect-h-3 overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center px-0 py-2">
-          <Image
-            alt={productName}
-            src={getImageSrc(images[selectedIndex])}
-            width={500}
-            height={250}
-            loading="lazy"
-            className="object-contain max-h-full max-w-full"
-            sizes="66vw"
-          />
-        </div>
-        
-        {/* Miniaturas */}
-        {images.length > 1 && (
-          <div className="mt-4 grid grid-cols-4 gap-4">
-            {images.slice(0, 4).map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedIndex(idx)}
-                className={`aspect-square overflow-hidden rounded-lg bg-white border-2 transition ${
-                  selectedIndex === idx 
-                    ? 'border-orange-500' 
-                    : 'border-gray-200 hover:border-orange-300'
-                }`}
-              >
-                <Image
-                  alt={`${productName} - imagen ${idx + 1}`}
-                  src={getImageSrc(img)}
-                  width={200}
-                  height={200}
-                  className="object-cover"
-                />
-              </button>
-            ))}
+        <div className="flex gap-4">
+          {/* Miniaturas verticales a la izquierda */}
+          {images.length > 1 && (
+            <div className="flex flex-col gap-3 w-24">
+              {images.slice(0, 6).map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedIndex(idx)}
+                  className={`aspect-square overflow-hidden rounded-lg bg-white border-2 transition ${
+                    selectedIndex === idx 
+                      ? 'border-orange-500' 
+                      : 'border-gray-200 hover:border-orange-300'
+                  }`}
+                >
+                  <Image
+                    alt={`${productName} - imagen ${idx + 1}`}
+                    src={getImageSrc(img)}
+                    width={96}
+                    height={96}
+                    className="object-cover w-full h-full"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+          
+          {/* Imagen principal a la derecha */}
+          <div className="flex-1 aspect-w-4 aspect-h-3 overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center px-0 py-2">
+            <Image
+              alt={productName}
+              src={getImageSrc(images[selectedIndex])}
+              width={600}
+              height={400}
+              loading="lazy"
+              className="object-contain max-h-full max-w-full"
+              sizes="66vw"
+            />
           </div>
-        )}
+        </div>
       </div>
 
       {/* Mobile */}
