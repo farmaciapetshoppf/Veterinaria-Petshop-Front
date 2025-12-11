@@ -183,9 +183,7 @@ const handleCheckout = async () => {
         const productName = productMatch[1];
         const available = availableMatch[1];
         const requested = requestedMatch[1];
-        toast.error(`"${productName}" no tiene stock suficiente. Disponible: ${available}, solicitado: ${requested}. Por favor ajusta la cantidad.`, {
-          autoClose: 8000
-        });
+        toast.error(`"${productName}" no tiene stock suficiente. Disponible: ${available}, solicitado: ${requested}. Por favor ajusta la cantidad.`);
       } else {
         toast.error('Uno o más productos no tienen stock suficiente. Por favor verifica las cantidades.');
       }

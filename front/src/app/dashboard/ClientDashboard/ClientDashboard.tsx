@@ -11,6 +11,7 @@ import OrderList from "../../components/OrderList/OrderList";
 import { toast } from "react-toastify";
 import { updateUserProfile } from "@/src/services/user.services";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function ClientDashboard() {
   const { userData, setUserData, activeTab ,setActiveTab } = useAuth();
@@ -78,14 +79,11 @@ export default function ClientDashboard() {
   const indexOfFirstPet = indexOfLastPet - petsPerPage;
   const currentPets = pets.slice(indexOfFirstPet, indexOfLastPet);
   const totalPages = Math.ceil(pets.length / petsPerPage);
+  const router = useRouter()
 
   if (!userData) {
     return (
-      <div className="bg-white pt-20 min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">
-          Debes iniciar sesión para ver tu dashboard
-        </p>
-      </div>
+      router.push("/")
     );
   }
 
