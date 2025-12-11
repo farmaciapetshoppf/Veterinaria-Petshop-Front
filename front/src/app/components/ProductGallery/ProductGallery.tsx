@@ -29,14 +29,14 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
       {/* Desktop */}
       <div className="col-span-2 max-lg:hidden">
         {/* Imagen principal */}
-        <div className="aspect-w-4 aspect-h-3 overflow-hidden rounded-lg bg-gray-100">
+        <div className="aspect-w-4 aspect-h-3 overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center px-0 py-2">
           <Image
             alt={productName}
             src={getImageSrc(images[selectedIndex])}
             width={500}
             height={250}
             loading="lazy"
-            className="object-contain p-8"
+            className="object-contain max-h-full max-w-full"
             sizes="66vw"
           />
         </div>
@@ -48,10 +48,10 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
               <button
                 key={idx}
                 onClick={() => setSelectedIndex(idx)}
-                className={`aspect-square overflow-hidden rounded-lg bg-gray-100 border-2 transition ${
+                className={`aspect-square overflow-hidden rounded-lg bg-white border-2 transition ${
                   selectedIndex === idx 
                     ? 'border-orange-500' 
-                    : 'border-transparent hover:border-orange-300'
+                    : 'border-gray-200 hover:border-orange-300'
                 }`}
               >
                 <Image
@@ -59,7 +59,7 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
                   src={getImageSrc(img)}
                   width={200}
                   height={200}
-                  className="object-contain p-2"
+                  className="object-cover"
                 />
               </button>
             ))}
@@ -70,14 +70,14 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
       {/* Mobile */}
       <div className="lg:hidden">
         {/* Imagen principal */}
-        <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+        <div className="aspect-square overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center px-0 py-2">
           <Image
             alt={productName}
             src={getImageSrc(images[selectedIndex])}
             width={600}
             height={600}
             loading="lazy"
-            className="object-contain p-4"
+            className="object-contain max-h-full max-w-full"
           />
         </div>
         
@@ -88,18 +88,18 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
               <button
                 key={idx}
                 onClick={() => setSelectedIndex(idx)}
-                className={`aspect-square overflow-hidden rounded-lg bg-gray-100 border-2 transition ${
+                className={`aspect-square overflow-hidden rounded-lg bg-white border-2 transition ${
                   selectedIndex === idx 
                     ? 'border-orange-500' 
-                    : 'border-transparent'
+                    : 'border-gray-200'
                 }`}
               >
                 <Image
                   alt={`${productName} - imagen ${idx + 1}`}
                   src={getImageSrc(img)}
-                  width={100}
-                  height={100}
-                  className="object-contain p-1"
+                  width={150}
+                  height={150}
+                  className="object-cover"
                 />
               </button>
             ))}

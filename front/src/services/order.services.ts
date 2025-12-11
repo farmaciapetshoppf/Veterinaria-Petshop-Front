@@ -85,8 +85,8 @@ export const getUserOrders = async (userId: string, token: string) => {
         
         const response = await res.json();
         
-        // El backend puede devolver un objeto con data o directamente el array
-        const orders = response.data || response.orders || response;
+        // El backend devuelve {message: string, data: Array}
+        const orders = response.data || response.orders || response.saleOrders || response;
         
         // Asegurarse de que sea un array
         return Array.isArray(orders) ? orders : [];

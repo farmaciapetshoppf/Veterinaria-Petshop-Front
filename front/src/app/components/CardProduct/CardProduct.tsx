@@ -13,15 +13,17 @@ function Card({ product }: CardProps) {
 
   // Manejar diferentes tipos de imagen: string URL, objeto StaticImageData, o fallback
   let imageSrc: string | any = '/next.svg';
-  if (product.image) {
-    if (typeof product.image === 'string') {
-      if (product.image.startsWith('http://') || product.image.startsWith('https://')) {
-        imageSrc = product.image;
+  const imageToUse = (product as any).imgUrl || product.image;
+  
+  if (imageToUse) {
+    if (typeof imageToUse === 'string') {
+      if (imageToUse.startsWith('http://') || imageToUse.startsWith('https://')) {
+        imageSrc = imageToUse;
       } else if (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000') {
-        imageSrc = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${product.image}`;
+        imageSrc = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${imageToUse}`;
       }
     } else {
-      imageSrc = product.image; // StaticImageData
+      imageSrc = imageToUse; // StaticImageData
     }
   }
 

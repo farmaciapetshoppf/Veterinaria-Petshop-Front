@@ -19,6 +19,8 @@ export default function ClientDashboard() {
   const [showNewPetModal, setShowNewPetModal] = useState(false);
   const [creatingPet, setCreatingPet] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   // Paginación para mascotas
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,7 +57,7 @@ export default function ClientDashboard() {
     status: "VIVO",
     fecha_nacimiento: "2020-01-15",
     breed: "",
-    ownerId: userData!.user.id!,
+    ownerId: userData?.user?.id || "",
   });
 
   const handleCreatePet = async (e: React.FormEvent) => {

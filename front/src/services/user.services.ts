@@ -31,7 +31,13 @@ export async function register(userData: IRegister) {
 }
 
 export async function login(userData: ILoginProps) {
-  try {     
+  try {
+    console.log('🔐 Intentando login con:');
+    console.log('   Email:', userData.email);
+    console.log('   Password length:', userData.password?.length);
+    console.log('   Payload completo:', JSON.stringify(userData));
+    console.log('🌐 API URL:', `${APIURL}/auth/signin`);
+    
     const response = await fetch(`${APIURL}/auth/signin`, {
       method: "POST",
       headers: {
@@ -41,8 +47,13 @@ export async function login(userData: ILoginProps) {
       body: JSON.stringify(userData),
     });
 
+    console.log('📡 Respuesta status:', response.status);
+
     if (!response.ok) {
       const error = await response.json();
+      console.error('❌ Error del backend:');
+      console.error('   Message:', error.message);
+      console.error('   Full error:', JSON.stringify(error, null, 2));
       toast.error("Error al ingresar: Credenciales inválidas");
       throw new Error(error.message || "Fallo al ingresar");
     }
