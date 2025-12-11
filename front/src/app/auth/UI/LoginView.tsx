@@ -87,7 +87,6 @@ function LoginView() {
                                     country: response.country || '',
                                     address: response.address || '',
                                     city: response.city || '',
-                                    /* role: response.role || 'user', */
                                     role: response.role,
                                     isDeleted: response.isDeleted || false,
                                     deletedAt: response.deletedAt || null,
