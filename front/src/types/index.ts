@@ -159,6 +159,7 @@ export interface IVeterinarian {
   phone: string;
   time: string;
   isActive: boolean;
+  profileImageUrl: string;
 }
 
 export interface ILoginProps{

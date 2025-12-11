@@ -19,8 +19,8 @@ export default function ClientDashboard() {
   const [showNewPetModal, setShowNewPetModal] = useState(false);
   const [creatingPet, setCreatingPet] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(false);
+/*   const [orders, setOrders] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false); */
 
   // Paginación para mascotas
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,7 +35,7 @@ export default function ClientDashboard() {
           ...userData!,
           user: {
             ...userData!.user,
-            ... updated, // 👈 esto incluye la nueva imagen
+            ... updated,
           },
         });
       }
@@ -440,8 +440,8 @@ export default function ClientDashboard() {
                       {pets.length}
                     </p>
                   </div>
-
-                  <div className="border-b border-cyan-700 pb-4">
+              {/* TODO: fijarse por que devuelve mas de los que hay */}
+                  <div className="border-b border-cyan-700 pb-4"> 
                     <p className="text-sm text-gray-600">Turnos programados para hoy</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {Array.isArray(pets)
