@@ -89,7 +89,8 @@ export default function AdminDashboard() {
     price: '',
     stock: '',
     categoryId: '',
-    image: null as File | null
+    mainImage: null as File | null,
+    additionalImages: [] as File[]
   });
 
   useEffect(() => {
@@ -170,8 +171,8 @@ export default function AdminDashboard() {
   );
 
   const handleCreateProduct = async () => {
-    if (!formData.name || !formData.price || !formData.stock || !formData.image) {
-      alert('Por favor completa todos los campos obligatorios (nombre, precio, stock e imagen)');
+    if (!formData.name || !formData.price || !formData.stock || !formData.mainImage) {
+      alert('Por favor completa todos los campos obligatorios (nombre, precio, stock e imagen principal)');
       return;
     }
 
@@ -183,10 +184,9 @@ export default function AdminDashboard() {
         price: formData.price,
         stock: formData.stock,
         categoryId: formData.categoryId,
-        hasImage: !!formData.image,
-        imageName: formData.image?.name,
-        imageSize: formData.image?.size,
-        imageType: formData.image?.type
+        hasMainImage: !!formData.mainImage,
+        mainImageName: formData.mainImage?.name,
+        additionalImagesCount: formData.additionalImages.length
       });
       
       const formDataToSend = new FormData();
@@ -195,7 +195,12 @@ export default function AdminDashboard() {
       formDataToSend.append('price', formData.price);
       formDataToSend.append('stock', formData.stock);
       if (formData.categoryId) formDataToSend.append('categoryId', formData.categoryId);
-      formDataToSend.append('image', formData.image, formData.image.name);
+      formDataToSend.append('mainImage', formData.mainImage, formData.mainImage.name);
+      
+      // Agregar imágenes adicionales
+      formData.additionalImages.forEach((file) => {
+        formDataToSend.append('additionalImages', file, file.name);
+      });
 
       console.log('📦 Enviando con FormData');
       for (let pair of formDataToSend.entries()) {
@@ -218,7 +223,7 @@ export default function AdminDashboard() {
         console.log('✅ Producto creado:', result);
         alert('Producto creado exitosamente');
         setShowCreateModal(false);
-        setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
+        setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', mainImage: null, additionalImages: [] });
         loadProducts();
       } else {
         const error = await response.json();
@@ -246,7 +251,12 @@ export default function AdminDashboard() {
       formDataToSend.append('price', formData.price);
       formDataToSend.append('stock', formData.stock);
       if (formData.categoryId) formDataToSend.append('categoryId', formData.categoryId);
-      if (formData.image) formDataToSend.append('image', formData.image);
+      if (formData.mainImage) formDataToSend.append('mainImage', formData.mainImage);
+      
+      // Agregar imágenes adicionales
+      formData.additionalImages.forEach((file) => {
+        formDataToSend.append('additionalImages', file);
+      });
 
       const response = await fetch(`${API_URL}/products/${selectedProduct.id}`, {
         method: 'PATCH',
@@ -285,7 +295,7 @@ export default function AdminDashboard() {
         alert('Producto actualizado exitosamente');
         setShowEditModal(false);
         setSelectedProduct(null);
-        setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
+        setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', mainImage: null, additionalImages: [] });
       } else {
         const error = await response.json();
         console.error('❌ Error del servidor:', error);
@@ -332,7 +342,8 @@ export default function AdminDashboard() {
       price: product.price.toString(),
       stock: product.stock.toString(),
       categoryId: '',
-      image: null
+      mainImage: null,
+      additionalImages: []
     });
     setShowEditModal(true);
   };
@@ -922,14 +933,14 @@ export default function AdminDashboard() {
 
       {/* Modal Crear Producto */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-linear-to-br from-amber-900/40 via-orange-900/40 to-amber-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
               <h3 className="text-2xl font-bold text-gray-900">Crear Nuevo Producto</h3>
               <button
                 onClick={() => {
                   setShowCreateModal(false);
-                  setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
+                  setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', mainImage: null, additionalImages: [] });
                 }}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
               >
@@ -997,15 +1008,37 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Imagen del Producto</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Imagen Principal * (.jpg, .png, .webp)</label>
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })}
+                  onChange={(e) => setFormData({ ...formData, mainImage: e.target.files?.[0] || null })}
                   className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
                 />
-                {formData.image && (
-                  <p className="text-xs text-green-600 mt-1">✓ Archivo seleccionado: {formData.image.name}</p>
+                {formData.mainImage && (
+                  <p className="text-xs text-green-600 mt-1">✓ Archivo seleccionado: {formData.mainImage.name}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Imágenes Adicionales (opcional) (.jpg, .png, .webp)</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    setFormData({ ...formData, additionalImages: files });
+                  }}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                />
+                {formData.additionalImages.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-green-600">✓ {formData.additionalImages.length} imagen(es) adicional(es) seleccionada(s):</p>
+                    {formData.additionalImages.map((file, index) => (
+                      <p key={index} className="text-xs text-gray-600 ml-4">• {file.name}</p>
+                    ))}
+                  </div>
                 )}
               </div>
 
@@ -1019,7 +1052,7 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => {
                     setShowCreateModal(false);
-                    setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
+                    setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', mainImage: null, additionalImages: [] });
                   }}
                   className="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
                 >
@@ -1033,7 +1066,7 @@ export default function AdminDashboard() {
 
       {/* Modal Editar Producto */}
       {showEditModal && selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-linear-to-br from-amber-900/40 via-orange-900/40 to-amber-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
               <h3 className="text-2xl font-bold text-gray-900">Editar Producto</h3>
@@ -1041,7 +1074,7 @@ export default function AdminDashboard() {
                 onClick={() => {
                   setShowEditModal(false);
                   setSelectedProduct(null);
-                  setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
+                  setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', mainImage: null, additionalImages: [] });
                 }}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
               >
@@ -1109,15 +1142,37 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Nueva Imagen (opcional)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Nueva Imagen Principal (opcional)</label>
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })}
+                  onChange={(e) => setFormData({ ...formData, mainImage: e.target.files?.[0] || null })}
                   className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
                 />
-                {formData.image && (
-                  <p className="text-xs text-green-600 mt-1">✓ Archivo seleccionado: {formData.image.name}</p>
+                {formData.mainImage && (
+                  <p className="text-xs text-green-600 mt-1">✓ Archivo seleccionado: {formData.mainImage.name}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Nuevas Imágenes Adicionales (opcional)</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    setFormData({ ...formData, additionalImages: files });
+                  }}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                />
+                {formData.additionalImages.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-green-600">✓ {formData.additionalImages.length} imagen(es) adicional(es) seleccionada(s):</p>
+                    {formData.additionalImages.map((file, index) => (
+                      <p key={index} className="text-xs text-gray-600 ml-4">• {file.name}</p>
+                    ))}
+                  </div>
                 )}
               </div>
 
@@ -1144,7 +1199,7 @@ export default function AdminDashboard() {
                   onClick={() => {
                     setShowEditModal(false);
                     setSelectedProduct(null);
-                    setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', image: null });
+                    setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', mainImage: null, additionalImages: [] });
                   }}
                   className="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
                 >

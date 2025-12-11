@@ -139,6 +139,9 @@ const handleCheckout = async () => {
     // Llamar al nuevo endpoint que usa el carrito del backend
     const response = await createCheckout(String(userData.user.id), userData.token || '');
     
+    // Extraer datos de la respuesta
+    const data = response?.data;
+    
     // IMPORTANTE: Usar initPoint para producción (NO sandboxInitPoint)
     const checkoutUrl = data?.initPoint;
     
@@ -155,7 +158,7 @@ const handleCheckout = async () => {
       localStorage.removeItem('cart');
       
       toast.success(
-        `✅ ¡Orden #${data.id?.slice(0, 8)} creada exitosamente! Total: $${data.total}. Redirigiendo al historial...`,
+        `✅ ¡Orden #${data?.id?.slice(0, 8)} creada exitosamente! Total: $${data?.total}. Redirigiendo al historial...`,
         { autoClose: 3000 }
       );
       
@@ -247,12 +250,12 @@ return (
       <Dialog open={open} onClose={setOpen} className="relative z-10">
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="pointer-events-none fixed top-25 bottom-0 right-60 flex max-w-full pl-8 sm:pl-16">
+            <div className="pointer-events-none fixed top-26 bottom-4 right-14 flex max-w-full pl-4 sm:pl-8">
               <DialogPanel
                 transition
-                className="pointer-events-auto w-screen max-w-3xl transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
+                className="pointer-events-auto w-screen max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
               >
-                <div className="flex h-full w-full border-amber-200 border-2 mb-1 rounded-2xl flex-col overflow-y-auto bg-white shadow-xl">
+                <div className="flex h-full w-full border-amber-200 border-2 rounded-2xl flex-col overflow-y-auto bg-white shadow-xl">
                   <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
                     <div className="flex items-start justify-between">
                       <DialogTitle className="text-lg font-medium text-gray-900">Tu carrito</DialogTitle>

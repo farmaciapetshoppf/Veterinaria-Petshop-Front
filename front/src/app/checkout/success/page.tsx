@@ -8,6 +8,7 @@ export default function CheckoutSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [paymentInfo, setPaymentInfo] = useState<any>(null);
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
     // Obtener parámetros de MercadoPago
@@ -23,6 +24,20 @@ export default function CheckoutSuccess() {
 
     // Limpiar el carrito del localStorage
     localStorage.removeItem('cart');
+
+    // Countdown y redirect automático después de 5 segundos
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          router.push('/dashboard?payment=success');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(countdownInterval);
   }, [searchParams, router]);
 
   return (
@@ -52,8 +67,13 @@ export default function CheckoutSuccess() {
           ¡Pago Exitoso!
         </h1>
         
-        <p className="text-center text-gray-600 mb-6">
+        <p className="text-center text-gray-600 mb-4">
           Tu compra se ha procesado correctamente. Recibirás un email de confirmación en breve.
+        </p>
+
+        {/* Contador de redirección */}
+        <p className="text-center text-sm text-gray-500 mb-6">
+          Serás redirigido al dashboard en {countdown} segundo{countdown !== 1 ? 's' : ''}...
         </p>
 
         {/* Información del pago */}
