@@ -137,13 +137,13 @@ const handleCheckout = async () => {
   setIsCheckingOut(true);
   try {    
     // Llamar al nuevo endpoint que usa el carrito del backend
-    const data = await createCheckout(userData.user.id, userData.token || '');
+    const response = await createCheckout(userData.user.id, userData.token || '');
     
     // Extraer datos de la respuesta
     const data = response?.data;
     
     // IMPORTANTE: Usar initPoint para producción (NO sandboxInitPoint)
-    const checkoutUrl = data?.init_point || data?.sandbox_init_point;
+    const checkoutUrl = data?.initPoint || data?.sandboxInitPoint;
 
     
     if (checkoutUrl) {

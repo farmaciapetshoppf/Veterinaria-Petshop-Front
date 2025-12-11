@@ -10,6 +10,7 @@ import EditProfileModal from "../../components/EditProfileModal/EditProfileModal
 import OrderList from "../../components/OrderList/OrderList";
 import { toast } from "react-toastify";
 import { updateUserProfile } from "@/src/services/user.services";
+import { getUserOrders } from "@/src/services/order.services";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -76,6 +77,29 @@ export default function ClientDashboard() {
       setPets(userData.user.pets);
     }
   }, [userData]);
+
+  // Cargar órdenes del usuario
+  useEffect(() => {
+    const loadOrders = async () => {
+      if (!userData?.user?.id || !userData?.token) return;
+      
+      setLoadingOrders(true);
+      try {
+        const fetchedOrders = await getUserOrders(userData.user.id, userData.token);
+        setOrders(fetchedOrders);
+      } catch (error) {
+        console.error('Error al cargar órdenes:', error);
+        setOrders([]); // Asegurar que orders sea un array vacío en caso de error
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+
+    // Solo cargar órdenes cuando se está en la pestaña de órdenes
+    if (activeTab === 'orders') {
+      loadOrders();
+    }
+  }, [userData?.user?.id, userData?.token, activeTab]);
 
   const indexOfLastPet = currentPage * petsPerPage;
   const indexOfFirstPet = indexOfLastPet - petsPerPage;
@@ -417,7 +441,13 @@ export default function ClientDashboard() {
             {activeTab === "orders" && (
               <div className="md:col-span-2">
                 <h2 className="text-xl font-bold mb-4">Órdenes</h2>
-                <OrderList orders={userData.user.buyerSaleOrders} />
+                {loadingOrders ? (
+                  <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : (
+                  <OrderList orders={orders} />
+                )}
               </div>
             )}
 

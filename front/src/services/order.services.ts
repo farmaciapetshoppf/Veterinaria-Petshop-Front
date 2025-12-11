@@ -376,7 +376,7 @@ export const createCheckout = async (userId: string, token: string) => {
         
         // Llamar al endpoint de checkout que convierte el carrito en orden
         // El backend requiere success_url, failure_url y pending_url por separado
-        const response = await fetch(`${APIURL}/sale-orders/checkout`, {
+        const response = await fetch(`${APIURL}/sale-orders/checkout/${userId}`, {
             method: "POST",
             credentials: 'include',
             headers: {
@@ -386,7 +386,7 @@ export const createCheckout = async (userId: string, token: string) => {
                 success_url: `${baseUrl}/payment-result?status=success`,
                 failure_url: `${baseUrl}/payment-result?status=failure`,
                 pending_url: `${baseUrl}/payment-result?status=pending`,
-                auto_return: "approved" // ⭐ IMPORTANTE: Fuerza redirección automática
+                auto_return: "all" // ⭐ Redirige inmediatamente sin esperar
             })
         });
         

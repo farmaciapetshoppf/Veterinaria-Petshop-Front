@@ -76,6 +76,7 @@ export default function AdminDashboard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const [expandedOrderGroups, setExpandedOrderGroups] = useState<Record<string, boolean>>({
     today: true,
     week: false,
@@ -176,6 +177,9 @@ export default function AdminDashboard() {
       return;
     }
 
+    if (isCreating) return; // Prevenir doble submit
+    setIsCreating(true);
+
     try {
       console.log('📤 Creando producto...');
       console.log('📋 Datos del formulario:', {
@@ -233,6 +237,8 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error al crear producto:', error);
       alert('Error al crear producto');
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -997,17 +1003,6 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Categoría ID (opcional)</label>
-                <input
-                  type="text"
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
-                  placeholder="550e8400-e29b-41d4-a716-446655440000"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Imagen Principal * (.jpg, .png, .webp)</label>
                 <input
                   type="file"
@@ -1045,9 +1040,10 @@ export default function AdminDashboard() {
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={handleCreateProduct}
-                  className="flex-1 bg-linear-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
+                  disabled={isCreating}
+                  className="flex-1 bg-linear-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Crear Producto
+                  {isCreating ? 'Creando...' : 'Crear Producto'}
                 </button>
                 <button
                   onClick={() => {
@@ -1128,17 +1124,6 @@ export default function AdminDashboard() {
                     placeholder="50"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Categoría ID (opcional)</label>
-                <input
-                  type="text"
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
-                  placeholder="550e8400-e29b-41d4-a716-446655440000"
-                />
               </div>
 
               <div>
