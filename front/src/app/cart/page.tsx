@@ -156,9 +156,7 @@ const handleCheckout = async () => {
       localStorage.removeItem('cart');
       
       toast.success(
-        `✅ ¡Orden #${data.id?.slice(0, 8)} creada exitosamente! Total: $${data.total}. Redirigiendo al historial...`,
-        { autoClose: 3000 }
-      );
+        `✅ ¡Orden #${data.id?.slice(0, 8)} creada exitosamente! Total: $${data.total}. Redirigiendo al historial...`);
       
       // Redirigir al dashboard
       setTimeout(() => {
@@ -185,9 +183,7 @@ const handleCheckout = async () => {
         const productName = productMatch[1];
         const available = availableMatch[1];
         const requested = requestedMatch[1];
-        toast.error(`"${productName}" no tiene stock suficiente. Disponible: ${available}, solicitado: ${requested}. Por favor ajusta la cantidad.`, {
-          autoClose: 8000
-        });
+        toast.error(`"${productName}" no tiene stock suficiente. Disponible: ${available}, solicitado: ${requested}. Por favor ajusta la cantidad.`);
       } else {
         toast.error('Uno o más productos no tienen stock suficiente. Por favor verifica las cantidades.');
       }

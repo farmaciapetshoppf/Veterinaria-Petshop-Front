@@ -15,13 +15,14 @@ import {
   updatePetImage,
 } from "../../services/pet.services";
 import Link from "next/link";
+import { IPet } from "@/src/types";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function PetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { userData } = useAuth();
-  const [pet, setPet] = useState<Pet | null>(null);
+  const [pet, setPet] = useState<IPet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openEdit, setOpenEdit] = useState(false);
