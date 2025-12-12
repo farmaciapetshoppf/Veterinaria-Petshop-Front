@@ -14,7 +14,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function ClientDashboard() {
-  const { userData, setUserData, activeTab ,setActiveTab } = useAuth();
+  const { userData, setUserData, activeTab, setActiveTab } = useAuth();
   const [pets, setPets] = useState<IPet[]>([]);
   const [showNewPetModal, setShowNewPetModal] = useState(false);
   const [creatingPet, setCreatingPet] = useState(false);
@@ -33,7 +33,7 @@ export default function ClientDashboard() {
           ...userData!,
           user: {
             ...userData!.user,
-            ... updated,
+            ...updated,
           },
         });
       }
@@ -71,6 +71,8 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     if (userData?.user?.pets) {
+      console.log("Router pathname:", window.location.pathname);
+
       setPets(userData.user.pets);
     }
   }, [userData]);
@@ -392,7 +394,7 @@ export default function ClientDashboard() {
               creating={creatingPet}
               form={newPetForm}
               setForm={(data) =>
-                setNewPetForm({ ...data, ownerId: userData?.user?.id || "" })
+                setNewPetForm({ ...data, ownerId: userData?.user?.id })
               }
               onClose={() => {
                 setShowNewPetModal(false);
@@ -415,7 +417,7 @@ export default function ClientDashboard() {
             {activeTab === "orders" && (
               <div className="md:col-span-2">
                 <h2 className="text-xl font-bold mb-4">Órdenes</h2>
-                {! userData.user.buyerSaleOrders ? (
+                {!userData.user.buyerSaleOrders ? (
                   <div className="flex justify-center items-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                   </div>
@@ -444,8 +446,8 @@ export default function ClientDashboard() {
                       {pets.length}
                     </p>
                   </div>
-              {/* TODO: fijarse por que devuelve mas de los que hay */}
-                  <div className="border-b border-cyan-700 pb-4"> 
+                  {/* TODO: fijarse por que devuelve mas de los que hay */}
+                  <div className="border-b border-cyan-700 pb-4">
                     <p className="text-sm text-gray-600">Turnos programados para hoy</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {Array.isArray(pets)

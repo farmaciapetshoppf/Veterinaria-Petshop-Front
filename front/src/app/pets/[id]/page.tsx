@@ -29,6 +29,8 @@ export default function PetDetailPage() {
   const [openAppointment, setOpenAppointment] = useState(false);
 
   useEffect(() => {
+    console.log("ID desde useParams:", id);
+
     const fetchPet = async () => {
       try {
         const res = await fetch(`${APIURL}/pets/${id}`, {
