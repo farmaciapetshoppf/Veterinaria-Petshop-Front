@@ -16,6 +16,8 @@ import {
 } from "../../services/pet.services";
 import Link from "next/link";
 import { IPet } from "@/src/types";
+import { showConfirmToast } from "../../components/ConfirmCancel/ConfirmToast";
+import ConfirmModal from "../../components/ConfirmCancel/ConfirmModal";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -26,6 +28,7 @@ export default function PetDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openEdit, setOpenEdit] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [openAppointment, setOpenAppointment] = useState(false);
 
   useEffect(() => {
@@ -213,7 +216,7 @@ export default function PetDetailPage() {
               </p>
               <p className="text-gray-700 mb-2">
                 <span className="font-semibold">Fecha de nacimiento:</span>{" "}
-                {new Date(pet.fecha_nacimiento+ "T00:00:00").toLocaleDateString("es-ES")}
+                {new Date(pet.fecha_nacimiento + "T00:00:00").toLocaleDateString("es-ES")}
               </p>
             </div>
 
@@ -222,11 +225,25 @@ export default function PetDetailPage() {
           {/* Botones */}
           <div className="flex mb-4 space-x-4 mt-6">
             <button
-              onClick={() => handleDeletePet(pet.id)}
+              onClick={() => setShowConfirm(true)}
               className="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
             >
               Eliminar Mascota
             </button>
+
+            {showConfirm && (
+              <ConfirmModal
+                message="¿Seguro que quieres eliminar a la mascota?"
+                onConfirm={async () => {
+                  await handleDeletePet(pet.id);
+                  setShowConfirm(false);
+                }}
+                onCancel={() => setShowConfirm(false)}
+              />
+            )}
+
+
+
             <button
               onClick={() => setOpenEdit(true)}
               className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
@@ -346,12 +363,23 @@ export default function PetDetailPage() {
                       </div>
                     </div>
                     <button
-                      onClick={handleCancel}
+                      onClick={() => setShowConfirm(true)}
                       className="px-3 py-1 text-sm bg-red-100 text-red-600 
                       rounded hover:bg-red-500 hover:text-black cursor-pointer"
                     >
                       Cancelar
                     </button>
+
+                    {showConfirm && (
+                      <ConfirmModal
+                        message="¿Seguro que querés cancelar este turno?"
+                        onConfirm={async () => {
+                          await handleCancel();
+                          setShowConfirm(false);
+                        }}
+                        onCancel={() => setShowConfirm(false)}
+                      />
+                    )}
                   </div>
                 );
               })

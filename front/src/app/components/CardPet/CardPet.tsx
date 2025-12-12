@@ -35,14 +35,15 @@ const CardPet: React.FC<IPet> = (pet) => {
               <p><span className="font-semibold text-gray-800">Especie:</span> {pet.especie}</p>
               <p><span className="font-semibold text-gray-800">Edad:</span> {getPetAge()} años</p>
               <p><span className="font-semibold text-gray-800">Sexo:</span> {pet.sexo}</p>
-
             </div>
+            <p className='font-bold mt-3 border-t-5 border-b-5 p-2 rounded-2xl'>Ver detalles</p>
           </div>
           <div>
             <Image src={pet.image || avatar} width={120} height={120} alt='${pet.nombre}' 
             className='rounded-full bg-gray-400'
             />
           </div>
+          
         </div>
       </div>
     </Link>
