@@ -39,7 +39,7 @@ function Card({ product }: CardProps) {
         transition-transform duration-300 hover:scale-105
         "
     >
-      <Link href={href} prefetch className="inline-block">
+      <Link href={href || '#'} prefetch className="inline-block">
         {/* Imagen normal */}
         <div className="w-full aspect-4/3 overflow-hidden rounded-md bg-gray-50 relative">
           <Image
