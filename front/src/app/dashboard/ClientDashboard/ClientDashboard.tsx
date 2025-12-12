@@ -14,7 +14,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function ClientDashboard() {
-  const { userData, setUserData, activeTab ,setActiveTab } = useAuth();
+  const { userData, setUserData, activeTab, setActiveTab } = useAuth();
   const [pets, setPets] = useState<IPet[]>([]);
   const [showNewPetModal, setShowNewPetModal] = useState(false);
   const [creatingPet, setCreatingPet] = useState(false);
@@ -22,7 +22,11 @@ export default function ClientDashboard() {
 
   // Paginación para mascotas
   const [currentPage, setCurrentPage] = useState(1);
-  const petsPerPage = 4; // Número de mascotas por página
+  const petsPerPage = 6; // Número de mascotas por página
+
+  //Paginacion para ordenes
+  const [currentPageOrder, setCurrentPageOrder] = useState(1);
+  const ordersPerPage = 5;
 
   const handleSaveProfile = async (data: any) => {
     try {
@@ -33,7 +37,7 @@ export default function ClientDashboard() {
           ...userData!,
           user: {
             ...userData!.user,
-            ... updated,
+            ...updated,
           },
         });
       }
@@ -61,7 +65,6 @@ export default function ClientDashboard() {
   const handleCreatePet = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreatingPet(true);
-
     const newPet = await createPet(newPetForm, userData!.user!.id); // tu lógica
     setPets((prev) => [...prev, newPet as IPet]);
     setCreatingPet(false);
@@ -75,10 +78,18 @@ export default function ClientDashboard() {
     }
   }, [userData]);
 
+  //Cuentas para paginacion de mascotas
   const indexOfLastPet = currentPage * petsPerPage;
   const indexOfFirstPet = indexOfLastPet - petsPerPage;
   const currentPets = pets.slice(indexOfFirstPet, indexOfLastPet);
   const totalPages = Math.ceil(pets.length / petsPerPage);
+
+  //Cuentas para paginacion de ordenes
+  const indexOfLastOrder = currentPageOrder * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = userData?.user.buyerSaleOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPagesOrders = Math.ceil(userData!.user!.buyerSaleOrders!.length / ordersPerPage);
+
   const router = useRouter()
 
   if (!userData) {
@@ -392,7 +403,7 @@ export default function ClientDashboard() {
               creating={creatingPet}
               form={newPetForm}
               setForm={(data) =>
-                setNewPetForm({ ...data, ownerId: userData?.user?.id || "" })
+                setNewPetForm({ ...data, ownerId: userData?.user?.id })
               }
               onClose={() => {
                 setShowNewPetModal(false);
@@ -415,12 +426,96 @@ export default function ClientDashboard() {
             {activeTab === "orders" && (
               <div className="md:col-span-2">
                 <h2 className="text-xl font-bold mb-4">Órdenes</h2>
-                {! userData.user.buyerSaleOrders ? (
+                {!userData.user.buyerSaleOrders ? (
                   <div className="flex justify-center items-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                   </div>
                 ) : (
-                  <OrderList orders={userData.user.buyerSaleOrders} />
+                  <>
+                    {totalPagesOrders > 1 && (
+                      <p className="text-sm text-gray-600 mb-4">
+                        Mostrando{" "}
+                        <span className="font-semibold">
+                          {indexOfFirstOrder + 1}-
+                          {Math.min(indexOfLastOrder, userData.user.buyerSaleOrders.length)}
+                        </span>{" "}
+                        de{" "}
+                        <span className="font-semibold">
+                          {userData.user.buyerSaleOrders.length}
+                        </span>{" "}
+                        órdenes
+                      </p>
+                    )}
+
+                    <OrderList orders={currentOrders!} />
+                    {totalPagesOrders > 1 && (
+                      <div className="mt-6 mb-6 flex justify-center">
+                        <div className="flex items-center gap-2">
+
+                          {/* Botón Anterior */}
+                          <button
+                            onClick={() =>
+                              setCurrentPageOrder((prev) => Math.max(1, prev - 1))
+                            }
+                            disabled={currentPageOrder === 1}
+                            className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Anterior
+                          </button>
+
+                          {/* Números */}
+                          <div className="flex gap-2">
+                            {Array.from({ length: totalPagesOrders }, (_, i) => i + 1).map(
+                              (page) => {
+                                if (
+                                  page === 1 ||
+                                  page === totalPagesOrders ||
+                                  (page >= currentPageOrder - 1 &&
+                                    page <= currentPageOrder + 1)
+                                ) {
+                                  return (
+                                    <button
+                                      key={page}
+                                      onClick={() => setCurrentPageOrder(page)}
+                                      className={`w-10 h-10 rounded-lg transition ${currentPageOrder === page
+                                        ? "bg-orange-600 text-white font-semibold"
+                                        : "bg-white border border-gray-300 hover:bg-gray-50"
+                                        }`}
+                                    >
+                                      {page}
+                                    </button>
+                                  );
+                                } else if (
+                                  page === currentPageOrder - 2 ||
+                                  page === currentPageOrder + 2
+                                ) {
+                                  return (
+                                    <span key={page} className="px-2">
+                                      ...
+                                    </span>
+                                  );
+                                }
+                                return null;
+                              }
+                            )}
+                          </div>
+
+                          {/* Botón Siguiente */}
+                          <button
+                            onClick={() =>
+                              setCurrentPageOrder((prev) =>
+                                Math.min(totalPagesOrders, prev + 1)
+                              )
+                            }
+                            disabled={currentPageOrder === totalPagesOrders}
+                            className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Siguiente
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -444,8 +539,8 @@ export default function ClientDashboard() {
                       {pets.length}
                     </p>
                   </div>
-              {/* TODO: fijarse por que devuelve mas de los que hay */}
-                  <div className="border-b border-cyan-700 pb-4"> 
+                  {/* TODO: fijarse por que devuelve mas de los que hay */}
+                  <div className="border-b border-cyan-700 pb-4">
                     <p className="text-sm text-gray-600">Turnos programados para hoy</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {Array.isArray(pets)

@@ -29,6 +29,8 @@ export default function PetDetailPage() {
   const [openAppointment, setOpenAppointment] = useState(false);
 
   useEffect(() => {
+    console.log("ID desde useParams:", id);
+
     const fetchPet = async () => {
       try {
         const res = await fetch(`${APIURL}/pets/${id}`, {
@@ -94,7 +96,7 @@ export default function PetDetailPage() {
   }
 
   const getPetAge = () => {
-    const start = new Date(pet.fecha_nacimiento).getTime();
+    const start = new Date(pet.fecha_nacimiento + "T00:00:00").getTime();
     const end = pet.fecha_fallecimiento
       ? new Date(pet.fecha_fallecimiento).getTime()
       : Date.now();
@@ -119,51 +121,24 @@ export default function PetDetailPage() {
         Volver a Mascotas
       </Link>
 
+      <div className="flex flex-col md:flex-row md:items-stretch items-center gap-4">
 
-      <div className="flex gap-6 max-w-6xl mx-4 mb-5 lg:flex-row flex-col">
         {/* Columna izquierda: info mascota */}
-        <div className="bg-linear-to-br from-orange-100 via-orange-200 to-orange-300 rounded-lg shadow-md p-6 border border-amber-600">
+        <div className="bg-linear-to-br from-orange-100 via-orange-200 w-full to-orange-300
+         rounded-lg shadow-md p-6 border border-amber-600">
           <h1 className="text-3xl font-bold flex justify-center text-gray-900 mb-4">
             {pet.nombre}
           </h1>
 
-          <div className="flex justify-evenly">
-            <div>
-              <p className="text-gray-700 mb-2">
-                <span className="font-semibold">Especie:</span> {pet.especie}
-              </p>
-              <p className="text-gray-700 mb-2">
-                <span className="font-semibold">Raza:</span>{" "}
-                {pet.breed || "No especificada"}
-              </p>
-              <p className="text-gray-700 mb-2">
-                <span className="font-semibold">Sexo:</span> {pet.sexo}
-              </p>
-              <p className="text-gray-700 mb-2">
-                <span className="font-semibold">Tamaño:</span> {pet.tamano}
-              </p>
-              <p className="text-gray-700 mb-2">
-                <span className="font-semibold">Esterilizado:</span>{" "}
-                {pet.esterilizado}
-              </p>
-              <p className="text-gray-700 mb-2">
-                <span className="font-semibold">Estado:</span> {pet.status}
-              </p>
-              <p className="text-gray-700 mb-2">
-                <span className="font-semibold">Edad:</span> {getPetAge()} años
-              </p>
-              <p className="text-gray-700 mb-2">
-                <span className="font-semibold">Fecha de nacimiento:</span>{" "}
-                {new Date(pet.fecha_nacimiento).toLocaleDateString("es-ES")}
-              </p>
-            </div>
-            <div className="relative w-[200px] h-[50px]">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-evenly  gap-6">
+
+            <div className="relative w-[200px] h-[50px] self-start">
               <Image
                 src={pet.image || avatar}
                 width={200}
                 height={200}
                 alt="mascota"
-                className="rounded-full bg-gray-400 object-cover"
+                className="rounded-full bg-gray-400 object-cover "
               />
               <label
                 htmlFor="pet-image-upload"
@@ -212,6 +187,36 @@ export default function PetDetailPage() {
                 }}
               />
             </div>
+            <div>
+              <p className="text-gray-700 mb-2 mt-25 md:mt-0">
+                <span className="font-semibold">Especie:</span> {pet.especie}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <span className="font-semibold">Raza:</span>{" "}
+                {pet.breed || "No especificada"}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <span className="font-semibold">Sexo:</span> {pet.sexo}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <span className="font-semibold">Tamaño:</span> {pet.tamano}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <span className="font-semibold">Esterilizado:</span>{" "}
+                {pet.esterilizado}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <span className="font-semibold">Estado:</span> {pet.status}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <span className="font-semibold">Edad:</span> {getPetAge()} años
+              </p>
+              <p className="text-gray-700 mb-2">
+                <span className="font-semibold">Fecha de nacimiento:</span>{" "}
+                {new Date(pet.fecha_nacimiento+ "T00:00:00").toLocaleDateString("es-ES")}
+              </p>
+            </div>
+
           </div>
 
           {/* Botones */}
@@ -266,7 +271,8 @@ export default function PetDetailPage() {
         </div>
 
         {/* Columna derecha: turnos futuros */}
-        <div className="bg-linear-to-br from-orange-100 via-orange-200 to-orange-300 rounded-lg shadow-md p-6 border border-amber-600">
+        <div className="bg-linear-to-br from-orange-100 via-orange-200 w-full  to-orange-300
+         rounded-lg shadow-md p-6 border border-amber-600">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Próximos Turnos
           </h2>
