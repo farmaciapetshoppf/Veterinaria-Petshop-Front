@@ -55,14 +55,14 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           )}
           
           {/* Imagen principal a la derecha */}
-          <div className="flex-1 aspect-w-4 aspect-h-3 overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center px-0 py-2">
+          <div className="flex-1 aspect-w-4 aspect-h-3 overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center px-0 py-2 cursor-zoom-in">
             <Image
               alt={productName}
               src={getImageSrc(images[selectedIndex])}
               width={600}
               height={400}
               loading="lazy"
-              className="object-contain max-h-full max-w-full"
+              className="object-contain max-h-full max-w-full transition-transform duration-500 ease-in-out hover:scale-125"
               sizes="66vw"
             />
           </div>
@@ -72,14 +72,14 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
       {/* Mobile */}
       <div className="lg:hidden">
         {/* Imagen principal */}
-        <div className="aspect-square overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center px-0 py-2">
+        <div className="aspect-square overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center px-0 py-2 cursor-zoom-in">
           <Image
             alt={productName}
             src={getImageSrc(images[selectedIndex])}
             width={600}
             height={600}
             loading="lazy"
-            className="object-contain max-h-full max-w-full"
+            className="object-contain max-h-full max-w-full transition-transform duration-500 ease-in-out hover:scale-125"
           />
         </div>
         

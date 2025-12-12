@@ -247,17 +247,17 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* CALENDARIO MENSUAL */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">
+              <div className="bg-white rounded-lg shadow-lg p-4 lg:col-span-1">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base font-semibold text-gray-900">
                     {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                   </h2>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <button
                       onClick={() => changeMonth(-1)}
-                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300"
+                      className="px-2 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300"
                     >
                       ←
                     </button>
@@ -266,13 +266,13 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
                         setCurrentMonth(new Date());
                         setSelectedDate(new Date());
                       }}
-                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300 text-sm"
+                      className="px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300 text-xs"
                     >
                       Hoy
                     </button>
                     <button
                       onClick={() => changeMonth(1)}
-                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300"
+                      className="px-2 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300"
                     >
                       →
                     </button>
@@ -280,16 +280,16 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
                 </div>
 
                 {/* Nombres de días */}
-                <div className="grid grid-cols-7 gap-1 mb-1">
+                <div className="grid grid-cols-7 gap-0.5 mb-1">
                   {dayNames.map((day) => (
-                    <div key={day} className="text-center text-xs font-semibold text-gray-600 py-1">
+                    <div key={day} className="text-center text-[10px] font-semibold text-gray-600 py-0.5">
                       {day}
                     </div>
                   ))}
                 </div>
 
                 {/* Días del mes */}
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-0.5">
                   {getDaysInMonth(currentMonth).map((day, index) => {
                     if (!day) {
                       return <div key={`empty-${index}`} className="aspect-square" />;
@@ -302,19 +302,27 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
                       <button
                         key={index}
                         onClick={() => setSelectedDate(day)}
-                        className={`aspect-square p-1 rounded-lg text-center transition-all relative ${
+                        className={`aspect-square p-0.5 rounded text-center transition-all relative ${
                           isSelected(day)
-                            ? 'bg-orange-500 text-white shadow-lg'
+                            ? 'bg-orange-500 text-white shadow-md ring-2 ring-orange-400'
                             : isToday(day)
-                            ? 'bg-blue-100 text-blue-900 border-2 border-blue-500'
+                            ? 'bg-blue-50 text-blue-900 border border-blue-400'
+                            : hasAppointments
+                            ? 'bg-orange-100 border border-orange-400 hover:bg-orange-200 font-bold'
                             : 'bg-white border border-gray-200 hover:border-orange-300'
                         }`}
                       >
-                        <div className={`text-sm font-semibold ${isSelected(day) ? 'text-white' : 'text-gray-900'}`}>
+                        <div className={`text-xs font-semibold ${
+                          isSelected(day) 
+                            ? 'text-white' 
+                            : hasAppointments 
+                            ? 'text-orange-700' 
+                            : 'text-gray-700'
+                        }`}>
                           {day.getDate()}
                         </div>
                         {hasAppointments && (
-                          <div className={`text-xs mt-1 ${isSelected(day) ? 'text-white' : 'text-orange-600'} font-medium`}>
+                          <div className={`text-[9px] leading-none ${isSelected(day) ? 'text-white' : 'text-orange-700'} font-bold`}>
                             {dayAppointments.length}
                           </div>
                         )}
@@ -325,7 +333,7 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
               </div>
 
               {/* TURNOS DEL DÍA SELECCIONADO */}
-              <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="bg-white rounded-lg shadow-lg p-6 lg:col-span-2">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   Turnos del {selectedDate.toLocaleDateString('es-ES', { 
                     day: 'numeric', 
