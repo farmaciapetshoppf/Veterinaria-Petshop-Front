@@ -5,6 +5,8 @@ import Image from 'next/image'
 import avatar from "@/src/assets/avatarHueso.png"
 
 const CardPet: React.FC<IPet> = (pet) => {
+  console.log("PET EN CARD:", pet);
+
   const getPetAge = () => {
     const start = new Date(pet.fecha_nacimiento).getTime()
     const end = pet.fecha_fallecimiento
@@ -14,7 +16,7 @@ const CardPet: React.FC<IPet> = (pet) => {
   }
 
   return (
-    <Link href={`/pets/${pet.id}`} passHref>
+    <Link href={`http://localhost:3002/pets/${pet.id}`}>
       <div className="bg-linear-to-br from-orange-400 via-orange-200 to-orange-300 
       rounded-xl shadow-lg p-6 my-2 max-w-md mx-2 cursor-pointer hover:scale-105
       border border-gray-400 hover:shadow-xl transition-shadow">
