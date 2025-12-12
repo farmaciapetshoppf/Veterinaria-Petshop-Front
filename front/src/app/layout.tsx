@@ -5,6 +5,8 @@ import Navbar from "./components/NavBar/NavBar";
 import { AuthProvider } from "../context/AuthContext";
 import Footer from "./components/Footer/Footer";
 import { CartProvider } from "../context/CartContext";
+import { ShippingProvider } from "../context/ShippingContext";
+import { MessagesProvider } from "../context/MessagesContext";
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from "react-toastify";
 
@@ -36,21 +38,25 @@ export default function RootLayout({
       >
         <AuthProvider>
           <CartProvider>
-            <Navbar />
-            {children}
-            <Footer />
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-            />
+            <ShippingProvider>
+              <MessagesProvider>
+                <Navbar />
+                {children}
+                <Footer />
+                <ToastContainer
+                  position="top-right"
+                  autoClose={3000}
+                  hideProgressBar={false}
+                  newestOnTop={false}
+                  closeOnClick
+                  rtl={false}
+                  pauseOnFocusLoss
+                  draggable
+                  pauseOnHover
+                  theme="colored"
+                />
+              </MessagesProvider>
+            </ShippingProvider>
           </CartProvider>
         </AuthProvider>
       </body>

@@ -12,6 +12,7 @@ import { toast } from "sonner"
 import Image from "next/image"
 import { XMarkIcon } from "@heroicons/react/16/solid"
 import MercadoPagoWallet from "../components/MercadoPagoWallet/MercadoPagoWallet"
+import { useShipping } from "@/src/context/ShippingContext"
 
 
 function CartPage() {
@@ -21,6 +22,9 @@ function CartPage() {
   const [preferenceId, setPreferenceId] = useState<string | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const hasSyncedRef = useRef(false)
+  const [postalCodeInput, setPostalCodeInput] = useState("")
+  
+  const { shippingData, updatePostalCode } = useShipping()
 
 const {
    cartItems,
@@ -114,6 +118,22 @@ useEffect(() => {
   
   syncCart();
 }, [userData?.user?.id]);
+
+// Cargar código postal guardado al montar
+useEffect(() => {
+  if (shippingData.postalCode) {
+    setPostalCodeInput(shippingData.postalCode);
+  }
+}, [shippingData.postalCode]);
+
+const handleSavePostalCode = () => {
+  if (!postalCodeInput.trim()) {
+    toast.error('Ingresa un código postal válido');
+    return;
+  }
+  updatePostalCode(postalCodeInput);
+  toast.success('Código postal guardado');
+};
 
 const handleCheckout = async () => {
   // Si el usuario no está autenticado, mostrar un toast de error y redirigir al login
@@ -346,6 +366,50 @@ return (
                       <p>${Number(getTotal()).toLocaleString()}</p>
                       
                     </div>
+
+                    {/* Formulario de código postal */}
+                    {items.length > 0 && (
+                      <div className="mt-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border-2 border-blue-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <h3 className="text-sm font-semibold text-blue-900">¿A dónde enviamos tu pedido?</h3>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={postalCodeInput}
+                              onChange={(e) => setPostalCodeInput(e.target.value)}
+                              placeholder="Código postal"
+                              className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm"
+                            />
+                          </div>
+                          <button
+                            onClick={handleSavePostalCode}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition text-sm whitespace-nowrap"
+                          >
+                            Guardar
+                          </button>
+                        </div>
+                        
+                        {shippingData.postalCode && (
+                          <div className="mt-2 flex items-center gap-1 text-xs text-green-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>CP guardado: {shippingData.postalCode}</span>
+                          </div>
+                        )}
+                        
+                        <p className="mt-2 text-xs text-blue-700">
+                          💡 Tu código postal se guardará para futuras compras
+                        </p>
+                      </div>
+                    )}
 
                     {/* Botón principal de checkout */}
                     <div className="mt-6">

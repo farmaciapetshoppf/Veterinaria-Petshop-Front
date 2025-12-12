@@ -15,13 +15,14 @@ import {
   updatePetImage,
 } from "../../services/pet.services";
 import Link from "next/link";
+import { IPet, IAppointment } from "@/src/types";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function PetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { userData } = useAuth();
-  const [pet, setPet] = useState<Pet | null>(null);
+  const [pet, setPet] = useState<IPet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openEdit, setOpenEdit] = useState(false);
@@ -87,7 +88,7 @@ export default function PetDetailPage() {
   };
 
   // Filtrar solo turnos futuros
-  const upcomingAppointments = pet.appointments.filter((appt) => {
+  const upcomingAppointments = pet.appointments.filter((appt: IAppointment) => {
     const apptDate = new Date(`${appt.date}T${appt.time}`);
     return apptDate >= new Date();
   });
@@ -236,26 +237,29 @@ export default function PetDetailPage() {
           <button
             onClick={() => setOpenAppointment(true)}
             className="rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 hover:text-black px-4 py-2 transition-colors duration-200 whitespace-nowrap text-sm lg:text-base font-medium w-full"
+            disabled={!userData?.user?.id}
           >
             Agendar Turno
           </button>
-          <NewAppointmentModal
-            open={openAppointment}
-            onClose={() => setOpenAppointment(false)}
-            userId={userData!.user.id}
-            petId={id}
-            onSuccess={(newAppointment) => {
-              toast.success("Turno agendado correctamente");
-              setPet((prev) =>
-                prev
-                  ? {
-                      ...prev,
-                      appointments: [...prev.appointments, newAppointment],
-                    }
-                  : prev
-              );
-            }}
-          />
+          {userData?.user?.id && (
+            <NewAppointmentModal
+              open={openAppointment}
+              onClose={() => setOpenAppointment(false)}
+              userId={userData.user.id}
+              petId={id}
+              onSuccess={(newAppointment: any) => {
+                toast.success("Turno agendado correctamente");
+                setPet((prev: IPet | null) =>
+                  prev
+                    ? {
+                        ...prev,
+                        appointments: [...prev.appointments, newAppointment],
+                      }
+                    : prev
+                );
+              }}
+            />
+          )}
         </div>
 
         {/* Columna derecha: turnos futuros */}
@@ -295,12 +299,12 @@ export default function PetDetailPage() {
                     );
                     if (!res.ok) throw new Error("Error al cancelar el turno");
                     toast.success("Turno cancelado");
-                    setPet((prev) =>
+                    setPet((prev: IPet | null) =>
                       prev
                         ? {
                             ...prev,
                             appointments: prev.appointments.filter(
-                              (a) => a.id !== appt.id
+                              (a: any) => a.id !== appt.id
                             ),
                           }
                         : prev
@@ -345,15 +349,6 @@ export default function PetDetailPage() {
           )}
         </div>
       </div>
-      {userData?.user?.id && (
-        <NewAppointmentModal
-          open={openAppointment}
-          onClose={() => setOpenAppointment(false)}
-          userId={userData.user.id}
-          petId={id}
-          onSuccess={() => toast.success("Turno agendado correctamente")}
-        />
-      )}
     </div>
   );
 }
