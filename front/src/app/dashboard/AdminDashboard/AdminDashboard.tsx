@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/src/context/AuthContext";
 import { IProduct } from "@/src/types";
+import { toast } from "react-toastify";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -84,6 +85,13 @@ export default function AdminDashboard() {
     older: false
   });
   const [expandedVetGroups, setExpandedVetGroups] = useState<Record<string, boolean>>({});
+  const [orderFilters, setOrderFilters] = useState({
+    startDate: '',
+    endDate: '',
+    status: 'all',
+    searchClient: '',
+    category: 'all'
+  });
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -173,7 +181,7 @@ export default function AdminDashboard() {
 
   const handleCreateProduct = async () => {
     if (!formData.name || !formData.price || !formData.stock || !formData.mainImage) {
-      alert('Por favor completa todos los campos obligatorios (nombre, precio, stock e imagen principal)');
+      toast.warning('Por favor completa todos los campos obligatorios (nombre, precio, stock e imagen principal)');
       return;
     }
 
@@ -194,17 +202,24 @@ export default function AdminDashboard() {
       });
       
       const formDataToSend = new FormData();
+      
+      // IMPORTANTE: Algunos backends requieren que los archivos vayan AL FINAL
+      // Primero todos los campos de texto
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description || '');
-      formDataToSend.append('price', formData.price);
-      formDataToSend.append('stock', formData.stock);
+      formDataToSend.append('price', String(Number(formData.price)));
+      formDataToSend.append('stock', String(Number(formData.stock)));
       if (formData.categoryId) formDataToSend.append('categoryId', formData.categoryId);
-      formDataToSend.append('mainImage', formData.mainImage, formData.mainImage.name);
       
-      // Agregar imágenes adicionales
-      formData.additionalImages.forEach((file) => {
-        formDataToSend.append('additionalImages', file, file.name);
-      });
+      // Luego los archivos
+      formDataToSend.append('mainImage', formData.mainImage);
+      
+      // Agregar imágenes adicionales (solo si hay)
+      if (formData.additionalImages.length > 0) {
+        formData.additionalImages.forEach((file) => {
+          formDataToSend.append('additionalImages', file);
+        });
+      }
 
       console.log('📦 Enviando con FormData');
       for (let pair of formDataToSend.entries()) {
@@ -216,6 +231,7 @@ export default function AdminDashboard() {
         credentials: 'include',
         headers: {
           ...(userData?.token && { Authorization: `Bearer ${userData.token}` }),
+          // NO establecer Content-Type cuando usas FormData - el navegador lo hace automáticamente
         },
         body: formDataToSend,
       });
@@ -225,18 +241,25 @@ export default function AdminDashboard() {
       if (response.ok) {
         const result = await response.json();
         console.log('✅ Producto creado:', result);
-        alert('Producto creado exitosamente');
+        toast.success('Producto creado exitosamente');
         setShowCreateModal(false);
         setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', mainImage: null, additionalImages: [] });
         loadProducts();
       } else {
-        const error = await response.json();
-        console.error('❌ Error del servidor:', error);
-        alert(`Error al crear producto: ${error.message || JSON.stringify(error)}`);
+        let errorDetail;
+        try {
+          errorDetail = await response.json();
+        } catch {
+          errorDetail = { message: response.statusText };
+        }
+        console.error('❌ Error del servidor:', errorDetail);
+        console.error('💡 Tamaño de mainImage:', formData.mainImage.size, 'bytes');
+        console.error('💡 Tipo de mainImage:', formData.mainImage.type);
+        toast.error(`Error al crear producto: ${errorDetail.message}`);
       }
     } catch (error) {
       console.error('Error al crear producto:', error);
-      alert('Error al crear producto');
+      toast.error('Error al crear producto');
     } finally {
       setIsCreating(false);
     }
@@ -244,7 +267,7 @@ export default function AdminDashboard() {
 
   const handleUpdateProduct = async () => {
     if (!selectedProduct || !formData.name || !formData.price || !formData.stock) {
-      alert('Por favor completa todos los campos obligatorios');
+      toast.warning('Por favor completa todos los campos obligatorios');
       return;
     }
 
@@ -298,18 +321,18 @@ export default function AdminDashboard() {
           )
         );
         
-        alert('Producto actualizado exitosamente');
+        toast.success('Producto actualizado exitosamente');
         setShowEditModal(false);
         setSelectedProduct(null);
         setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', mainImage: null, additionalImages: [] });
       } else {
         const error = await response.json();
         console.error('❌ Error del servidor:', error);
-        alert(error.message || 'Error al actualizar producto');
+        toast.error(error.message || 'Error al actualizar producto');
       }
     } catch (error) {
       console.error('❌ Error al actualizar producto:', error);
-      alert('Error al actualizar producto');
+      toast.error('Error al actualizar producto');
     }
   };
 
@@ -328,15 +351,15 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
-        alert('Producto eliminado exitosamente');
+        toast.success('Producto eliminado exitosamente');
         loadProducts();
       } else {
         const error = await response.json();
-        alert(error.message || 'Error al eliminar producto');
+        toast.error(error.message || 'Error al eliminar producto');
       }
     } catch (error) {
       console.error('Error al eliminar producto:', error);
-      alert('Error al eliminar producto');
+      toast.error('Error al eliminar producto');
     }
   };
 
@@ -415,7 +438,43 @@ export default function AdminDashboard() {
     );
   };
 
+  const filterOrders = (orders: Order[]) => {
+    return orders.filter(order => {
+      // Filtro por fecha
+      if (orderFilters.startDate && order.createdAt) {
+        const orderDate = new Date(order.createdAt);
+        const startDate = new Date(orderFilters.startDate);
+        if (orderDate < startDate) return false;
+      }
+      if (orderFilters.endDate && order.createdAt) {
+        const orderDate = new Date(order.createdAt);
+        const endDate = new Date(orderFilters.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        if (orderDate > endDate) return false;
+      }
+      
+      // Filtro por estado
+      if (orderFilters.status !== 'all' && order.status?.toLowerCase() !== orderFilters.status.toLowerCase()) {
+        return false;
+      }
+      
+      // Filtro por cliente
+      if (orderFilters.searchClient) {
+        const searchTerm = orderFilters.searchClient.toLowerCase();
+        const buyerName = order.buyer?.name?.toLowerCase() || '';
+        const buyerEmail = order.buyer?.email?.toLowerCase() || '';
+        if (!buyerName.includes(searchTerm) && !buyerEmail.includes(searchTerm)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  };
+
   const groupOrdersByDate = (orders: Order[]) => {
+    const filteredOrders = filterOrders(orders);
+    
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -428,7 +487,7 @@ export default function AdminDashboard() {
       older: []
     };
 
-    orders.forEach(order => {
+    filteredOrders.forEach(order => {
       if (!order.createdAt) return;
       const orderDate = new Date(order.createdAt);
       if (orderDate >= today) {
@@ -654,9 +713,111 @@ export default function AdminDashboard() {
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Historial de Compras</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  {orders.length} {orders.length === 1 ? 'orden' : 'órdenes'} · Total: ${orders.reduce((sum, order) => sum + parseFloat(order.total || '0'), 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                  {filterOrders(orders).length} de {orders.length} {orders.length === 1 ? 'orden' : 'órdenes'} · Total filtrado: ${filterOrders(orders).reduce((sum, order) => sum + parseFloat(order.total || '0'), 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
+            </div>
+
+            {/* Panel de Filtros */}
+            <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <h3 className="text-lg font-bold text-gray-900">Filtros</h3>
+                {(orderFilters.startDate || orderFilters.endDate || orderFilters.status !== 'all' || orderFilters.searchClient) && (
+                  <button
+                    onClick={() => setOrderFilters({ startDate: '', endDate: '', status: 'all', searchClient: '', category: 'all' })}
+                    className="ml-auto text-sm text-amber-600 hover:text-amber-700 font-medium"
+                  >
+                    Limpiar filtros
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Fecha Desde */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Desde</label>
+                  <input
+                    type="date"
+                    value={orderFilters.startDate}
+                    onChange={(e) => setOrderFilters({ ...orderFilters, startDate: e.target.value })}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                {/* Fecha Hasta */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Hasta</label>
+                  <input
+                    type="date"
+                    value={orderFilters.endDate}
+                    onChange={(e) => setOrderFilters({ ...orderFilters, endDate: e.target.value })}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                {/* Estado */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Estado</label>
+                  <select
+                    value={orderFilters.status}
+                    onChange={(e) => setOrderFilters({ ...orderFilters, status: e.target.value })}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="completed">Completado</option>
+                    <option value="cancelled">Cancelado</option>
+                  </select>
+                </div>
+
+                {/* Buscar Cliente */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Cliente</label>
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o email"
+                    value={orderFilters.searchClient}
+                    onChange={(e) => setOrderFilters({ ...orderFilters, searchClient: e.target.value })}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Mostrar filtros activos */}
+              {(orderFilters.startDate || orderFilters.endDate || orderFilters.status !== 'all' || orderFilters.searchClient) && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-2">Filtros activos:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {orderFilters.startDate && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm">
+                        Desde: {new Date(orderFilters.startDate).toLocaleDateString('es-AR')}
+                        <button onClick={() => setOrderFilters({ ...orderFilters, startDate: '' })} className="hover:text-amber-900">✕</button>
+                      </span>
+                    )}
+                    {orderFilters.endDate && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm">
+                        Hasta: {new Date(orderFilters.endDate).toLocaleDateString('es-AR')}
+                        <button onClick={() => setOrderFilters({ ...orderFilters, endDate: '' })} className="hover:text-amber-900">✕</button>
+                      </span>
+                    )}
+                    {orderFilters.status !== 'all' && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm">
+                        Estado: {orderFilters.status}
+                        <button onClick={() => setOrderFilters({ ...orderFilters, status: 'all' })} className="hover:text-amber-900">✕</button>
+                      </span>
+                    )}
+                    {orderFilters.searchClient && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm">
+                        Cliente: "{orderFilters.searchClient}"
+                        <button onClick={() => setOrderFilters({ ...orderFilters, searchClient: '' })} className="hover:text-amber-900">✕</button>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {loadingOrders ? (

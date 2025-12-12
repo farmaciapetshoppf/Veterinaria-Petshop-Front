@@ -24,7 +24,12 @@ export default function VeterinarianManagement() {
     description: "",
     phone: "",
     time: "",
+    horario_atencion: "",
+    isActive: true,
   });
+  
+  const [scheduleStart, setScheduleStart] = useState("");
+  const [scheduleEnd, setScheduleEnd] = useState("");
 
   useEffect(() => {
     if (userData?.token) {
@@ -55,10 +60,19 @@ export default function VeterinarianManagement() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Convertir time a formato ISO 8601
+      // Crear fecha actual para time (debe ser fecha ISO: "2025-12-11")
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Crear horario_atencion como ISO datetime usando el horario de inicio
+      const [hours, minutes] = scheduleStart.split(':');
+      const horarioDate = new Date();
+      horarioDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      
       const dataToSend: ICreateVeterinarian = {
         ...formData,
-        time: new Date().toISOString(),
+        time: today, // Fecha ISO: "2025-12-11"
+        horario_atencion: horarioDate.toISOString(), // Datetime completo: "2025-12-11T09:00:00Z"
+        isActive: true,
       };
       const result = await createVeterinarian(dataToSend, userData?.token || "");
       
@@ -85,7 +99,11 @@ export default function VeterinarianManagement() {
         description: "",
         phone: "",
         time: "",
+        horario_atencion: "",
+        isActive: true,
       });
+      setScheduleStart("");
+      setScheduleEnd("");
       loadVeterinarians();
     } catch (error: any) {
       alert(error.message || "Error al crear veterinario");
@@ -205,18 +223,47 @@ export default function VeterinarianManagement() {
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Horario
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                    placeholder="Ej: 9:00 - 18:00"
-                    className="w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Horario de Inicio
+                    </label>
+                    <select
+                      value={scheduleStart}
+                      onChange={(e) => setScheduleStart(e.target.value)}
+                      className="w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      required
+                    >
+                      <option value="">Seleccionar hora</option>
+                      {Array.from({ length: 48 }, (_, i) => {
+                        const hour = Math.floor(i / 2).toString().padStart(2, '0');
+                        const minute = i % 2 === 0 ? '00' : '30';
+                        return `${hour}:${minute}`;
+                      }).map(time => (
+                        <option key={time} value={time}>{time}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Horario de Fin
+                    </label>
+                    <select
+                      value={scheduleEnd}
+                      onChange={(e) => setScheduleEnd(e.target.value)}
+                      className="w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      required
+                    >
+                      <option value="">Seleccionar hora</option>
+                      {Array.from({ length: 48 }, (_, i) => {
+                        const hour = Math.floor(i / 2).toString().padStart(2, '0');
+                        const minute = i % 2 === 0 ? '00' : '30';
+                        return `${hour}:${minute}`;
+                      }).map(time => (
+                        <option key={time} value={time}>{time}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
               <div>
@@ -251,7 +298,11 @@ export default function VeterinarianManagement() {
                       description: "",
                       phone: "",
                       time: "",
+                      horario_atencion: "",
+                      isActive: true,
                     });
+                    setScheduleStart("");
+                    setScheduleEnd("");
                   }}
                   className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg transition-all"
                 >
