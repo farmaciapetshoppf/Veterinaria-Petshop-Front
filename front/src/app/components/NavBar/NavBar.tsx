@@ -11,14 +11,15 @@ import { useAuth } from "@/src/context/AuthContext";
 import { PATHROUTES } from "../../helpers/pathRoutes";
 import { useRole } from "@/src/hooks/useRole";
 import MessagesButton from "../MessagesButton/MessagesButton";
+import ConfirmModal from "../ConfirmCancel/ConfirmModal";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const [showConfirm, setShowConfirm] = useState(false);
   const { getItemsCount } = useCart();
   const itemsCount = getItemsCount();
-    const {userData, logout} = useAuth();
-    const { isAdmin, isVeterinarian } = useRole();
+  const { userData, logout } = useAuth();
+  const { isAdmin, isVeterinarian } = useRole();
 
   return (
     <header className="fixed top-0 left-0 w-full bg-[#f5f5f5] shadow-sm z-50 transition-all duration-300">
@@ -71,8 +72,8 @@ export default function Navbar() {
               </Link>
             )}
           </div>
-          
-          { userData && userData.user && userData.user.name && (
+
+          {userData && userData.user && userData.user.name && (
             <span className="text-gray-700 whitespace-nowrap ml-3 text-[16px] lg:text-[20px] font-medium">
               {isVeterinarian() ? (
                 <>
@@ -87,13 +88,13 @@ export default function Navbar() {
               ) : (
                 <>
                   Hola <span className="font-semibold">{userData.user.name.split(" ")[0]}
-                    </span>, accedé a tu <Link href={PATHROUTES.PERFIL} 
+                  </span>, accedé a tu <Link href={PATHROUTES.PERFIL}
                     className="text-orange-500 hover:text-orange-600 font-semibold">perfil</Link>
                 </>
               )}
             </span>
           )}
-          
+
           {/* Links adicionales para veterinarios */}
           {isVeterinarian() && (
             <div className="flex gap-4 items-center">
@@ -118,16 +119,29 @@ export default function Navbar() {
           <MessagesButton />
           
           {userData && userData.user ? (
-            <button
-              onClick={logout}
-              className="
+            <div>
+              <button
+                onClick={() => setShowConfirm(true)}
+                className="
               rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white
                 hover:bg-linear-to-r hover:from-orange-600 hover:to-amber-600 hover:text-black
               px-4 py-2 transition-colors duration-200 ml-4
                whitespace-nowrap text-sm lg:text-base font-medium"
-            >
-              Cerrar sesión
-            </button>
+              >
+                Cerrar sesión
+              </button>
+
+              {showConfirm && (
+                <ConfirmModal
+                  message="¿Seguro que quieres cerrar sesion?"
+                  onConfirm={async () => {
+                    await logout();
+                    setShowConfirm(false);
+                  }}
+                  onCancel={() => setShowConfirm(false)}
+                />
+              )}
+            </div>
           ) : (
             <Link
               href="/auth/login"
@@ -139,7 +153,7 @@ export default function Navbar() {
               Iniciar Sesión
             </Link>
           )}
-          
+
           {/* Carrito - Solo para no veterinarios y no admin */}
           {!isVeterinarian() && !isAdmin() && (
             <>
@@ -204,7 +218,7 @@ export default function Navbar() {
                 {navigationItem.nameToRender}
               </Link>
             ))}
-            {userData?.user?.name && (
+          {userData?.user?.name && (
             <Link
               href={PATHROUTES.PERFIL}
               onClick={() => setIsMenuOpen(false)}
