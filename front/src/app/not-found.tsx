@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <main className="min-h-[100dvh] bg-[#FBE5CB]">
-      {/* Top “navbar-like” strip */}
+      {/* Top "navbar-like" strip */}
       <div className="sticky top-0 z-10 border-b border-black/5 bg-[#F2EAE2]/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
@@ -28,13 +28,12 @@ export default function NotFound() {
 
           <div className="hidden items-center gap-8 text-sm font-medium text-gray-700 md:flex">
             <Link className="hover:text-gray-900" href="/store">Tienda</Link>
-            <Link className="hover:text-gray-900" href="/historia">Historia</Link>
-            <Link className="hover:text-gray-900" href="/equipo">Nuestro equipo</Link>
+            <Link className="hover:text-gray-900" href="/ourHistory">Historia</Link>
           </div>
 
           <div className="flex items-center gap-3">
             <Link
-              href="/login"
+              href="/auth/login"
               className="rounded-xl bg-[#FEA537] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:translate-y-[1px]"
             >
               Iniciar Sesión
@@ -45,7 +44,7 @@ export default function NotFound() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        {/* Orange gradient backdrop (like your banner) */}
+        {/* Orange gradient backdrop */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C34] via-[#FFA344] to-[#FFB466]" />
         <div className="absolute inset-0 opacity-25">
           {/* soft pattern */}
@@ -85,7 +84,7 @@ export default function NotFound() {
                 </Link>
               </div>
 
-              {/* Search-like bar (similar to your UI) */}
+              {/* Search-like bar */}
               <div className="mt-7 rounded-2xl bg-[#FDE8D2]/95 p-3 shadow-sm ring-1 ring-black/5">
                 <div className="flex items-center gap-3 rounded-xl bg-[#FDE8D2] px-4 py-3 ring-1 ring-black/10">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -114,10 +113,10 @@ export default function NotFound() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  {["Alimento", "Juguetes", "Higiene", "Accesorios"].map((t) => (
+                  {["Alimentos", "Juguetes", "Higiene", "Accesorios"].map((t) => (
                     <Link
                       key={t}
-                      href={`/store?tag=${encodeURIComponent(t)}`}
+                      href={`/store?category=${encodeURIComponent(t)}`}
                       className="rounded-full bg-white/70 px-3 py-1 font-semibold text-gray-700 ring-1 ring-black/5 hover:bg-white"
                     >
                       {t}
@@ -146,24 +145,24 @@ export default function NotFound() {
 
                 <div className="mt-6 grid gap-3">
                   <Link
-                    href="/historia"
+                    href="/ourHistory"
                     className="group flex items-center justify-between rounded-2xl bg-[#F2EAE2] px-4 py-3 text-sm font-semibold text-gray-900 ring-1 ring-black/5 transition hover:brightness-98"
                   >
                     Conocer nuestra historia
                     <span className="opacity-60 transition group-hover:translate-x-0.5">→</span>
                   </Link>
                   <Link
-                    href="/equipo"
+                    href="/ourTeam"
                     className="group flex items-center justify-between rounded-2xl bg-[#F2EAE2] px-4 py-3 text-sm font-semibold text-gray-900 ring-1 ring-black/5 transition hover:brightness-98"
                   >
                     Ver nuestro equipo
                     <span className="opacity-60 transition group-hover:translate-x-0.5">→</span>
                   </Link>
                   <Link
-                    href="/contacto"
+                    href="/auth/login"
                     className="group flex items-center justify-between rounded-2xl bg-[#F2EAE2] px-4 py-3 text-sm font-semibold text-gray-900 ring-1 ring-black/5 transition hover:brightness-98"
                   >
-                    Contacto / Turnos
+                    Inicia sesión
                     <span className="opacity-60 transition group-hover:translate-x-0.5">→</span>
                   </Link>
                 </div>
@@ -177,7 +176,7 @@ export default function NotFound() {
 
       {/* Footer hint */}
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-8 text-center text-xs text-gray-700/80">
-        © {new Date().getFullYear()} Huellitas Pet — Volvé cuando quieras 🐾
+        Volvé cuando quieras 🐾
       </div>
     </main>
   );
