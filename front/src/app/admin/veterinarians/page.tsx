@@ -27,9 +27,17 @@ export default function VeterinarianManagement() {
     horario_atencion: "",
     isActive: true,
   });
-  
+  const [errors, setErrors] = useState<{
+    phone?: string;
+    email?: string; 
+    matricula?: string 
+}>({});
+
   const [scheduleStart, setScheduleStart] = useState("");
   const [scheduleEnd, setScheduleEnd] = useState("");
+  const phoneRegex = /^(\+54)?[0-9]{10,13}$/;
+  const matriculaRegex = /^[0-9]{3,6}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   useEffect(() => {
     if (userData?.token) {
@@ -42,11 +50,11 @@ export default function VeterinarianManagement() {
       setLoadingVets(true);
       const data = await getAllVeterinariansAdmin(userData?.token || "");
       console.log('Datos recibidos en loadVeterinarians:', data);
-      
+
       // El backend puede devolver {message, data: [...]} o directamente [...]
       const vetsArray = data?.data || data;
       console.log('Array de veterinarios a guardar:', vetsArray);
-      
+
       // Asegurarse de que data sea un array
       setVeterinarians(Array.isArray(vetsArray) ? vetsArray : []);
     } catch (error) {
@@ -57,17 +65,45 @@ export default function VeterinarianManagement() {
     }
   };
 
+  const validateForm = () => {
+    const errors: any = {};
+
+    if (!emailRegex.test(formData.email)) {
+      errors.email = "Ingresá un email válido";
+    }
+
+    /*     if (!matriculaRegex.test(formData.matricula)) {
+          setErrors((prev) => ({ ...prev, matricula: "La matrícula debe tener entre 3 y 6 números" }));
+        } else {
+          setErrors((prev) => ({ ...prev, matricula: undefined }));
+        } */
+
+    const cleanPhone = formData.phone.replace(/\D/g, "");
+    if (!phoneRegex.test(cleanPhone)) {
+      errors.phone = "Ingresá un teléfono válido (10 a 13 dígitos)";
+    }
+
+    return errors;
+  };
+
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    const errors = validateForm();
+
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return;
+    }
     try {
       // Crear fecha actual para time (debe ser fecha ISO: "2025-12-11")
       const today = new Date().toISOString().split('T')[0];
-      
+
       // Crear horario_atencion como ISO datetime usando el horario de inicio
       const [hours, minutes] = scheduleStart.split(':');
       const horarioDate = new Date();
       horarioDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-      
+
       const dataToSend: ICreateVeterinarian = {
         ...formData,
         time: today, // Fecha ISO: "2025-12-11"
@@ -75,7 +111,7 @@ export default function VeterinarianManagement() {
         isActive: true,
       };
       const result = await createVeterinarian(dataToSend, userData?.token || "");
-      
+
       // Mostrar el mensaje completo del backend (incluye contraseña temporal)
       if (result.message) {
         alert(result.message);
@@ -90,7 +126,7 @@ export default function VeterinarianManagement() {
       } else {
         alert("Veterinario creado exitosamente");
       }
-      
+
       setShowCreateForm(false);
       setFormData({
         name: "",
@@ -173,6 +209,8 @@ export default function VeterinarianManagement() {
             </h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                {/* Nombre */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Nombre completo
@@ -185,6 +223,8 @@ export default function VeterinarianManagement() {
                     required
                   />
                 </div>
+
+                {/* Email */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Email
@@ -192,11 +232,30 @@ export default function VeterinarianManagement() {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    required
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      setFormData({ ...formData, email: value });
+
+                      if (!emailRegex.test(value)) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          email: "Formato invalido de email. Formato valido xxx@xx.xxx"
+                        }));
+                      } else {
+                        setErrors((prev) => ({ ...prev, email: undefined }));
+                      }
+                    }}
+                  className={`w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500
+                    ${errors.email ? "border-red-500" : "border-amber-300"}`}
+                  required
                   />
+                  {errors.matricula && (
+                    <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+                  )}
                 </div>
+
+                {/* Matricula */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Matrícula
@@ -204,13 +263,30 @@ export default function VeterinarianManagement() {
                   <input
                     type="text"
                     value={formData.matricula}
-                    onChange={(e) =>
-                      setFormData({ ...formData, matricula: e.target.value })
-                    }
-                    className="w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      setFormData({ ...formData, matricula: value });
+
+                      if (!matriculaRegex.test(value)) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          matricula: "La matrícula debe tener entre 3 y 6 números"
+                        }));
+                      } else {
+                        setErrors((prev) => ({ ...prev, matricula: undefined }));
+                      }
+                    }}
+                    className={`w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                     ${errors.matricula ? "border-red-500" : "border-amber-300"}`}
                     required
                   />
+                  {errors.matricula && (
+                    <p className="text-red-600 text-sm mt-1">{errors.matricula}</p>
+                  )}
                 </div>
+
+                {/* Telefono */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Teléfono
@@ -218,11 +294,30 @@ export default function VeterinarianManagement() {
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      setFormData({ ...formData, phone: value });
+
+                      if (!phoneRegex.test(value)) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          phone: "El telefono debe tener entre 10 y 13 números"
+                        }));
+                      } else {
+                        setErrors((prev) => ({ ...prev, phone: undefined }));
+                      }
+                    }}
+                    className={`w-full border-2 border-amber-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500
+                      ${errors.phone ? "border-red-500" : "border-amber-300"}`}
                     required
                   />
+                  {errors.phone && (
+                    <p className="text-red-600 text-sm mt-1">{errors.phone}</p>
+                  )}
                 </div>
+
+                {/* Horarios */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
