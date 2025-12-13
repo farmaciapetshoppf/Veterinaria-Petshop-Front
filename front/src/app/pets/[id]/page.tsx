@@ -15,7 +15,7 @@ import {
   updatePetImage,
 } from "../../services/pet.services";
 import Link from "next/link";
-import { IPet } from "@/src/types";
+import { IPet, IAppointment } from "@/src/types";
 import { showConfirmToast } from "../../components/ConfirmCancel/ConfirmToast";
 import ConfirmModal from "../../components/ConfirmCancel/ConfirmModal";
 
@@ -107,7 +107,7 @@ export default function PetDetailPage() {
   };
 
   // Filtrar solo turnos futuros
-  const upcomingAppointments = pet.appointments.filter((appt) => {
+  const upcomingAppointments = pet.appointments.filter((appt: IAppointment) => {
     const apptDate = new Date(`${appt.date}T${appt.time}`);
     const todayMinusOne = new Date();
     todayMinusOne.setDate(todayMinusOne.getDate() - 1);
@@ -275,6 +275,7 @@ export default function PetDetailPage() {
           <button
             onClick={() => setOpenAppointment(true)}
             className="rounded-md bg-linear-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 hover:text-black px-4 py-2 transition-colors duration-200 whitespace-nowrap text-sm lg:text-base font-medium w-full"
+            disabled={!userData?.user?.id}
           >
             Agendar Turno
           </button>
@@ -325,14 +326,14 @@ export default function PetDetailPage() {
                     );
                     if (!res.ok) throw new Error("Error al cancelar el turno");
                     toast.success("Turno cancelado");
-                    setPet((prev) =>
+                    setPet((prev: IPet | null) =>
                       prev
                         ? {
-                          ...prev,
-                          appointments: prev.appointments.filter(
-                            (a) => a.id !== appt.id
-                          ),
-                        }
+                            ...prev,
+                            appointments: prev.appointments.filter(
+                              (a: any) => a.id !== appt.id
+                            ),
+                          }
                         : prev
                     );
                   } catch (err: any) {
