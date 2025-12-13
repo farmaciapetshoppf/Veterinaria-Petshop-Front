@@ -1,4 +1,4 @@
-import { IPet } from "@/src/types";
+import { IPet, IPetUpdate } from "@/src/types";
 import { toast } from "react-toastify";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -35,10 +35,7 @@ export interface NewPetData {
 export const createPet = async (petData: NewPetData, userId: string): Promise<IPet | null> => {
 
   try {
-    console.log('Datos:', petData)
     petData.ownerId = userId
-    console.log('User ID:', userId)
-    
     const response = await fetch(`${API_URL}/pets/NewPet`, {
       method: 'POST',
       headers: {
@@ -47,8 +44,6 @@ export const createPet = async (petData: NewPetData, userId: string): Promise<IP
       body: JSON.stringify(petData),
     });
 
-    console.log('Respuesta status:', response.status)
-
     if (!response.ok) {
       const errorText = await response.text()
       toast.error('No se pudo crear la mascota, intente nuevamente')
@@ -56,25 +51,167 @@ export const createPet = async (petData: NewPetData, userId: string): Promise<IP
     }
 
     const result = await response.json();
-    toast.success('Mascota creada exitosamente')
-    /* console.log('Datos de la mascota:', result.data || result) */
-    
-    // El backend devuelve {message: '...', data: {...}}
-    // Devolvemos solo la data
+
     return result.data || result;
   } catch (error) {
-    console.error('Error creating pet:', error);
     toast.error('No se pudo crear la mascota, intente nuevamente')
     return null;
   }
 };
 
-// Buscar mascotas por nombre o ID
+export const deletePet = async (id: string) => {
+  try {
+    const res = await fetch(`${API_URL}/pets/${id}`, {
+    method: 'PUT',
+    credentials: 'include',
+  })
+    if (!res.ok) throw new Error('Error al eliminar la mascota')
+      toast.success('Mascota eliminada con éxito')
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+}
+
+export async function updatePet(id: string, updatedData: IPetUpdate) {
+  // Sanitizar datos: convertir undefined en null
+  const safeBody = JSON.stringify(updatedData, (_, value) =>
+    typeof value === "undefined" ? null : value
+  )
+
+  try {
+    const res = await fetch(`${API_URL}/pets/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: safeBody,
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(errorText || "Error al modificar la mascota")
+    }
+
+    return await res.json() // devuelve { data }
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function updatePetImage(id: string, file: File) {
+  const formData = new FormData()
+  formData.append("image", file)
+
+  try {
+    const res = await fetch(`${API_URL}/pets/${id}`, {
+      method: "PATCH",
+      credentials: "include",
+      body: formData,
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(errorText || "Error al actualizar la imagen")
+    }
+
+    return await res.json() // devuelve { data }
+  } catch (err) {
+    throw err
+  }
+}
+
 export const searchPets = async (query: string, token: string): Promise<Pet[]> => {
-  // TODO: Reemplazar con llamada real al backend cuando esté disponible
-  // const response = await fetch(`${API_URL}/pets/search?query=${encodeURIComponent(query)}`, ...)
-  
-  // MOCK DATA - Simulación de búsqueda
+  try {
+    console.log('🔍 Buscando mascotas (searchPets):', query);
+    
+    // Primero intentar obtener todas las mascotas de usuarios
+    console.log('🔍 Intentando obtener mascotas desde /users...');
+    
+    try {
+      const usersResponse = await fetch(`${API_URL}/users`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json();
+        console.log('✅ Respuesta de /users:', usersData);
+        
+        // Extraer todas las mascotas de todos los usuarios
+        const users = usersData.data || usersData.users || usersData || [];
+        let allPets: any[] = [];
+        
+        if (Array.isArray(users)) {
+          users.forEach((user: any) => {
+            if (user.pets && Array.isArray(user.pets)) {
+              allPets = allPets.concat(user.pets);
+            }
+          });
+        }
+        
+        console.log(`📊 Total mascotas encontradas en /users: ${allPets.length}`);
+        
+        // Filtrar por query
+        if (allPets.length > 0) {
+          const lowerQuery = query.toLowerCase();
+          const filtered = allPets.filter((pet: any) => 
+            pet.nombre?.toLowerCase().includes(lowerQuery) ||
+            pet.name?.toLowerCase().includes(lowerQuery) ||
+            pet.breed?.toLowerCase().includes(lowerQuery) ||
+            pet.especie?.toLowerCase().includes(lowerQuery) ||
+            pet.species?.toLowerCase().includes(lowerQuery) ||
+            pet.id?.toLowerCase().includes(lowerQuery)
+          );
+          
+          if (filtered.length > 0) {
+            console.log(`✅ ${filtered.length} mascotas encontradas después de filtrar`);
+            return filtered;
+          }
+        }
+      }
+    } catch (usersError) {
+      console.log('⚠️ Error al buscar en /users, intentando con medical-records...');
+    }
+    
+    // Si /users no funciona, intentar con medical-records
+    console.log('🔍 Intentando con /medical-records-pet/search/pets...');
+    const response = await fetch(`${API_URL}/medical-records-pet/search/pets?query=${encodeURIComponent(query)}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ Respuesta de medical-records:', result);
+      
+      const pets = result.data || result.pets || result || [];
+      
+      if (Array.isArray(pets) && pets.length > 0) {
+        console.log(`✅ ${pets.length} mascotas encontradas en medical-records`);
+        return pets;
+      }
+    }
+    
+    // Si ninguno funciona, usar MOCK
+    console.log('⚠️ No se encontraron mascotas en ningún endpoint. Usando datos MOCK');
+    return getMockPets(query);
+    
+  } catch (error) {
+    console.error('❌ Error en searchPets:', error);
+    console.log('⚠️ Usando datos MOCK como fallback');
+    return getMockPets(query);
+  }
+};
+
+// MOCK DATA helper - Solo para desarrollo/fallback
+const getMockPets = (query: string): Promise<Pet[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const mockPets: Pet[] = [
@@ -204,10 +341,38 @@ export const searchPets = async (query: string, token: string): Promise<Pet[]> =
 
 // Obtener historial médico completo de una mascota
 export const getPetMedicalHistory = async (petId: string, token: string): Promise<any> => {
-  // TODO: Reemplazar con llamada real al backend cuando esté disponible
-  // const response = await fetch(`${API_URL}/pets/${petId}/medical-history`, ...)
-  
-  // MOCK DATA - Simulación de historial médico
+  try {
+    console.log('📋 Obteniendo historial médico de mascota:', petId);
+    
+    const response = await fetch(`${API_URL}/medical-records-pet/pet/${petId}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      console.error('❌ Error al obtener historial médico:', response.status);
+      // Fallback a MOCK en caso de error
+      return getMockMedicalHistory(petId);
+    }
+    
+    const result = await response.json();
+    console.log('✅ Historial médico obtenido:', result);
+    
+    // El backend puede devolver {data: Array} o directamente Array
+    return result.data || result.records || result.medicalRecords || result;
+  } catch (error) {
+    console.error('❌ Error en getPetMedicalHistory:', error);
+    // Fallback a MOCK en caso de error
+    return getMockMedicalHistory(petId);
+  }
+};
+
+// MOCK DATA helper - Solo para desarrollo/fallback
+const getMockMedicalHistory = (petId: string): Promise<any> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const mockHistories: { [key: string]: any } = {
@@ -334,7 +499,7 @@ export const getPetMedicalHistory = async (petId: string, token: string): Promis
 // Agregar información al historial médico de una mascota
 export interface AddMedicalRecordData {
   petId: string;
-  appointmentId: string;
+  veterinarianId: string;
   diagnosis: string;
   treatment: string;
   medications?: string;
@@ -346,22 +511,65 @@ export interface AddMedicalRecordData {
 }
 
 export const addMedicalRecord = async (data: AddMedicalRecordData, token: string): Promise<boolean> => {
-  // TODO: Reemplazar con llamada real al backend cuando esté disponible
-  // const response = await fetch(`${API_URL}/pets/${data.petId}/medical-records`, {
-  //   method: 'POST',
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //     'Authorization': `Bearer ${token}`,
-  //   },
-  //   body: JSON.stringify(data),
-  // });
-  
-  // MOCK - Simulación de guardado
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Registro médico guardado (MOCK):', data);
-      toast.success('Historial médico actualizado correctamente');
-      resolve(true);
-    }, 800);
-  });
+  try {
+    console.log('📋 Creando registro médico:', data);
+    
+    const response = await fetch(`${API_URL}/medical-records-pet`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    
+    console.log('📡 Respuesta addMedicalRecord:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Error al crear registro médico:', errorText);
+      toast.error('Error al guardar el historial médico');
+      return false;
+    }
+    
+    const result = await response.json();
+    console.log('✅ Registro médico creado:', result);
+    toast.success('Historial médico actualizado correctamente');
+    return true;
+  } catch (error) {
+    console.error('❌ Error en addMedicalRecord:', error);
+    toast.error('Error al guardar el historial médico');
+    return false;
+  }
+};
+
+// Buscar mascotas para historiales médicos
+export const searchPetsForMedicalRecords = async (query: string, token: string) => {
+  try {
+    console.log('🔍 Buscando mascotas:', query);
+    
+    const response = await fetch(`${API_URL}/medical-records-pet/search/pets?query=${encodeURIComponent(query)}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      console.error('❌ Error al buscar mascotas:', response.status);
+      return [];
+    }
+    
+    const result = await response.json();
+    console.log('✅ Mascotas encontradas:', result);
+    
+    // El backend puede devolver {data: Array} o directamente Array
+    return result.data || result.pets || result;
+  } catch (error) {
+    console.error('❌ Error en searchPetsForMedicalRecords:', error);
+    return [];
+  }
 };

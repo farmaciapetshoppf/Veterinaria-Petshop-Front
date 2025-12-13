@@ -1,20 +1,18 @@
 'use client';
 
-import WorkInProgress from "../components/WorkInProgress/WorkInProgress"
-import cart from "../../assets/cart.png"
-import perrocompras from "../../assets/perrocompras.png"
 import perrocompra from "../../assets/perrocompra.png"
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { useCart } from "@/src/context/CartContext"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { IProduct } from "@/src/types"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/src/context/AuthContext"
-import { createCheckout } from "@/src/services/order.services"
+import { addToCartBackend, createCheckout } from "@/src/services/order.services"
 import { toast } from "sonner"
 import Image from "next/image"
 import { XMarkIcon } from "@heroicons/react/16/solid"
 import MercadoPagoWallet from "../components/MercadoPagoWallet/MercadoPagoWallet"
+import { useShipping } from "@/src/context/ShippingContext"
 
 
 function CartPage() {
@@ -23,6 +21,11 @@ function CartPage() {
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [preferenceId, setPreferenceId] = useState<string | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const hasSyncedRef = useRef(false)
+  const [postalCodeInput, setPostalCodeInput] = useState("")
+  
+  const { shippingData, updatePostalCode } = useShipping()
+
 const {
    cartItems,
     removeFromCart,
@@ -50,7 +53,12 @@ const getLogin = () => {
 useEffect(() => {
   const syncCart = async () => {
     if (!userData?.user?.id) {
-      console.log('⏭️ Usuario no autenticado, saltando sincronización');
+      return;
+    }
+
+    // Evitar sincronización múltiple usando useRef
+    if (hasSyncedRef.current) {
+      console.log('⏭️ Ya se sincronizó anteriormente, saltando...');
       return;
     }
   
@@ -61,13 +69,8 @@ useEffect(() => {
     if (localCart) {
       try {
         const localItems: IProduct[] = JSON.parse(localCart);
-        console.log('📦 Items en localStorage:', localItems.length);
         
         if (localItems.length > 0) {
-          console.log('🔄 Sincronizando items con backend...');
-          toast.info('Sincronizando carrito...');
-          
-          const { addToCartBackend } = await import('@/src/services/order.services');
           
           let syncCount = 0;
           for (const item of localItems) {
@@ -81,11 +84,18 @@ useEffect(() => {
               );
               syncCount++;
             } catch (err: any) {
-              console.error('❌ Error al sincronizar item:', item.name, err.message);
+              // Si el error es que ya existe, no es un problema
+              if (err.message?.includes('ya está en el carrito') || err.message?.includes('already')) {
+                console.log(`  ⏭️ ${item.name} ya está en el carrito del backend`);
+                syncCount++;
+              } else {
+                console.error('❌ Error al sincronizar item:', item.name, err.message);
+              }
             }
           }
           
-          console.log(`✅ Sincronizados ${syncCount}/${localItems.length} items`);
+          // Marcar como sincronizado
+          hasSyncedRef.current = true;
           
           // Recargar carrito del backend
           await loadCartFromBackend();
@@ -102,11 +112,28 @@ useEffect(() => {
       // No hay items en localStorage, solo cargar del backend
       console.log('📥 Cargando carrito del backend...');
       await loadCartFromBackend();
+      hasSyncedRef.current = true;
     }
   };
   
   syncCart();
 }, [userData?.user?.id]);
+
+// Cargar código postal guardado al montar
+useEffect(() => {
+  if (shippingData.postalCode) {
+    setPostalCodeInput(shippingData.postalCode);
+  }
+}, [shippingData.postalCode]);
+
+const handleSavePostalCode = () => {
+  if (!postalCodeInput.trim()) {
+    toast.error('Ingresa un código postal válido');
+    return;
+  }
+  updatePostalCode(postalCodeInput);
+  toast.success('Código postal guardado');
+};
 
 const handleCheckout = async () => {
   // Si el usuario no está autenticado, mostrar un toast de error y redirigir al login
@@ -128,19 +155,16 @@ const handleCheckout = async () => {
   }
 
   setIsCheckingOut(true);
-  try {
-    console.log('🚀 Iniciando checkout...');
-    console.log('🛒 Items en el carrito:', items.length);
-    
+  try {    
     // Llamar al nuevo endpoint que usa el carrito del backend
-    const data = await createCheckout(String(userData.user.id), userData.token || '');
+    const response = await createCheckout(userData.user.id, userData.token || '');
     
-    console.log('📦 Datos recibidos del checkout:', data);
-    console.log('🔗 USAR ESTE LINK PARA PRODUCCIÓN:', data?.initPoint);
-    console.log('⚠️ Link de sandbox (NO usar en producción):', data?.sandboxInitPoint);
+    // Extraer datos de la respuesta
+    const data = response?.data;
     
     // IMPORTANTE: Usar initPoint para producción (NO sandboxInitPoint)
-    const checkoutUrl = data?.initPoint;
+    const checkoutUrl = data?.initPoint || data?.sandboxInitPoint;
+
     
     if (checkoutUrl) {
       console.log('✅ Redirigiendo a MercadoPago (PRODUCCIÓN):', checkoutUrl);
@@ -149,19 +173,47 @@ const handleCheckout = async () => {
       // Redirigir en la misma ventana
       window.location.href = checkoutUrl;
     } else {
-      console.error('❌ No se recibió initPoint del backend');
-      toast.error('Error: No se pudo generar el link de pago');
+      console.warn('⚠️ MercadoPago no configurado, orden creada sin initPoint');
+      
+      // Limpiar carrito local
+      localStorage.removeItem('cart');
+      
+      toast.success(
+        `✅ ¡Orden #${data?.id?.slice(0, 8)} creada exitosamente! Total: $${data?.total}. Redirigiendo al historial...`,
+        { autoClose: 3000 }
+      );
+      
+      // Redirigir al dashboard
+      setTimeout(() => {
+        setOpen(false);
+        router.push('/dashboard');
+      }, 2000);
     }
   } catch (error: any) {
     console.error('❌ Error al crear checkout:', error);
     
+    // Extraer información específica del error
+    const errorMessage = error.message || '';
+    
     // Mensaje de error más específico
-    if (error.message?.includes('No hay carrito activo')) {
+    if (errorMessage.includes('No hay carrito activo') || errorMessage.includes('vacío')) {
       toast.error('El carrito está vacío. Agrega productos antes de continuar.');
-    } else if (error.message?.includes('Insufficient stock')) {
-      toast.error('Uno o más productos no tienen stock suficiente.');
+    } else if (errorMessage.includes('Insufficient stock')) {
+      // Extraer el nombre del producto y las cantidades del mensaje
+      const productMatch = errorMessage.match(/product "([^"]+)"/);
+      const availableMatch = errorMessage.match(/Available: (\d+)/);
+      const requestedMatch = errorMessage.match(/requested: (\d+)/);
+      
+      if (productMatch && availableMatch && requestedMatch) {
+        const productName = productMatch[1];
+        const available = availableMatch[1];
+        const requested = requestedMatch[1];
+        toast.error(`"${productName}" no tiene stock suficiente. Disponible: ${available}, solicitado: ${requested}. Por favor ajusta la cantidad.`);
+      } else {
+        toast.error('Uno o más productos no tienen stock suficiente. Por favor verifica las cantidades.');
+      }
     } else {
-      toast.error(error.message || 'Error al procesar el pago');
+      toast.error(errorMessage || 'Error al procesar el pago');
     }
   } finally {
     setIsCheckingOut(false);
@@ -217,15 +269,15 @@ return (
       <Dialog open={open} onClose={setOpen} className="relative z-10">
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="pointer-events-none fixed top-25 bottom-0 right-60 flex max-w-full pl-8 sm:pl-16">
+            <div className="pointer-events-none fixed top-26 bottom-4 right-14 flex max-w-full pl-4 sm:pl-8">
               <DialogPanel
                 transition
-                className="pointer-events-auto w-screen max-w-3xl transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
+                className="pointer-events-auto w-screen max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
               >
-                <div className="flex h-full w-full border-amber-200 border-2 mb-1 rounded-2xl flex-col overflow-y-auto bg-white shadow-xl">
+                <div className="flex h-full w-full border-amber-200 border-2 rounded-2xl flex-col overflow-y-auto bg-white shadow-xl">
                   <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
                     <div className="flex items-start justify-between">
-                      <DialogTitle className="text-lg font-medium text-gray-900">Shopping cart</DialogTitle>
+                      <DialogTitle className="text-lg font-medium text-gray-900">Tu carrito</DialogTitle>
                       <div className="ml-3 flex h-7 items-center">
                         <button
                           type="button"
@@ -252,8 +304,8 @@ return (
                               <li key={item.id} className={`flex py-6 px-4 rounded-lg ${index % 2 === 0 ? 'bg-amber-50' : 'bg-white'}`}>
                                 <div className="size-24 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
                                   <Image
-                                   alt={item.name}
-                                    src={(item.image ) ? item.image : (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}${item.image ?? ''}` : '/next.svg')}
+                                    src={item.image}
+                                    alt={item.name}
                                     width={96}
                                     height={96}
                                     loading="lazy"
@@ -267,9 +319,10 @@ return (
                                       <h3>
                                         <a href={`/product/${item.id}`}>{item.name}</a>
                                       </h3>
-                                      <p className="ml-4">${Number(item.price).toLocaleString()}</p>
+                                      <p className="ml-4">${(Number(item.price) * (item.quantity || 1)).toLocaleString()}</p>
                                     </div>
                                     <p className="mt-1 text-sm text-gray-500 line-clamp-2">{item.description}</p>
+                                    <p className="mt-1 text-xs text-gray-400">Precio unitario: ${Number(item.price).toLocaleString()}</p>
                                   </div>
                                   <div className="flex flex-1 items-end justify-between text-sm">
                                     {/* Control de cantidad */}
@@ -314,8 +367,51 @@ return (
                       <p>${Number(getTotal()).toLocaleString()}</p>
                       
                     </div>
-                    <p className="mt-0.5 text-sm text-gray-500">Shipping and taxes calculated at checkout.</p>
-                    
+
+                    {/* Formulario de código postal */}
+                    {items.length > 0 && (
+                      <div className="mt-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border-2 border-blue-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <h3 className="text-sm font-semibold text-blue-900">¿A dónde enviamos tu pedido?</h3>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={postalCodeInput}
+                              onChange={(e) => setPostalCodeInput(e.target.value)}
+                              placeholder="Código postal"
+                              className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm"
+                            />
+                          </div>
+                          <button
+                            onClick={handleSavePostalCode}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition text-sm whitespace-nowrap"
+                          >
+                            Guardar
+                          </button>
+                        </div>
+                        
+                        {shippingData.postalCode && (
+                          <div className="mt-2 flex items-center gap-1 text-xs text-green-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>CP guardado: {shippingData.postalCode}</span>
+                          </div>
+                        )}
+                        
+                        <p className="mt-2 text-xs text-blue-700">
+                          💡 Tu código postal se guardará para futuras compras
+                        </p>
+                      </div>
+                    )}
+
                     {/* Botón principal de checkout */}
                     <div className="mt-6">
                       <button

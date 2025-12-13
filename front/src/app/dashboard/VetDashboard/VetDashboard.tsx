@@ -5,6 +5,7 @@ import { useAuth } from '@/src/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import CompleteTurnModal, { MedicalRecordData } from '@/src/app/components/CompleteTurnModal/CompleteTurnModal'
 import { addMedicalRecord } from '@/src/app/services/pet.services'
+import { getAppointmentsByVetId, Appointment } from '@/src/services/appointment.services'
 
 interface VetAppointment {
   id: string
@@ -20,6 +21,7 @@ interface VetAppointment {
 
 interface VetDashboardProps {
   veterinarian: {
+    id?: string
     name: string
     email: string
     phone: string
@@ -39,64 +41,94 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<VetAppointment | null>(null);
 
-  // TODO: Reemplazar con llamada real al backend
   useEffect(() => {
     const fetchAppointments = async () => {
-      // Aquí irá la llamada al backend para obtener turnos del veterinario
-      // const token = localStorage.getItem('authToken');
-      // const response = await getAppointmentsByVetId(veterinarian.id, token);
-      
-      // Por ahora usamos mock
-      const mockAppointments: VetAppointment[] = [
-        {
-          id: '1',
-          date: '2025-12-07',
-          time: '09:00',
-          petName: 'Max',
-          petOwner: 'Juan Pérez',
-          service: 'Control general',
-          status: 'pending',
-          notes: 'Primera consulta',
-          petId: '1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p'
-        },
-        {
-          id: '2',
-          date: '2025-12-07',
-          time: '10:30',
-          petName: 'Luna',
-          petOwner: 'María González',
-          service: 'Vacunación',
-          status: 'pending',
-          petId: '2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q'
-        },
-        {
-          id: '3',
-          date: '2025-12-10',
-          time: '14:00',
-          petName: 'Rocky',
-          petOwner: 'Carlos López',
-          service: 'Cirugía menor',
-          status: 'pending',
-          petId: '3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r'
-        },
-        {
-          id: '4',
-          date: '2025-12-15',
-          time: '11:00',
-          petName: 'Michi',
-          petOwner: 'Ana Martínez',
-          service: 'Desparasitación',
-          status: 'pending',
-          petId: '4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s'
-        },
-      ];
-      
-      setAppointments(mockAppointments);
-      setLoading(false);
+      try {
+        setLoading(true);
+        
+        // Primero obtener el veterinario asociado al usuario
+        const userId = userData?.user?.id;
+        const token = userData?.token || localStorage.getItem('authToken');
+
+        if (!userId || !token) {
+          console.error('❌ No hay ID de usuario o token');
+          setLoading(false);
+          return;
+        }
+
+        console.log('👤 ID del usuario logueado:', userId);
+        console.log('🔑 Token disponible:', token ? 'SÍ' : 'NO');
+
+        // Buscar el veterinario por userId
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/veterinarians`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al obtener veterinarios');
+        }
+
+        const result = await response.json();
+        const allVets = result.data || result;
+        
+        console.log('🏥 Todos los veterinarios:', allVets);
+        
+        // Encontrar el veterinario que coincide con el userId
+        // El ID del veterinario puede ser igual al userId o estar en vet.userId o vet.user?.id
+        const currentVet = allVets.find((vet: any) => 
+          vet.id === userId || vet.userId === userId || vet.user?.id === userId
+        );
+        
+        console.log('🔍 Veterinario buscado con userId:', userId);
+        console.log('🩺 Veterinario encontrado:', currentVet);
+        
+        if (!currentVet) {
+          console.error('❌ No se encontró veterinario para este usuario');
+          setAppointments([]);
+          setLoading(false);
+          return;
+        }
+
+        const vetId = currentVet.id;
+        console.log('🩺 ID del veterinario encontrado:', vetId);
+        console.log('📅 Obteniendo turnos para veterinario:', vetId);
+        
+        const backendAppointments = await getAppointmentsByVetId(vetId, token);
+        
+        console.log('📊 Respuesta del backend - cantidad de turnos:', backendAppointments.length);
+        console.log('📋 Turnos recibidos:', JSON.stringify(backendAppointments, null, 2));
+        
+        // Mapear los datos del backend al formato del componente
+        const mappedAppointments: VetAppointment[] = backendAppointments.map((apt) => ({
+          id: apt.id,
+          date: apt.date,
+          time: apt.time,
+          petName: apt.pet?.nombre || 'Mascota sin nombre',
+          petOwner: apt.pet?.owner?.name || 'Dueño sin nombre',
+          service: 'Consulta general', // No hay campo detail en la respuesta
+          status: apt.status ? 'pending' : 'cancelled', // status: true = activo/pending, false = cancelado
+          notes: '',
+          petId: apt.pet?.id
+        }));
+        
+        console.log('✅ Turnos mapeados:', mappedAppointments);
+        setAppointments(mappedAppointments);
+      } catch (error) {
+        console.error('❌ Error al cargar turnos:', error);
+        // En caso de error, mostrar array vacío
+        setAppointments([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchAppointments();
-  }, [veterinarian]);
+  }, [veterinarian, userData]);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -149,13 +181,13 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
   };
 
   const handleSubmitMedicalRecord = async (medicalData: MedicalRecordData) => {
-    if (!selectedAppointment) return;
+    if (!selectedAppointment || !userData?.user?.id) return;
 
     const token = localStorage.getItem('authToken') || '';
     
     const recordData = {
       petId: selectedAppointment.petId || '',
-      appointmentId: selectedAppointment.id,
+      veterinarianId: userData.user.id,
       diagnosis: medicalData.diagnosis,
       treatment: medicalData.treatment,
       medications: medicalData.medications,
@@ -165,6 +197,8 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
       weight: medicalData.weight,
       temperature: medicalData.temperature,
     };
+    
+    console.log('📝 Guardando registro para appointment:', selectedAppointment.id);
 
     const success = await addMedicalRecord(recordData, token);
     
@@ -177,6 +211,10 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
             : apt
         )
       );
+      
+      // Cerrar el modal
+      setIsModalOpen(false);
+      setSelectedAppointment(null);
     }
   };
 
@@ -215,17 +253,17 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* CALENDARIO MENSUAL */}
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
+              <div className="bg-white rounded-lg shadow-lg p-4 lg:col-span-1">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base font-semibold text-gray-900">
                     {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                   </h2>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <button
                       onClick={() => changeMonth(-1)}
-                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300"
+                      className="px-2 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300"
                     >
                       ←
                     </button>
@@ -234,13 +272,13 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
                         setCurrentMonth(new Date());
                         setSelectedDate(new Date());
                       }}
-                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300 text-sm"
+                      className="px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300 text-xs"
                     >
                       Hoy
                     </button>
                     <button
                       onClick={() => changeMonth(1)}
-                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300"
+                      className="px-2 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200 border border-gray-300"
                     >
                       →
                     </button>
@@ -248,16 +286,16 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
                 </div>
 
                 {/* Nombres de días */}
-                <div className="grid grid-cols-7 gap-2 mb-2">
+                <div className="grid grid-cols-7 gap-0.5 mb-1">
                   {dayNames.map((day) => (
-                    <div key={day} className="text-center text-xs font-semibold text-gray-600 py-2">
+                    <div key={day} className="text-center text-[10px] font-semibold text-gray-600 py-0.5">
                       {day}
                     </div>
                   ))}
                 </div>
 
                 {/* Días del mes */}
-                <div className="grid grid-cols-7 gap-2">
+                <div className="grid grid-cols-7 gap-0.5">
                   {getDaysInMonth(currentMonth).map((day, index) => {
                     if (!day) {
                       return <div key={`empty-${index}`} className="aspect-square" />;
@@ -270,19 +308,27 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
                       <button
                         key={index}
                         onClick={() => setSelectedDate(day)}
-                        className={`aspect-square p-2 rounded-lg text-center transition-all relative ${
+                        className={`aspect-square p-0.5 rounded text-center transition-all relative ${
                           isSelected(day)
-                            ? 'bg-orange-500 text-white shadow-lg'
+                            ? 'bg-orange-500 text-white shadow-md ring-2 ring-orange-400'
                             : isToday(day)
-                            ? 'bg-blue-100 text-blue-900 border-2 border-blue-500'
+                            ? 'bg-blue-50 text-blue-900 border border-blue-400'
+                            : hasAppointments
+                            ? 'bg-orange-100 border border-orange-400 hover:bg-orange-200 font-bold'
                             : 'bg-white border border-gray-200 hover:border-orange-300'
                         }`}
                       >
-                        <div className={`text-sm font-semibold ${isSelected(day) ? 'text-white' : 'text-gray-900'}`}>
+                        <div className={`text-xs font-semibold ${
+                          isSelected(day) 
+                            ? 'text-white' 
+                            : hasAppointments 
+                            ? 'text-orange-700' 
+                            : 'text-gray-700'
+                        }`}>
                           {day.getDate()}
                         </div>
                         {hasAppointments && (
-                          <div className={`text-xs mt-1 ${isSelected(day) ? 'text-white' : 'text-orange-600'} font-medium`}>
+                          <div className={`text-[9px] leading-none ${isSelected(day) ? 'text-white' : 'text-orange-700'} font-bold`}>
                             {dayAppointments.length}
                           </div>
                         )}
@@ -293,7 +339,7 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
               </div>
 
               {/* TURNOS DEL DÍA SELECCIONADO */}
-              <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="bg-white rounded-lg shadow-lg p-6 lg:col-span-2">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   Turnos del {selectedDate.toLocaleDateString('es-ES', { 
                     day: 'numeric', 

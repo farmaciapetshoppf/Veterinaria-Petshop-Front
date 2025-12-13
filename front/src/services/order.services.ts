@@ -66,6 +66,36 @@ export const getAllOrders = async (token:string) => {
     }
 }
 
+export const getUserOrders = async (userId: string, token: string) => {
+    try { 
+        const res = await fetch(`${APIURL}/sale-orders/history/${userId}`, {
+            method: 'GET',
+            cache: 'no-cache',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` })
+            }
+        });
+        
+        if (!res.ok) {
+            console.error('Error al obtener órdenes del usuario:', res.status);
+            return [];
+        }
+        
+        const response = await res.json();
+        
+        // El backend devuelve {message: string, data: Array}
+        const orders = response.data || response.orders || response.saleOrders || response;
+        
+        // Asegurarse de que sea un array
+        return Array.isArray(orders) ? orders : [];
+    } catch (error: any) {
+        console.error('Error en getUserOrders:', error);
+        return [];
+    }
+}
+
 
 // PRODUCTO DENTRO DE ITEMS
 export interface Product {
@@ -152,14 +182,13 @@ export const getOrderHistory = async (userId: string, token: string) => {
 };
 
 // Obtener el carrito del usuario
-export const getCart = async (userId: string, token: string) => {
+export const getCart = async (userId: string) => {
     try {
         const response = await fetch(`${APIURL}/sale-orders/cart/${userId}`, {
             method: "GET",
             credentials: 'include',
             headers: {
-                "Content-Type": "application/json",
-                ...(token && { Authorization: token })
+                "Content-Type": "application/json"
             },
         });
         
@@ -170,7 +199,8 @@ export const getCart = async (userId: string, token: string) => {
         const result = await response.json();
         // El backend retorna { message: string, data: SaleOrder | null }
         // SaleOrder tiene: { id, buyer, items: [{product, quantity, unitPrice}], total, status, expiresAt }
-        return result.data;
+        
+        return result.data;        
     } catch (error: any) {
         console.error('Error en getCart:', error);
         throw error;
@@ -317,30 +347,81 @@ export const getActiveCart = async (userId: string, token: string) => {
 export const createCheckout = async (userId: string, token: string) => {
     try {
         console.log('🛒 Creando checkout para userId:', userId);
+        console.log('🔍 Verificando carrito del usuario antes del checkout...');
         
-        // Llamar al endpoint correcto de checkout que usa el carrito del backend
+        // Primero obtener el carrito para ver qué tiene
+        const cart = await getCart(userId);
+        console.log('📦 Carrito actual:', cart);
+        
+        if (!cart || !cart.items || cart.items.length === 0) {
+            throw new Error('El carrito está vacío');
+        }
+        
+        console.log('📊 Items en carrito:');
+        cart.items.forEach((item: any) => {
+            console.log(`  - ${item.product.name}: cantidad=${item.quantity}, precio unitario=$${item.unitPrice}, subtotal=$${item.quantity * item.unitPrice}`);
+        });
+        console.log('💰 Total del carrito según frontend:', cart.total);
+        
+        console.log('📤 Enviando checkout para carrito del usuario');
+        
+        // Preparar las URLs de retorno para MercadoPago
+        // Usar ngrok URL si está disponible, sino usar el origin actual
+        const ngrokUrl = process.env.NEXT_PUBLIC_NGROK_URL;
+        const baseUrl = ngrokUrl || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3002');
+        
+        console.log('🌐 Base URL para MercadoPago:', baseUrl);
+        console.log('🌐 Endpoint:', `${APIURL}/sale-orders/checkout/${userId}`);
+        console.log('🔐 Authorization header:', token ? 'Presente (primeros 20 chars): ' + token.substring(0, 20) + '...' : 'AUSENTE');
+        
+        // Llamar al endpoint de checkout que convierte el carrito en orden
+        // El backend requiere success_url, failure_url y pending_url por separado
         const response = await fetch(`${APIURL}/sale-orders/checkout/${userId}`, {
             method: "POST",
             credentials: 'include',
             headers: {
                 "Content-Type": "application/json",
-                ...(token && { Authorization: token })
-            }
+            },
+            body: JSON.stringify({ 
+                success_url: `${baseUrl}/payment-result?status=success`,
+                failure_url: `${baseUrl}/payment-result?status=failure`,
+                pending_url: `${baseUrl}/payment-result?status=pending`,
+                auto_return: "all" // ⭐ Redirige inmediatamente sin esperar
+            })
         });
+        
+        console.log('📡 Respuesta HTTP status:', response.status);
+        console.log('📡 Respuesta HTTP statusText:', response.statusText);
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Error del backend:', errorText);
+            console.error('❌ Error del backend (texto completo):', errorText);
+            
+            // Intentar parsear como JSON si es posible
+            try {
+                const errorJson = JSON.parse(errorText);
+                console.error('❌ Error del backend (JSON):', errorJson);
+            } catch {
+                console.error('❌ La respuesta de error no es JSON válido');
+            }
+            
             throw new Error(`Error al crear checkout: ${response.status} - ${errorText}`);
         }
         
         const result = await response.json();
-        console.log('✅ Respuesta del checkout:', result);
+        console.log('✅ Respuesta COMPLETA del checkout (cruda):', result);
+        console.log('✅ Tipo de respuesta:', typeof result);
+        console.log('✅ Keys de la respuesta:', Object.keys(result));
         
-        // Backend retorna { message: string, data: { preferenceId, initPoint, sandboxInitPoint } }
-        return result.data;
+        // Backend retorna el preference ID de MercadoPago
+        return result;
     } catch (error: any) {
-        console.error('Error en createCheckout:', error);
+        console.error('💥 Error COMPLETO en createCheckout:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            error: error
+        });
         throw error;
     }
 };

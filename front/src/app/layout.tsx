@@ -5,8 +5,11 @@ import Navbar from "./components/NavBar/NavBar";
 import { AuthProvider } from "../context/AuthContext";
 import Footer from "./components/Footer/Footer";
 import { CartProvider } from "../context/CartContext";
+import { ShippingProvider } from "../context/ShippingContext";
+import { MessagesProvider } from "../context/MessagesContext";
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from "react-toastify";
+import RequirePasswordChangeGuard from "./components/RequirePasswordChangeGuard.tsx/RequirePasswordChangeGuard";
 
 
 const geistSans = Geist({
@@ -34,25 +37,31 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CartProvider>
-          <AuthProvider>
-            <Navbar />
-            {children}
-            <Footer/>
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-            />
-          </AuthProvider>
-        </CartProvider>
+        <AuthProvider>
+          <RequirePasswordChangeGuard>
+            <CartProvider>
+              <ShippingProvider>
+                <MessagesProvider>
+                  <Navbar />
+                  {children}
+                  <Footer />
+                  <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="colored"
+                  />
+                </MessagesProvider>
+              </ShippingProvider>
+            </CartProvider>
+          </RequirePasswordChangeGuard>
+        </AuthProvider>
       </body>
     </html>
   );

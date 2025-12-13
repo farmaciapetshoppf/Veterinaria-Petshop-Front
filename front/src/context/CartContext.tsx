@@ -1,9 +1,12 @@
 "use client"
-import { createContext, useContext, useEffect, useState, } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { IProduct } from "../types";
 import { useAuth } from "./AuthContext";
 import { toast } from "react-toastify";
-import { addToCartBackend, removeFromCartBackend, clearCartBackend, getCart } from "../services/order.services";
+import { addToCartBackend, removeFromCartBackend, clearCartBackend, getCart, updateCartQuantity } from "../services/order.services";
+
+// Map global para rastrear operaciones en progreso (fuera del componente)
+const addToCartInProgress = new Map<string, Promise<void>>();
 
 interface CartContextProps {
     cartItems: IProduct[];
@@ -65,7 +68,7 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
         if (!userData?.user?.id) return;
 
         try {
-            const cartData = await getCart(String(userData.user.id), userData.token || '');
+            const cartData = await getCart(String(userData.user.id));
             // Backend retorna: { id, buyer, items: [{product, quantity, unitPrice}], total, status, expiresAt }
             // O null si no hay carrito activo o si expiró
             if (cartData === null) {
@@ -104,33 +107,66 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
     };
 
     const addToCart = async (product: IProduct) => {
-        const existingProduct = cartItems.some(item => item.id === product.id);
-        if (existingProduct) {
-            toast.error("El producto ya está en el carrito");
-            return;
+        // Verificar si ya hay una operación en progreso para este producto
+        const existingPromise = addToCartInProgress.get(String(product.id));
+        if (existingPromise) {
+            console.log('⏸️ Ya se está agregando este producto, esperando a que termine...');
+            return existingPromise; // Retornar la misma promesa en vez de crear otra
         }
-
-        // Si hay usuario autenticado, sincronizar con el backend
-        if (userData?.user?.id) {
+        
+        // Crear la promesa y guardarla en el Map
+        const addPromise = (async () => {
             try {
-                await addToCartBackend(
-                    String(userData.user.id),
-                    product.id,
-                    1, // Cantidad por defecto
-                    userData.token || ''
-                );
-                // Recargar el carrito desde el backend después de agregar
-                await loadCartFromBackend();
-                toast.success("El producto se agregó al carrito");
-            } catch (error) {
+                // Si hay usuario autenticado, sincronizar con el backend
+                if (userData?.user?.id) {
+                    // PRIMERO verificar si ya está en el carrito del backend
+                    const backendCart = await getCart(String(userData.user.id));
+                    const existsInBackend = backendCart?.items?.some((item: any) => item.product.id === product.id);
+                    
+                    if (existsInBackend) {
+                        console.log('⚠️ Producto ya existe en el carrito del backend');
+                        toast.error("El producto ya está en el carrito");
+                        return;
+                    }
+                    
+                    await addToCartBackend(
+                        String(userData.user.id),
+                        product.id,
+                        1, // Cantidad por defecto
+                        userData.token || ''
+                    );
+                    // Recargar el carrito desde el backend después de agregar
+                    await loadCartFromBackend();
+                    toast.success("El producto se agregó al carrito");
+                } else {
+                    // Si no hay usuario, verificar localStorage
+                    const existingProduct = cartItems.some(item => item.id === product.id);
+                    if (existingProduct) {
+                        toast.error("El producto ya está en el carrito");
+                        return;
+                    }
+                    
+                    // Solo guardar en localStorage
+                    setCartItems((prevItems) => [...prevItems, product]);
+                    toast.success("El producto se agregó al carrito");
+                }
+            } catch (error: any) {
                 console.error('Error al agregar al carrito:', error);
-                toast.error("No se pudo agregar el producto al carrito");
+                // Si el error es porque ya está en el carrito, no mostrar error
+                const errorMsg = error?.response?.data?.message || error?.message || '';
+                if (!errorMsg.toLowerCase().includes('already') && !errorMsg.toLowerCase().includes('ya está')) {
+                    toast.error("No se pudo agregar el producto al carrito");
+                }
+            } finally {
+                // Quitar del Map después de completar
+                setTimeout(() => {
+                    addToCartInProgress.delete(String(product.id));
+                }, 2000);
             }
-        } else {
-            // Si no hay usuario, solo guardar en localStorage
-            setCartItems((prevItems) => [...prevItems, product]);
-            toast.success("El producto se agregó al carrito");
-        }
+        })();
+        
+        addToCartInProgress.set(String(product.id), addPromise);
+        return addPromise;
     };
 
     const removeFromCart = async (productId: number | string) => {
@@ -205,11 +241,14 @@ export const CartProvider: React.FC<CartProvider> = ({ children }) => {
     const getTotal = (): number => {
         return cartItems.reduce((total, item) => {
             const price = Number(item.price);
+            const quantity = Number(item.quantity) || 1;
+            
             if (isNaN(price)) {
                 console.warn(`Producto ${item.name} (id: ${item.id}) tiene precio inválido:`, item.price);
                 return total;
             }
-            return total + price;
+            
+            return total + (price * quantity);
         }, 0);
     };
 

@@ -2,7 +2,6 @@
 
 import { ILoginProps, IRegister } from "@/src/types/index";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -32,9 +31,7 @@ export async function register(userData: IRegister) {
 }
 
 export async function login(userData: ILoginProps) {
-  try {  
-    console.log('🔵 Intentando login normal en:', `${APIURL}/auth/signin`);
-    console.log('📧 Email:', userData.email);
+  try {
     
     const response = await fetch(`${APIURL}/auth/signin`, {
       method: "POST",
@@ -45,7 +42,7 @@ export async function login(userData: ILoginProps) {
       body: JSON.stringify(userData),
     });
 
-    console.log('📡 Status del login normal:', response.status);
+    console.log('📡 Respuesta status:', response.status);
 
     if (!response.ok) {
       const error = await response.json();
@@ -55,13 +52,10 @@ export async function login(userData: ILoginProps) {
 
     toast.success("Se ha logueado con éxito");
     const result = await response.json();
-    console.log('✅ Login normal exitoso:', result);
-    console.log('🔑 Token recibido:', result.token ? 'SÍ' : 'NO');
     
     // Guardar el token en localStorage si viene en la respuesta
     if (result.token) {
       localStorage.setItem('authToken', result.token);
-      console.log('💾 Token guardado en localStorage');
     } else {
       console.warn('⚠️ WARNING: Backend no envió token en la respuesta');
     }
@@ -69,36 +63,6 @@ export async function login(userData: ILoginProps) {
     return result;
   } catch (error: any) {
     console.error('💥 Error capturado en login():', error.message);
-    throw error;
-  }
-}
-
-export async function loginVeterinarian(userData: ILoginProps) {
-  try {  
-    const response = await fetch(`${APIURL}/auth/signin`, {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Credenciales inválidas");
-    }
-
-    const result = await response.json();
-    console.log('🔍 RESPUESTA COMPLETA DEL BACKEND (loginVeterinarian):', JSON.stringify(result, null, 2));
-    
-    // Guardar el token en localStorage si viene en la respuesta
-    if (result.token) {
-      localStorage.setItem('authToken', result.token);
-    }
-    
-    return result;
-  } catch (error: any) {
     throw error;
   }
 }
@@ -136,9 +100,9 @@ export async function handleAuthCallback() {
       credentials: "include",
     });
 
-    if (!response.ok) {/* 
+    if (!response.ok) {
       const errorData = await response.json();
-      console.error("❌ Error de autenticación:", errorData); */
+      console.error("❌ Error de autenticación:", errorData);
       throw new Error("Error en la autenticación");
     }
     
@@ -207,7 +171,7 @@ export async function updateUserProfile(id:string, data: any) {
   if (data.city) formData.append("city", data.city);
 
   try {
-    const res = await fetch(`http://localhost:3000/users/${id}`, {
+    const res = await fetch(`${APIURL}/users/${id}`, {
       method: "PATCH",
       body: formData
     });

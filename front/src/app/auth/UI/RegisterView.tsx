@@ -45,8 +45,9 @@ function RegisterView() {
                 }}
             >
                 <p className="text-4xl md:text-5xl text-shadow-2xs
-       text-shadow-amber-600 font-extrabold
-        text-black mt-2 drop-shadow-md">
+       text-shadow-gray-600 font-extrabold
+        text-black mt-2 drop-shadow-md
+        bg-gray-400/50 rounded-2xl p-1 backdrop-blur-sm">
                     Crear una cuenta
                 </p>
 

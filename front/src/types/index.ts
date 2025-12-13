@@ -24,6 +24,61 @@ export interface IUser {
   profileImageUrl: string
 }
 
+export interface Veterinarian {
+    id: string
+    name: string
+    startHour?: number
+    endHour?: number
+    description: string
+    profileImageUrl: string
+}
+
+export interface Owner {
+    id: string
+    uid: string
+    name: string
+    email: string
+    user: string
+    phone: string
+    country: string
+    address: string
+    city: string
+    profileImageUrl: string
+    role: string
+    isDeleted: boolean
+    deletedAt: string | null
+}
+
+export interface Appointment {
+    id: string
+    date: string
+    time: string
+    status: boolean
+    veterinarian: {
+        id: string
+        name: string
+        profileImageUrl?: string
+    }
+}
+
+/* export interface Pet {
+    id: string
+    nombre: string
+    especie: string
+    sexo: string
+    tamano: string
+    esterilizado: string
+    status: string
+    fecha_nacimiento: string
+    fecha_fallecimiento: string | null
+    breed: string
+    image: string | null
+    owner: Owner
+    mother: Pet | null
+    father: Pet | null
+    appointments: Appointment[]
+} */
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -45,6 +100,29 @@ export interface OrderItem {
   productName: string
   quantity: number
   price: number
+}
+
+export interface IPetCreate {
+  nombre: string;
+  especie: "PERRO" | "GATO" | "AVE" | "ROEDOR" | "REPTIL" | "OTRO";
+  sexo: "MACHO" | "HEMBRA";
+  tamano: "PEQUENO" | "MEDIANO" | "GRANDE";
+  esterilizado: "SI" | "NO";
+  status: "VIVO" | "FALLECIDO";
+  fecha_nacimiento: string;
+  breed: string;
+}
+
+export interface IPetUpdate {
+  nombre: string;
+  especie: string;
+  sexo: string;
+  tamano: string;
+  esterilizado: string;
+  status: string;
+  fecha_nacimiento: string;
+  fecha_fallecimiento: string | null;
+  breed: string;
 }
 
 export interface IPet {
@@ -81,6 +159,7 @@ export interface IVeterinarian {
   phone: string;
   time: string;
   isActive: boolean;
+  profileImageUrl: string;
 }
 
 export interface ILoginProps{
@@ -106,6 +185,7 @@ export interface IProduct {
     price: number;
     stock: number;
     image: string | StaticImageData;
+    imgUrl?: string; // URL de la imagen desde el backend
     images?: (string | StaticImageData)[]; // Galería de imágenes adicionales
     categoryId?: number | string; // Puede ser número (mock) o string UUID (backend)
     quantity?: number; // Cantidad en el carrito (opcional)

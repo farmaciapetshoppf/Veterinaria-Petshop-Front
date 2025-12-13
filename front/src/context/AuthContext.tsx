@@ -1,23 +1,26 @@
 'use client'
 
-import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react"
-import { ILoginProps, IUserSession } from "../types";
+import { IUserSession } from "../types";
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const API = process.env.NEXT_PUBLIC_API_URL
 
 export interface IAuthContextProps {
     userData: IUserSession | null,
     setUserData: (userData: IUserSession | null) => void
     logout: () => void
     isLoading: boolean
+    activeTab: 'profile' | 'pets' | 'orders',
+    setActiveTab: (tab: 'profile' | 'pets' | 'orders') => void
 }
 
 export const AuthContext = createContext<IAuthContextProps>({
     userData: null,
     setUserData: () => { },
     logout: () => { },
-    isLoading: true
+    isLoading: true,
+    activeTab: 'profile',
+    setActiveTab: () => { }
 });
 
 interface AuthProviderProps {
@@ -27,42 +30,73 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [userData, setUserData] = useState<IUserSession | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const router = useRouter();
+    const [activeTab, setActiveTabState] = useState<'profile' | 'pets' | 'orders'>('profile')
+
+    useEffect(() => {
+        const savedTab = localStorage.getItem("activeTab") as 'profile' | 'pets' | 'orders' | null;
+        if (savedTab) {
+            setActiveTab(savedTab);
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("activeTab", activeTab);
+    }, [activeTab]);
+
+    const setActiveTab = (tab: 'profile' | 'pets' | 'orders') => {
+        setActiveTabState(tab);
+    };
 
     useEffect(() => {
         const checkSession = async () => {
-            
+
             try {
-                console.log('🔍 Verificando sesión con API:', `${API}/auth/me`);
-                
-                // Intentar obtener el token de localStorage
                 const token = localStorage.getItem('authToken') || '';
-                
+
                 const headers: HeadersInit = {
                     'Content-Type': 'application/json'
                 };
-                
-                // Si hay token, agregarlo al header
+
                 if (token) {
                     headers['Authorization'] = `Bearer ${token}`;
                     console.log('🔑 Enviando token en Authorization header');
                 }
-                
+
                 const res = await fetch(`${API}/auth/me`, {
                     credentials: "include",
                     headers: headers
                 });
 
                 if (!res.ok) {
-                    console.log('❌ No hay sesión activa (status:', res.status, ')');
+                    console.log('❌ No hay sesión activa desde API (status:', res.status, ')');
+
+                    // ⚠️ WORKAROUND TEMPORAL: Si hay token en localStorage, intentar mantener una sesión básica
+                    const storedToken = localStorage.getItem('authToken');
+                    const storedUser = localStorage.getItem('userData');
+
+                    if (storedToken && storedUser) {
+                        console.warn('⚠️ Token expirado pero recuperando sesión desde localStorage');
+                        try {
+                            const parsedUser = JSON.parse(storedUser);
+                            setUserData({
+                                user: parsedUser,
+                                token: storedToken
+                            });
+                            console.log('✅ Sesión recuperada desde localStorage');
+                            return;
+                        } catch (e) {
+                            console.error('Error al parsear userData desde localStorage');
+                        }
+                    }
+
                     setUserData(null);
-                    localStorage.removeItem('authToken');
+                    // localStorage.removeItem('authToken'); // Comentado para debugging
+                    console.warn('⚠️ El backend debe extender la expiración del token JWT.');
                     return;
                 }
 
                 const user = await res.json();
-                console.log('✅ Sesión activa encontrada:', user.email);
-                
+
                 const formattedUser: IUserSession = {
                     user: {
                         id: user.id,
@@ -83,7 +117,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     },
                     token: token
                 };
-                
+
+                // Guardar datos del usuario en localStorage para recuperación
+                localStorage.setItem('userData', JSON.stringify(formattedUser.user));
+
                 setUserData(formattedUser);
             } catch (err) {
                 setUserData(null);
@@ -92,12 +129,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
         };
 
-        checkSession();      
+        checkSession();
     }, []);
 
     // Log para debug cuando userData cambia
     useEffect(() => {
-        console.log("🔄 userData cambió a:", userData);      
+        console.log("🔄 userData cambió a:", userData);
     }, [userData]);
 
     const logout = async () => {
@@ -108,15 +145,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
         } catch (err) {
         } finally {
-            // Limpiar el token de localStorage
             localStorage.removeItem('authToken');
             setUserData(null);
-            router.push("/");
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('requirePasswordChange');
+            document.cookie = "role=; path=/; max-age=0";
+            document.cookie = "requirePasswordChange=; path=/; max-age=0";
+            window.location.href = "/"
         }
     };
 
     return (
-        <AuthContext.Provider value={{ userData, setUserData, logout, isLoading }}>
+        <AuthContext.Provider value={{ userData, setUserData, logout, isLoading, activeTab, setActiveTab }}>
             {isLoading ? (
                 <div className="flex items-center justify-center min-h-screen">
                     <div className="text-center">

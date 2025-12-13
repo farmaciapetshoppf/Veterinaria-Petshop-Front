@@ -1,4 +1,5 @@
 'use client'
+import { IPetUpdate } from '@/src/types'
 import { useState } from 'react'
 import Select from 'react-select'
 
@@ -35,14 +36,14 @@ const statusOptions = [
 interface Props {
     open: boolean
     onClose: () => void
-    pet: NewPetData
-    onSave: (updatedData: NewPetData) => Promise<void>
+    pet: IPetUpdate
+    onSave: (updatedData: IPetUpdate) => Promise<void>
 }
 
 export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
     const inputStyle = "w-full border border-cyan-700 p-2 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
 
-    const [form, setForm] = useState<NewPetData>({
+    const [form, setForm] = useState<IPetUpdate>({
         nombre: pet?.nombre ?? '',
         especie: pet?.especie ?? 'PERRO',
         sexo: pet?.sexo ?? 'MACHO',
@@ -50,8 +51,8 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
         esterilizado: pet?.esterilizado ?? 'SI',
         status: pet?.status ?? 'VIVO',
         fecha_nacimiento: pet?.fecha_nacimiento ?? '',
-        fecha_fallecimiento: pet?.fecha_fallecimiento ,
-        breed: pet?.breed ?? '',
+        fecha_fallecimiento: pet?.fecha_fallecimiento ?? null,
+        breed: pet?.breed ?? ''
     });
 
     if (!open) return null;
@@ -102,6 +103,7 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                         <div className='w-full pr-1'>
                             <label className="text-sm font-medium text-gray-700 mt-1">Especie</label>
                             <Select
+                                styles={customStyles}
                                 options={especieOptions}
                                 value={especieOptions.find(opt => opt.value === form.especie)}
                                 onChange={(selected) => {
@@ -109,7 +111,6 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                                         setForm({ ...form, especie: selected.value })
                                     }
                                 }}
-                                styles={customStyles}
                                 className="react-select-container"
                                 classNamePrefix="react-select"
                                 placeholder="Seleccionar especie"
@@ -195,7 +196,7 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                     <input
                         type="date"
                         name="fecha_fallecimiento"
-                        value={form.fecha_fallecimiento}
+                        value={form.fecha_fallecimiento || ""}
                         onChange={handleChange}
                         className={inputStyle}
                     />
@@ -211,13 +212,13 @@ export default function EditPetModal({ open, onClose, pet, onSave }: Props) {
                 </div>
 
                 <div className="flex justify-evenly mt-2">
-                    <button onClick={onClose} 
-                    className="px-4 py-2 bg-gray-200 rounded cursor-pointer
+                    <button onClick={onClose}
+                        className="px-4 py-2 bg-gray-200 rounded cursor-pointer
                     hover:bg-orange-300 hover:border hover:border-orange-400">
                         Cancelar</button>
 
-                    <button onClick={handleSubmit} 
-                    className="px-4 py-2 bg-cyan-700 cursor-pointer text-white rounded
+                    <button onClick={handleSubmit}
+                        className="px-4 py-2 bg-cyan-700 cursor-pointer text-white rounded
                     hover:bg-cyan-900 hover:border hover:border-cyan-950">
                         Guardar</button>
                 </div>

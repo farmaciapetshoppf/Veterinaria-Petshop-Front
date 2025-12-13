@@ -26,7 +26,7 @@ export default function MercadoPagoWallet({ preferenceId }: MercadoPagoWalletPro
     script.src = 'https://sdk.mercadopago.com/js/v2';
     script.async = true;
     script.onload = () => {
-      console.log('ƒo. SDK de MercadoPago cargado');
+      console.log('SDK de MercadoPago cargado');
       initializeBrick();
     };
     document.body.appendChild(script);
@@ -47,13 +47,13 @@ export default function MercadoPagoWallet({ preferenceId }: MercadoPagoWalletPro
     
     if (!publicKey) {
       console.error(
-        'ƒ?O Falta NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY (o NEXT_PUBLIC_MP_PUBLIC_KEY) en las variables de entorno'
+        'Falta NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY en las variables de entorno'
       );
       return;
     }
 
     if (typeof window.MercadoPago === 'undefined') {
-      console.error('ƒ?O MercadoPago SDK no está disponible');
+      console.error('MercadoPago SDK no esta disponible');
       return;
     }
 
@@ -64,12 +64,12 @@ export default function MercadoPagoWallet({ preferenceId }: MercadoPagoWalletPro
 
       const bricksBuilder = mp.bricks();
 
-      console.log('ÐYõñ Creando Wallet Brick con preferenceId:', preferenceId);
+      console.log('Creando Wallet Brick con preferenceId:', preferenceId);
 
       bricksBuilder.create('wallet', 'wallet_container', {
         initialization: {
           preferenceId: preferenceId,
-          redirectMode: 'blank' // Abrir en nueva ventana
+          redirectMode: 'self'
         },
         customization: {
           texts: {
@@ -78,18 +78,18 @@ export default function MercadoPagoWallet({ preferenceId }: MercadoPagoWalletPro
         },
         callbacks: {
           onReady: () => {
-            console.log('ƒo. Wallet Brick listo');
+            console.log('Wallet Brick listo');
           },
           onSubmit: () => {
-            console.log('ÐYs? Procesando pago...');
+            console.log('Procesando pago...');
           },
           onError: (error: any) => {
-            console.error('ƒ?O Error en Wallet Brick:', error);
+            console.error('Error en Wallet Brick:', error);
           },
         },
       });
     } catch (error) {
-      console.error('ƒ?O Error al inicializar MercadoPago Brick:', error);
+      console.error('Error al inicializar MercadoPago Brick:', error);
     }
   };
 

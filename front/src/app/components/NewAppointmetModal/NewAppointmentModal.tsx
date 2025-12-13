@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Select from 'react-select'
 import { toast } from 'react-toastify'
 import avatar from "@/src/assets/avatar.jpg"
+import { Veterinarian } from '@/src/types'
 
 interface Props {
     open: boolean
@@ -11,15 +12,6 @@ interface Props {
     userId: string
     petId: string
     onSuccess: (newAppointment: any) => void
-}
-
-interface Veterinarian {
-    id: string
-    name: string
-    startHour?: number
-    endHour?: number
-    description: string
-    profileImageUrl: string
 }
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL
@@ -34,6 +26,10 @@ const generateTimeSlots = (startHour: number, endHour: number) => {
     return slots
 }
 
+const tomorrow = new Date()
+tomorrow.setDate(tomorrow.getDate() + 1)
+const minDate = tomorrow.toISOString().split('T')[0]
+
 export default function NewAppointmentModal({ open, onClose, userId, petId, onSuccess }: Props) {
     const inputStyle =
         "w-full border border-cyan-700 p-2 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -47,6 +43,18 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
         time: '',
         detail: '',
     })
+
+    useEffect(() => {
+        if (open) {
+            setForm({
+                veterinarianId: '',
+                date: '',
+                time: '',
+                detail: '',
+            })
+            setAppointments([])
+        }
+    }, [open])
 
     useEffect(() => {
         const fetchVeterinarians = async () => {
@@ -113,12 +121,17 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
             return
         }
 
+        // Asegurar que el tiempo esté en formato HH:mm:ss
+        const timeWithSeconds = form.time.includes(':') && form.time.split(':').length === 2 
+            ? `${form.time}:00` 
+            : form.time;
+
         const payload = {
             userId,
             petId,
             veterinarianId: form.veterinarianId,
             date: form.date,
-            time: form.time,
+            time: timeWithSeconds,
             detail: form.detail,
             status: true,
         }
@@ -131,18 +144,17 @@ export default function NewAppointmentModal({ open, onClose, userId, petId, onSu
                 body: JSON.stringify(payload),
             })
 
-            if (!res.ok) throw new Error('Error al agendar el turno')
-            const { data: createdAppointment } = await res.json()
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || 'Error al agendar el turno');
+            }
 
-           /*  toast.success('Turno agendado correctamente') */
-            onSuccess(createdAppointment)
-
-            // 🔹 Refrescar horarios ocupados inmediatamente
-            await fetchAppointments()
-
-            onClose()
+            toast.success('Turno agendado correctamente');
+            onSuccess();
+            onClose();
         } catch (err: any) {
-            toast.error(err.message)
+            console.error('❌ Error al crear turno:', err);
+            toast.error(err.message);
         }
     }
 
@@ -163,21 +175,6 @@ return (
             <div className="flex flex-col gap-3">
 
                 <label className="text-sm font-medium text-gray-700">Veterinario</label>
-                {/* <Select
-            options={veterinarians.map(v => ({ value: v.id, label: v.name }))}
-            value={
-              veterinarians.find(v => v.id === form.veterinarianId)
-                ? { value: form.veterinarianId, label: veterinarians.find(v => v.id === form.veterinarianId)?.name }
-                : null
-            }
-            onChange={(selected) => {
-              if (selected) setForm({ ...form, veterinarianId: selected.value })
-            }}
-            styles={customStyles}
-            className="react-select-container"
-            classNamePrefix="react-select"
-            placeholder="Seleccionar veterinario"
-          /> */}
 
                 <Select
                     options={veterinarians.map(v => ({ value: v.id, label: v.name }))}
@@ -197,7 +194,7 @@ return (
 
                 {/* Tarjeta del veterinario */}
                 {selectedVet && (
-                    <div className="flex items-center gap-4 mt-4 p-3 bg-cyan-700 rounded-lg shadow-md">
+                    <div className="flex items-center gap-4 mt-4 p-3 bg-orange-300 border border-cyan-700 rounded-lg shadow-md">
                         <Image
                             width={20} height={20}
                             src={selectedVet.profileImageUrl || avatar}
@@ -205,8 +202,8 @@ return (
                             className="w-12 h-12 rounded-full object-cover "
                         />
                         <div>
-                            <p className="text-sm font-semibold text-gray-900">{selectedVet.name}</p>
-                            <p className="text-xs text-gray-600">{selectedVet.description || 'Sin especialidad'}</p>
+                            <p className="text-md font-semibold text-gray-900">{selectedVet.name}</p>
+                            <p className="text-sm text-gray-600">{selectedVet.description || 'Sin especialidad'}</p>
                         </div>
                     </div>
                 )}
@@ -216,7 +213,7 @@ return (
                     type="date"
                     name="date"
                     value={form.date}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={minDate}
                     onChange={(e) => setForm({ ...form, date: e.target.value })}
                     className={inputStyle}
                 />

@@ -44,14 +44,25 @@ function LoginView() {
                 <Image src={dogCat} alt="dogCat" width={800} height={800} className='rounded-2xl' />
             </div>
 
-            <div className='flex flex-col ms-10 items-center rounded-2xl
-            justify-center p-4 border'
-                style={{ background: `url(${background.src})` }}>
+            <div className="flex flex-col ms-10 items-center rounded-3xl md:mr-10 my-3
+                    justify-center p-4 bg-white/80 backdrop-blur-sm shadow-lg"
+                style={{
+                    backgroundImage: `url(${background.src})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    filter: "brightness(0.9)",
+                }}>
 
-                <p className='text-5xl mt-4 text-black'>Ingresá</p>
+                <p className="text-4xl md:text-5xl text-shadow-2xs
+       text-shadow-gray-600 font-extrabold
+        text-black mt-2 drop-shadow-md
+         bg-gray-400/50 rounded-2xl p-1 backdrop-blur-sm">Ingresá</p>
 
-                <p className='text-black mt-4'>¿No tienes cuenta?
-                    <Link href="/auth/register" className='text-blue-500 cursor-pointer'> ¡Registrate!</Link>
+                <p className="border-2 border-cyan-700 p-2 mt-2
+                rounded-3xl bg-white  text-lg font-medium">¿No tienes cuenta?
+                    <Link href="/auth/register" 
+                    className="text-blue-600 font-semibold hover:underline ml-2">
+                        ¡Registrate!</Link>
                 </p>
 
                 <Formik
@@ -60,67 +71,53 @@ function LoginView() {
                     validateOnMount={true}
                     onSubmit={async (values) => {
                         try {
-                            console.log('🚀 Iniciando proceso de login...');
-                            
-                            // Un solo intento - el backend decide si es usuario o veterinario
                             const response = await login(values);
-                            console.log('✅ Login exitoso');
-                            console.log('📦 Respuesta completa:', response);
-                            console.log('🎭 Rol recibido:', response.role);
-                            console.log('🔄 RequirePasswordChange:', response.requirePasswordChange);
                             
-                            // Obtener el token de localStorage (se guardó en el servicio login)
                             const token = localStorage.getItem('authToken') || '';
-                            console.log('🔑 Token desde localStorage:', token ? token.substring(0, 30) + '...' : 'NO HAY TOKEN');
 
                             const formatted: IUserSession = {
                                 token: token,
                                 user: {
                                     id: response.id || '',
-                                    uid: response.uid || response.id || '',
-                                    name: response.name || '',
+                                    uid: response.uid,
+                                    name: response.name,
                                     email: response.email || '',
-                                    user: response.user || response.email || '',
-                                    phone: response.phone || '',
+                                    user: response.user || '',
+                                    phone: response.phone,
                                     country: response.country || '',
                                     address: response.address || '',
                                     city: response.city || '',
-                                    role: response.role || 'user',
+                                    role: response.role,
                                     isDeleted: response.isDeleted || false,
                                     deletedAt: response.deletedAt || null,
                                     pets: response.pets || [],
-                                    requirePasswordChange: response.requirePasswordChange
+                                    requirePasswordChange: response.requirePasswordChange,
+                                    buyerSaleOrders: response.buyerSaleOrders || [],
+                                    profileImageUrl: response.profileImageUrl || ''
                                 }
                             };
 
-                            console.log('✅ Usuario formateado:', formatted);
-                            console.log('✅ Rol en usuario formateado:', formatted.user.role);
-                            
                             // IMPORTANTE: Guardar el usuario en el contexto
                             setUserData(formatted);
                             
+                            // Guardar datos del usuario en localStorage para recuperación
+                            localStorage.setItem('userData', JSON.stringify(formatted.user));
+                            localStorage.setItem('requirePasswordChange', response.requirePasswordChange ? 'true' : 'false');
+                            document.cookie = `role=${response.role}; path=/`;
+
+                            
                             // Delay para que React actualice el estado
                             await new Promise(resolve => setTimeout(resolve, 200));
-                            
-                            console.log('🔍 VERIFICANDO REDIRECCIÓN:');
-                            console.log('   - response.role:', response.role);
-                            console.log('   - response.requirePasswordChange:', response.requirePasswordChange);
-                            console.log('   - ¿Es veterinario?:', response.role === 'veterinarian');
-                            console.log('   - ¿Requiere cambio?:', response.requirePasswordChange === true);
-                            
+
                             // Si es veterinario con contraseña temporal, redirigir a cambiar contraseña
                             if (response.role === 'veterinarian' && response.requirePasswordChange) {
-                                console.log('🔐 ✅ Redirigiendo a cambio de contraseña...');
                                 router.push('/change-password');
                             } else {
-                                console.log('🏠 Redirigiendo a home...');
-                                console.log('   - Razón: rol=' + response.role + ', requirePasswordChange=' + response.requirePasswordChange);
                                 router.push('/');
                             }
 
                         } catch (error: any) {
-                            console.error('❌ Error en login:', error);
-                            alert("Error al iniciar sesión: " + (error.message || "Credenciales inválidas"));
+                            throw error
                         }
                     }}
                 >
@@ -168,6 +165,6 @@ function LoginView() {
             </div>
         </div>
     )
-} */
 }
+
 export default LoginView

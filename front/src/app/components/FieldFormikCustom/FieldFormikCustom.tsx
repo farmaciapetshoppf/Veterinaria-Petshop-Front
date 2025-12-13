@@ -15,11 +15,14 @@ const FieldFormikCustom: React.FC<FieldCustomProps> = ({ label, nameField, type,
       {/* Placeholder e Imput */}
       <div className='flex flex-col w-full mt-2'>
 
-        <label className='font-bold ml-2 flex self-start'>{label}</label>
+        <label className='font-bold ml-2 flex self-start
+        bg-white rounded-2xl p-1 backdrop-blur-sm
+        '>{label}</label>
 
         <Field
           className="border-2 focus:ring-2 focus:ring-orange-400
-           focus:border-orange-400 rounded-2xl p-2 bg-white"
+           focus:border-orange-400 rounded-2xl p-2 bg-white
+           "
           name={nameField}
           type={type}
           placeholder={placeholder}

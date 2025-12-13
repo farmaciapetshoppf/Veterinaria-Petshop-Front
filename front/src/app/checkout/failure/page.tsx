@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function CheckoutFailure() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [paymentInfo, setPaymentInfo] = useState<any>(null);
 
@@ -18,7 +19,7 @@ export default function CheckoutFailure() {
       status,
       statusDetail
     });
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center p-4">
@@ -82,6 +83,13 @@ export default function CheckoutFailure() {
 
         {/* Acciones */}
         <div className="space-y-3">
+          <button
+            onClick={() => router.push('/dashboard?payment=failure')}
+            className="block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-4 rounded-lg text-center transition-colors shadow-lg text-lg"
+          >
+            ❌ Ir a Mi Dashboard
+          </button>
+          
           <Link
             href="/cart"
             className="block w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-4 rounded-lg text-center transition-colors"
