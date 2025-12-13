@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
+import { useShipping } from "@/src/context/ShippingContext";
 import MercadoPagoWallet from "../components/MercadoPagoWallet/MercadoPagoWallet";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -12,8 +13,13 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, getTotal, clearCart } = useCart();
   const { userData } = useAuth();
+  const { shippingData, setShippingData } = useShipping();
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
+  const [showShippingForm, setShowShippingForm] = useState(true);
+  
+  // Estado local para el formulario
+  const [localShippingData, setLocalShippingData] = useState(shippingData);
 
   useEffect(() => {
     // Redirigir si no hay usuario o carrito vacío
@@ -29,9 +35,11 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Crear el checkout automáticamente al cargar la página
-    initCheckout();
-  }, [userData, cartItems]);
+    // Cargar datos guardados del contexto
+    setLocalShippingData(shippingData);
+
+    // NO crear el checkout automáticamente, esperar a que se complete el formulario de envío
+  }, [userData, cartItems, shippingData]);
 
   const initCheckout = async () => {
     if (!userData || cartItems.length === 0 || isLoadingCheckout) return;
@@ -99,6 +107,33 @@ export default function CheckoutPage() {
     });
   };
 
+  const handleShippingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validar que al menos el código postal esté lleno
+    if (!localShippingData.postalCode?.trim()) {
+      toast.error('Debes ingresar un código postal');
+      return;
+    }
+
+    // Guardar en el contexto global
+    setShippingData(localShippingData);
+    console.log('📍 Datos de envío guardados:', localShippingData);
+    setShowShippingForm(false);
+    
+    // Crear el checkout después de completar el formulario
+    initCheckout();
+    
+    toast.success('Datos de envío guardados');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setLocalShippingData({
+      ...localShippingData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   if (!userData || cartItems.length === 0) {
     return null;
   }
@@ -151,15 +186,137 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        {/* Formulario de datos de envío */}
+        {showShippingForm && (
+          <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-blue-200 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+              </svg>
+              Datos de envío
+            </h2>
+
+            <form onSubmit={handleShippingSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Código Postal */}
+                <div>
+                  <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-2">
+                    Código Postal <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="postalCode"
+                    name="postalCode"
+                    value={localShippingData.postalCode || ""}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 1234"
+                    required
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  />
+                </div>
+
+                {/* Ciudad */}
+                <div>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                    Ciudad
+                  </label>
+                  <input
+                    type="text"
+                    id="city"
+                    name="city"
+                    value={localShippingData.city || ""}
+                    onChange={handleInputChange}
+                    placeholder="Ej: Buenos Aires"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  />
+                </div>
+              </div>
+
+              {/* Dirección completa */}
+              <div>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+                  Dirección completa
+                  <span className="text-gray-500 text-xs ml-2">(Calle, número, piso, depto)</span>
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  value={localShippingData.address || ""}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Av. Corrientes 1234, Piso 5, Depto B"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Provincia */}
+                <div>
+                  <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-2">
+                    Provincia/Estado
+                  </label>
+                  <input
+                    type="text"
+                    id="province"
+                    name="province"
+                    value={localShippingData.province || ""}
+                    onChange={handleInputChange}
+                    placeholder="Ej: Buenos Aires"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  />
+                </div>
+
+                {/* Información adicional */}
+                <div>
+                  <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700 mb-2">
+                    Información adicional
+                  </label>
+                  <input
+                    type="text"
+                    id="additionalInfo"
+                    name="additionalInfo"
+                    value={localShippingData.additionalInfo || ""}
+                    onChange={handleInputChange}
+                    placeholder="Ej: Timbre, referencias"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  />
+                </div>
+              </div>
+
+              {/* Nota informativa */}
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <div className="flex">
+                  <svg className="h-5 w-5 text-blue-500 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm text-blue-700">
+                    <span className="font-semibold">Nota:</span> Actualmente solo necesitamos el código postal. En el futuro podrás seleccionar la sucursal más cercana en un mapa.
+                  </p>
+                </div>
+              </div>
+
+              {/* Botón continuar */}
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg"
+              >
+                Continuar al pago
+              </button>
+            </form>
+          </div>
+        )}
+
         {/* Formulario de pago */}
-        <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-orange-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-600" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
-            </svg>
-            Método de pago
-          </h2>
+        {!showShippingForm && (
+          <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-orange-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-600" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+              </svg>
+              Método de pago
+            </h2>
 
           {isLoadingCheckout && (
             <div className="flex flex-col items-center justify-center py-12">
@@ -183,7 +340,8 @@ export default function CheckoutPage() {
           {preferenceId && (
             <MercadoPagoWallet preferenceId={preferenceId} />
           )}
-        </div>
+          </div>
+        )}
 
         {/* Botón volver */}
         <div className="mt-8 text-center">

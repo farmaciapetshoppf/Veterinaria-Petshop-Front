@@ -10,6 +10,7 @@ import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { PATHROUTES } from "../../helpers/pathRoutes";
 import { useRole } from "@/src/hooks/useRole";
+import MessagesButton from "../MessagesButton/MessagesButton";
 import ConfirmModal from "../ConfirmCancel/ConfirmModal";
 
 export default function Navbar() {
@@ -114,6 +115,9 @@ export default function Navbar() {
 
         {/* Botón Cerrar Sesión y Carrito - Desktop */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
+          {/* Botón de mensajes */}
+          <MessagesButton />
+          
           {userData && userData.user ? (
             <div>
               <button

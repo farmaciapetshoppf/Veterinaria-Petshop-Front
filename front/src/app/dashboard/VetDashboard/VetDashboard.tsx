@@ -181,13 +181,13 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
   };
 
   const handleSubmitMedicalRecord = async (medicalData: MedicalRecordData) => {
-    if (!selectedAppointment) return;
+    if (!selectedAppointment || !userData?.user?.id) return;
 
     const token = localStorage.getItem('authToken') || '';
     
     const recordData = {
       petId: selectedAppointment.petId || '',
-      appointmentId: selectedAppointment.id,
+      veterinarianId: userData.user.id,
       diagnosis: medicalData.diagnosis,
       treatment: medicalData.treatment,
       medications: medicalData.medications,
@@ -197,6 +197,8 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
       weight: medicalData.weight,
       temperature: medicalData.temperature,
     };
+    
+    console.log('📝 Guardando registro para appointment:', selectedAppointment.id);
 
     const success = await addMedicalRecord(recordData, token);
     
@@ -209,6 +211,10 @@ export default function VetDashboard({ veterinarian }: VetDashboardProps) {
             : apt
         )
       );
+      
+      // Cerrar el modal
+      setIsModalOpen(false);
+      setSelectedAppointment(null);
     }
   };
 
